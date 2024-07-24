@@ -8,18 +8,25 @@ bl_info = {
 }
 
 import bpy
-from .operators import RenderOperator
+from .operators import *
 from .panels import *
 from .properties import *
 
 NUM_MASK_LAYER = 7
 
 classes = [
-    RenderOperator,
     MainPanel,
-    ObjectProperties,
-    MaskProperties,
-    RenderProperties,
+    GlobalPanel,
+    ObjectPanel,
+    GlobalProperties,
+    MaskProperties1,
+    MaskProperties2,
+    MaskProperties3,
+    MaskProperties4,
+    MaskProperties5,
+    MaskProperties6,
+    MaskProperties7,
+    RenderOperator,
 ]
 
 # Create a mask panel for each mask layer
@@ -33,16 +40,15 @@ def register():
         bpy.utils.register_class(cls)
     bpy.utils.register_class(RenderPanel)
 
+    bpy.types.Scene.global_properties = bpy.props.PointerProperty(type=GlobalProperties)
     # TODO: Is there an alternative to adding each mask property one by one?
-    bpy.types.Scene.object_properties = bpy.props.PointerProperty(type=ObjectProperties)
-    bpy.types.Scene.mask_properties1 = bpy.props.PointerProperty(type=MaskProperties)
-    bpy.types.Scene.mask_properties2 = bpy.props.PointerProperty(type=MaskProperties)
-    bpy.types.Scene.mask_properties3 = bpy.props.PointerProperty(type=MaskProperties)
-    bpy.types.Scene.mask_properties4 = bpy.props.PointerProperty(type=MaskProperties)
-    bpy.types.Scene.mask_properties5 = bpy.props.PointerProperty(type=MaskProperties)
-    bpy.types.Scene.mask_properties6 = bpy.props.PointerProperty(type=MaskProperties)
-    bpy.types.Scene.mask_properties7 = bpy.props.PointerProperty(type=MaskProperties)
-    bpy.types.Scene.render_properties = bpy.props.PointerProperty(type=RenderProperties)
+    bpy.types.Scene.mask_properties1 = bpy.props.PointerProperty(type=MaskProperties1)
+    bpy.types.Scene.mask_properties2 = bpy.props.PointerProperty(type=MaskProperties2)
+    bpy.types.Scene.mask_properties3 = bpy.props.PointerProperty(type=MaskProperties3)
+    bpy.types.Scene.mask_properties4 = bpy.props.PointerProperty(type=MaskProperties4)
+    bpy.types.Scene.mask_properties5 = bpy.props.PointerProperty(type=MaskProperties5)
+    bpy.types.Scene.mask_properties6 = bpy.props.PointerProperty(type=MaskProperties6)
+    bpy.types.Scene.mask_properties7 = bpy.props.PointerProperty(type=MaskProperties7)
 
 
 def unregister():
@@ -50,7 +56,7 @@ def unregister():
         bpy.utils.unregister_class(cls)
     bpy.utils.unregister_class(RenderPanel)
 
-    del bpy.types.Scene.object_properties
+    del bpy.types.Scene.global_properties
     del bpy.types.Scene.mask_properties1
     del bpy.types.Scene.mask_properties2
     del bpy.types.Scene.mask_properties3
@@ -58,7 +64,6 @@ def unregister():
     del bpy.types.Scene.mask_properties5
     del bpy.types.Scene.mask_properties6
     del bpy.types.Scene.mask_properties7
-    del bpy.types.Scene.render_properties
 
 
 if __name__ == "__main__":

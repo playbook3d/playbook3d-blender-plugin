@@ -7,39 +7,93 @@ class PlaybookPanel(bpy.types.Panel):
     bl_context = "render"
 
 
-# The panel that shows the global render settings
+#
 class MainPanel(PlaybookPanel, bpy.types.Panel):
     bl_label = "Playbook"
     bl_idname = "SCENE_PT_playbook"
 
     def draw(self, context):
         layout = self.layout
+
+        layout.label(text="Learn more about the Playbook plugin here.")
+
+
+class GlobalPanel(PlaybookPanel, bpy.types.Panel):
+    bl_label = "Global"
+    bl_idname = "SCENE_PT_global"
+    bl_parent_id = "SCENE_PT_playbook"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    def draw(self, context):
+        layout = self.layout
         scene = context.scene
 
-        # RENDER SETTINGS
-        layout.label(text="Render Settings")
+        box = layout.box()
 
         # Prompt
-        prompt_row = layout.split(factor=0.3)
-        prompt_row.alignment = "RIGHT"
-        prompt_row.label(text="Prompt")
-        prompt_row.prop(scene.render_properties, "global_prompt")
+        box.label(text="Prompt")
+        box.prop(scene.global_properties, "global_prompt")
+
+        # Style
+        style_row = box.split(factor=0.2)
+        style_row.label(text="Style")
+        style_row.prop(scene.global_properties, "global_style")
 
         # Structure Strength
-        strength_row = layout.split(factor=0.3)
-        strength_row.alignment = "RIGHT"
-        strength_row.label(text="Structure Strength")
-        strength_row.prop(
-            scene.render_properties, "global_structure_strength", slider=True
-        )
+        box.label(text="Structure Strength")
+        box.prop(scene.global_properties, "global_structure_strength", slider=True)
+
+
+# The panel that shows the object render settings
+class ObjectPanel(PlaybookPanel, bpy.types.Panel):
+    bl_label = "Object"
+    bl_idname = "SCENE_PT_object"
+    bl_parent_id = "SCENE_PT_playbook"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.label(text="Specify an object from the scene to guide the render.")
+
+
+# class MaskPanel(PlaybookPanel, bpy.types.Panel):
+#     bl_label = "Mask 1"
+#     bl_idname = "SCENE_PT_maskpanel1"
+#     bl_parent_id = "SCENE_PT_object"
+#     bl_options = {"DEFAULT_CLOSED"}
+
+#     def draw(self, context):
+#         layout = self.layout
+#         scene = context.scene
+
+#         # Prompt
+#         mask_prompt_row = layout.split(factor=0.3)
+#         mask_prompt_row.alignment = "RIGHT"
+#         mask_prompt_row.label(text="Prompt")
+#         mask_prompt_row.prop(scene.mask1_properties, "mask_prompt")
+
+#         # Structure Strength
+#         mask_strength_row = layout.split(factor=0.3)
+#         mask_strength_row.alignment = "RIGHT"
+#         mask_strength_row.label(text="Structure Strength")
+#         mask_strength_row.prop(
+#             scene.mask1_properties, "mask_structure_strength", slider=True
+#         )
+
+#         # Object Dropdown
+#         object_dropdown_row = layout.split(factor=0.3)
+#         object_dropdown_row.alignment = "RIGHT"
+#         object_dropdown_row.label(text="Object Dropdown")
+#         object_dropdown_row.prop(scene.mask1_properties, "object_dropdown")
 
 
 # Creates and returns a panel for the mask layer for the given index
 def create_mask_panel(index):
     class MaskPanel(PlaybookPanel, bpy.types.Panel):
+        bl_label = f"Mask {index + 1}"
         bl_idname = f"SCENE_PT_maskpanel{index}"
-        bl_parent_id = "SCENE_PT_playbook"
-        bl_label = f"Mask Layer {index + 1}"
+        bl_parent_id = "SCENE_PT_object"
         bl_options = {"DEFAULT_CLOSED"}
 
         def draw(self, context):
@@ -55,31 +109,22 @@ def create_mask_panel(index):
                 scene.mask_properties7,
             ]
 
+            # Mask Object
+            layout.label(text="Mask Object")
+            layout.prop(mask_property_index[index], "object_dropdown")
+
             # Prompt
-            mask_prompt_row = layout.split(factor=0.3)
-            mask_prompt_row.alignment = "RIGHT"
-            mask_prompt_row.label(text="Prompt")
-            mask_prompt_row.prop(mask_property_index[index], "mask_prompt")
+            layout.label(text="Prompt")
+            layout.prop(mask_property_index[index], "mask_prompt")
 
-            # Structure Strength
-            mask_strength_row = layout.split(factor=0.3)
-            mask_strength_row.alignment = "RIGHT"
-            mask_strength_row.label(text="Structure Strength")
-            mask_strength_row.prop(
-                mask_property_index[index], "mask_structure_strength", slider=True
-            )
+            # Style
+            style_row = layout.split(factor=0.2)
+            style_row.label(text="Style")
+            style_row.prop(mask_property_index[index], "mask_style", slider=True)
 
-            # Object Dropdown
-            list_row = layout.split(factor=0.3)
-            list_row.alignment = "RIGHT"
-            list_row.label(text="Object Dropdown")
-            list_row.prop(mask_property_index[index], "object_dropdown")
-
-            # Mask Layer Object List
-            object_row = layout.split(factor=0.3)
-            object_row.alignment = "RIGHT"
-            object_row.label(text="Mask Objects")
-            object_row.prop(mask_property_index[index], "object_list")
+            # Isolate
+            layout.label(text="Isolate")
+            layout.prop(mask_property_index[index], "mask_isolate", slider=True)
 
     return MaskPanel
 
@@ -95,7 +140,4 @@ class RenderPanel(PlaybookPanel, bpy.types.Panel):
         layout = self.layout
 
         layout.separator()
-
-        render_row = layout.row()
-        render_row.scale_y = 1.5
-        render_row.operator("object.render_image")
+        layout.operator("object.render_image")

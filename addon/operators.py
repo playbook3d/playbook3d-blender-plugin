@@ -7,5 +7,5 @@ class RenderOperator(bpy.types.Operator):
     bl_label = "Render"
 
     def execute(self, context):
-        render_image(context)
+        render_image()
         return {"FINISHED"}

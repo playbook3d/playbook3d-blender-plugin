@@ -4,22 +4,27 @@ original_settings = {}
 
 
 # Save the current color management settings
-def save_settings():
+def save_mask_settings():
+    scene = bpy.context.scene
+
     original_settings.clear()
-    original_settings.update = {
-        "display_device": bpy.context.scene.display_settings.display_device,
-        "view_transform": bpy.context.scene.view_settings.view_transform,
-        "look": bpy.context.scene.view_settings.look,
-        "exposure": bpy.context.scene.view_settings.exposure,
-        "gamma": bpy.context.scene.view_settings.gamma,
-        "sequencer": bpy.context.scene.sequencer_colorspace_settings.name,
-        "user_curves": bpy.context.scene.view_settings.use_curve_mapping,
-        "use_nodes": bpy.context.scene.use_nodes,
-    }
+    original_settings.update(
+        {
+            "display_device": scene.display_settings.display_device,
+            "view_transform": scene.view_settings.view_transform,
+            "look": scene.view_settings.look,
+            "exposure": scene.view_settings.exposure,
+            "gamma": scene.view_settings.gamma,
+            "sequencer": scene.sequencer_colorspace_settings.name,
+            "user_curves": scene.view_settings.use_curve_mapping,
+            # "use_nodes": scene.use_nodes,
+            "color_depth": scene.render.image_settings.color_depth,
+        }
+    )
 
 
 # Prepare the color management settings for render
-def set_settings():
+def set_mask_settings():
     scene = bpy.context.scene
     scene.display_settings.display_device = "sRGB"
     scene.view_settings.view_transform = "Standard"
@@ -28,11 +33,12 @@ def set_settings():
     scene.view_settings.gamma = 1
     scene.sequencer_colorspace_settings.name = "sRGB"
     scene.view_settings.use_curve_mapping = False
-    scene.use_nodes = False
+    # scene.use_nodes = False
+    scene.render.image_settings.color_depth = "16"
 
 
 # Reset the color management settings to their previous values
-def reset_settings():
+def reset_mask_settings():
     scene = bpy.context.scene
     scene.display_settings.display_device = original_settings["display_device"]
     scene.view_settings.view_transform = original_settings["view_transform"]
@@ -41,4 +47,5 @@ def reset_settings():
     scene.view_settings.gamma = original_settings["gamma"]
     scene.sequencer_colorspace_settings.name = original_settings["sequencer"]
     scene.view_settings.use_curve_mapping = original_settings["user_curves"]
-    scene.use_nodes = original_settings["use_nodes"]
+    # scene.use_nodes = original_settings["use_nodes"]
+    scene.render.image_settings.color_depth = original_settings["color_depth"]
