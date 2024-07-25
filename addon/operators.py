@@ -43,6 +43,97 @@ class ObjectMaskPanelOperator(bpy.types.Operator):
 
 
 #
+class MaskPropertyPanelOperator1(bpy.types.Operator):
+    bl_idname = "op.mask_property_panel1"
+    bl_label = "Mask 1"
+    property_name = "show_mask_properties1"
+
+    def execute(self, context):
+        # Toggle the property
+        current_value = getattr(context.scene, self.property_name)
+        setattr(context.scene, self.property_name, not current_value)
+        return {"FINISHED"}
+
+
+#
+class MaskPropertyPanelOperator2(bpy.types.Operator):
+    bl_idname = "op.mask_property_panel2"
+    bl_label = "Mask 2"
+    property_name = "show_mask_properties2"
+
+    def execute(self, context):
+        # Toggle the property
+        current_value = getattr(context.scene, self.property_name)
+        setattr(context.scene, self.property_name, not current_value)
+        return {"FINISHED"}
+
+
+#
+class MaskPropertyPanelOperator3(bpy.types.Operator):
+    bl_idname = "op.mask_property_panel3"
+    bl_label = "Mask 3"
+    property_name = "show_mask_properties3"
+
+    def execute(self, context):
+        # Toggle the property
+        current_value = getattr(context.scene, self.property_name)
+        setattr(context.scene, self.property_name, not current_value)
+        return {"FINISHED"}
+
+
+#
+class MaskPropertyPanelOperator4(bpy.types.Operator):
+    bl_idname = "op.mask_property_panel4"
+    bl_label = "Mask 4"
+    property_name = "show_mask_properties4"
+
+    def execute(self, context):
+        # Toggle the property
+        current_value = getattr(context.scene, self.property_name)
+        setattr(context.scene, self.property_name, not current_value)
+        return {"FINISHED"}
+
+
+#
+class MaskPropertyPanelOperator5(bpy.types.Operator):
+    bl_idname = "op.mask_property_panel5"
+    bl_label = "Mask 5"
+    property_name = "show_mask_properties5"
+
+    def execute(self, context):
+        # Toggle the property
+        current_value = getattr(context.scene, self.property_name)
+        setattr(context.scene, self.property_name, not current_value)
+        return {"FINISHED"}
+
+
+#
+class MaskPropertyPanelOperator6(bpy.types.Operator):
+    bl_idname = "op.mask_property_panel6"
+    bl_label = "Mask 6"
+    property_name = "show_mask_properties6"
+
+    def execute(self, context):
+        # Toggle the property
+        current_value = getattr(context.scene, self.property_name)
+        setattr(context.scene, self.property_name, not current_value)
+        return {"FINISHED"}
+
+
+#
+class MaskPropertyPanelOperator7(bpy.types.Operator):
+    bl_idname = "op.mask_property_panel7"
+    bl_label = "Mask 7"
+    property_name = "show_mask_properties7"
+
+    def execute(self, context):
+        # Toggle the property
+        current_value = getattr(context.scene, self.property_name)
+        setattr(context.scene, self.property_name, not current_value)
+        return {"FINISHED"}
+
+
+#
 class QueueOperator(bpy.types.Operator):
     bl_idname = "op.queue"
     bl_label = "Open Queue"

@@ -94,8 +94,6 @@ def clean_up_files():
         render_depth_new = os.path.join(folder_path, "depth.png")
         render_canny_new = os.path.join(folder_path, "outline.png")
 
-        print(render_mist)
-        print(render_edge)
         if os.path.exists(render_mist):
             os.remove(render_mist)
         if os.path.exists(render_edge):

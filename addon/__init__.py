@@ -38,16 +38,18 @@ classes = [
     CreditsOperator,
     GlobalPanelOperator,
     ObjectMaskPanelOperator,
+    MaskPropertyPanelOperator1,
+    MaskPropertyPanelOperator2,
+    MaskPropertyPanelOperator3,
+    MaskPropertyPanelOperator4,
+    MaskPropertyPanelOperator5,
+    MaskPropertyPanelOperator6,
+    MaskPropertyPanelOperator7,
     QueueOperator,
     RenderOperator,
     PlaybookWebsiteOperator,
     PlaybookDiscordOperator,
 ]
-
-# Create a mask panel for each mask layer
-# for i in range(NUM_MASK_LAYER):
-#     mask_panel = create_mask_panel(i)
-#     classes.append(mask_panel)
 
 
 def register():

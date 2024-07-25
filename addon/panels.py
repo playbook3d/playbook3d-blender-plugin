@@ -59,14 +59,24 @@ class GlobalPanel(PlaybookPanel, bpy.types.Panel):
         scene = context.scene
         box = layout.box()
 
+        box.separator(factor=BOX_PADDING)
+
         # Global panel
-        box.operator("op.global_panel")
+        global_row = box.row()
+        global_row.separator(factor=BOX_PADDING)
+        global_row.scale_y = BUTTON_Y_SCALE
+        global_row.operator("op.global_panel")
+        global_row.separator(factor=BOX_PADDING)
 
         if scene.show_global_panel:
             self.draw_global_layout(scene, box)
 
         # Object mask panel
-        box.operator("op.object_mask_panel")
+        mask_row = box.row()
+        mask_row.separator(factor=BOX_PADDING)
+        mask_row.scale_y = BUTTON_Y_SCALE
+        mask_row.operator("op.object_mask_panel")
+        mask_row.separator(factor=BOX_PADDING)
 
         if scene.show_mask_panel:
             mask_properties = [
@@ -88,8 +98,10 @@ class GlobalPanel(PlaybookPanel, bpy.types.Panel):
                 scene.show_mask_properties7,
             ]
 
-            for index, prop in enumerate(mask_properties):
-                self.draw_mask_layout(box, prop, index)
+            for index, (prop, show) in enumerate(zip(mask_properties, show_mask)):
+                self.draw_mask_layout(box, prop, show, index)
+
+        box.separator(factor=BOX_PADDING)
 
     #
     def draw_global_layout(self, scene, box):
@@ -107,25 +119,26 @@ class GlobalPanel(PlaybookPanel, bpy.types.Panel):
         box.prop(scene.global_properties, "global_structure_strength", slider=True)
 
     #
-    def draw_mask_layout(self, box, properties, index):
-        box.label(text=f"Mask {index}")
+    def draw_mask_layout(self, box, properties, show_mask, index):
+        box.operator(f"op.mask_property_panel{index + 1}")
 
-        # Mask Object
-        box.label(text="Mask Object")
-        box.prop(properties, "object_dropdown")
+        if show_mask:
+            # Mask Object
+            box.label(text="Mask Object")
+            box.prop(properties, "object_dropdown")
 
-        # Prompt
-        box.label(text="Prompt")
-        box.prop(properties, "mask_prompt")
+            # Prompt
+            box.label(text="Prompt")
+            box.prop(properties, "mask_prompt")
 
-        # Style
-        style_row = box.split(factor=0.2)
-        style_row.label(text="Style")
-        style_row.prop(properties, "mask_style", slider=True)
+            # Style
+            style_row = box.split(factor=0.2)
+            style_row.label(text="Style")
+            style_row.prop(properties, "mask_style", slider=True)
 
-        # Isolate
-        box.label(text="Isolate")
-        box.prop(properties, "mask_isolate", slider=True)
+            # Isolate
+            box.label(text="Isolate")
+            box.prop(properties, "mask_isolate", slider=True)
 
 
 # The panel that shows the object render settings
@@ -139,37 +152,6 @@ class ObjectPanel(PlaybookPanel, bpy.types.Panel):
         layout = self.layout
 
         layout.label(text="Specify an object from the scene to guide the render.")
-
-
-# class MaskPanel(PlaybookPanel, bpy.types.Panel):
-#     bl_label = "Mask 1"
-#     bl_idname = "SCENE_PT_maskpanel1"
-#     bl_parent_id = "SCENE_PT_object"
-#     bl_options = {"DEFAULT_CLOSED"}
-
-#     def draw(self, context):
-#         layout = self.layout
-#         scene = context.scene
-
-#         # Prompt
-#         mask_prompt_row = layout.split(factor=0.3)
-#         mask_prompt_row.alignment = "RIGHT"
-#         mask_prompt_row.label(text="Prompt")
-#         mask_prompt_row.prop(scene.mask1_properties, "mask_prompt")
-
-#         # Structure Strength
-#         mask_strength_row = layout.split(factor=0.3)
-#         mask_strength_row.alignment = "RIGHT"
-#         mask_strength_row.label(text="Structure Strength")
-#         mask_strength_row.prop(
-#             scene.mask1_properties, "mask_structure_strength", slider=True
-#         )
-
-#         # Object Dropdown
-#         object_dropdown_row = layout.split(factor=0.3)
-#         object_dropdown_row.alignment = "RIGHT"
-#         object_dropdown_row.label(text="Object Dropdown")
-#         object_dropdown_row.prop(scene.mask1_properties, "object_dropdown")
 
 
 # Creates and returns a panel for the mask layer for the given index
