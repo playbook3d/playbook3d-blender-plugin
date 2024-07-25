@@ -1,13 +1,16 @@
 bl_info = {
-    "name": "Playbook: Render Image",
-    "description": "Render the image as seen from the active camera to the Playbook API",
+    "name": "Playbook",
+    "description": "Playbook is a diffusion based engine for 3D scenes.",
     "author": "Playbook",
+    "location": "Properties > Render > Playbook",
     "version": (1, 0),
     "blender": (4, 0, 0),
     "category": "Render",
+    "doc_url": "https://www.playbookengine.com",
 }
 
 import bpy
+from bpy.props import PointerProperty, BoolProperty
 from .operators import *
 from .panels import *
 from .properties import *
@@ -15,9 +18,12 @@ from .properties import *
 NUM_MASK_LAYER = 7
 
 classes = [
+    # Panels
     MainPanel,
+    CredentialsPanel,
     GlobalPanel,
-    ObjectPanel,
+    #
+    # Properties
     GlobalProperties,
     MaskProperties1,
     MaskProperties2,
@@ -26,45 +32,55 @@ classes = [
     MaskProperties5,
     MaskProperties6,
     MaskProperties7,
+    #
+    # Operators
+    LoginOperator,
+    CreditsOperator,
+    GlobalPanelOperator,
+    ObjectMaskPanelOperator,
+    QueueOperator,
     RenderOperator,
+    PlaybookWebsiteOperator,
+    PlaybookDiscordOperator,
 ]
 
 # Create a mask panel for each mask layer
-for i in range(NUM_MASK_LAYER):
-    mask_panel = create_mask_panel(i)
-    classes.append(mask_panel)
+# for i in range(NUM_MASK_LAYER):
+#     mask_panel = create_mask_panel(i)
+#     classes.append(mask_panel)
 
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
     bpy.utils.register_class(RenderPanel)
+    bpy.utils.register_class(LinksPanel)
 
-    bpy.types.Scene.global_properties = bpy.props.PointerProperty(type=GlobalProperties)
-    # TODO: Is there an alternative to adding each mask property one by one?
-    bpy.types.Scene.mask_properties1 = bpy.props.PointerProperty(type=MaskProperties1)
-    bpy.types.Scene.mask_properties2 = bpy.props.PointerProperty(type=MaskProperties2)
-    bpy.types.Scene.mask_properties3 = bpy.props.PointerProperty(type=MaskProperties3)
-    bpy.types.Scene.mask_properties4 = bpy.props.PointerProperty(type=MaskProperties4)
-    bpy.types.Scene.mask_properties5 = bpy.props.PointerProperty(type=MaskProperties5)
-    bpy.types.Scene.mask_properties6 = bpy.props.PointerProperty(type=MaskProperties6)
-    bpy.types.Scene.mask_properties7 = bpy.props.PointerProperty(type=MaskProperties7)
+    scene = bpy.types.Scene
+    scene.global_properties = PointerProperty(type=GlobalProperties)
+    scene.show_global_panel = BoolProperty(default=False)
+    scene.show_mask_panel = BoolProperty(default=False)
+
+    for i in range(1, 8):
+        setattr(
+            scene,
+            f"mask_properties{i}",
+            PointerProperty(type=eval(f"MaskProperties{i}")),
+        )
+        setattr(scene, f"show_mask_properties{i}", BoolProperty(default=False))
 
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
     bpy.utils.unregister_class(RenderPanel)
+    bpy.utils.unregister_class(LinksPanel)
 
-    del bpy.types.Scene.global_properties
-    del bpy.types.Scene.mask_properties1
-    del bpy.types.Scene.mask_properties2
-    del bpy.types.Scene.mask_properties3
-    del bpy.types.Scene.mask_properties4
-    del bpy.types.Scene.mask_properties5
-    del bpy.types.Scene.mask_properties6
-    del bpy.types.Scene.mask_properties7
+    scene = bpy.types.Scene
+    del scene.global_properties
+    del scene.show_global_panel
+    del scene.show_mask_panel
 
-
-if __name__ == "__main__":
-    register()
+    for i in range(1, 8):
+        delattr(scene, f"mask_properties{i}")
+        delattr(scene, f"show_mask_properties{i}")

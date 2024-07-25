@@ -47,11 +47,11 @@ def set_object_materials():
 
     # Set objects in masks to their respective material colors
     for mask, mask_obj in mask_objects.items():
+        print(f"Mask: {mask}, Object: {mask_obj}")
         if mask_obj and mask_obj == "Background":
             bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[
                 0
             ].default_value = material_props[mask][1]
-            visible_objects_dict.pop(mask_obj)
         elif mask_obj and mask_obj in visible_objects_dict:
             set_materials(
                 visible_objects_dict[mask_obj],
