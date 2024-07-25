@@ -1,4 +1,5 @@
 import bpy
+import os
 
 original_settings = {}
 
@@ -49,3 +50,20 @@ def reset_mask_settings():
     scene.view_settings.use_curve_mapping = original_settings["user_curves"]
     # scene.use_nodes = original_settings["use_nodes"]
     scene.render.image_settings.color_depth = original_settings["color_depth"]
+
+
+#
+def render_mask_to_file():
+    scene = bpy.context.scene
+    render = scene.render
+
+    dir = os.path.dirname(__file__)
+
+    output_path = os.path.join(dir, "renders", "mask.png")
+    render.filepath = output_path
+
+    if scene.camera:
+        bpy.ops.render.render(write_still=True)
+        # bpy.ops.render.view_show("INVOKE_DEFAULT")
+    else:
+        print("No active camera found in the scene")

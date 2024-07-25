@@ -79,7 +79,7 @@ def render_depth_to_file():
     # Set output file path and format
     node_path = os.path.join(dir, "renders")
     output_node.base_path = bpy.path.abspath(node_path)  # Set to your desired path
-    output_node.file_slots[0].path = "render_depth"
+    output_node.file_slots[0].path = "depth"
     output_node.format.file_format = "PNG"
 
     bpy.ops.render.render(write_still=True)

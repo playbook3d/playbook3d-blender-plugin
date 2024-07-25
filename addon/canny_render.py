@@ -93,7 +93,7 @@ def render_canny_to_file():
     # Set output file path and format
     node_path = os.path.join(dir, "renders")
     output_node.base_path = bpy.path.abspath(node_path)  # Set to your desired path
-    output_node.file_slots[0].path = "render_canny"
+    output_node.file_slots[0].path = "outline"
     output_node.format.file_format = "PNG"
 
     bpy.ops.render.render(write_still=True)

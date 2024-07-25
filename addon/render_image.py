@@ -3,13 +3,23 @@ import requests
 import io
 import os
 import base64
-from .mask_render import save_mask_settings, set_mask_settings, reset_mask_settings
+from .mask_render import (
+    save_mask_settings,
+    set_mask_settings,
+    reset_mask_settings,
+    render_mask_to_file,
+)
 from .visible_objects import (
     save_object_materials,
     set_object_materials,
     reset_object_materials,
 )
-from .depth_render import set_depth_settings, render_depth_to_file
+from .depth_render import (
+    save_depth_settings,
+    set_depth_settings,
+    reset_depth_settings,
+    render_depth_to_file,
+)
 from .canny_render import (
     save_canny_settings,
     set_canny_settings,
@@ -60,7 +70,6 @@ def clear_render_folder():
 
     folder_path = os.path.join(dir, "renders")
 
-    print(folder_path)
     if os.path.exists(folder_path):
         for filename in os.listdir(folder_path):
             path = os.path.join(folder_path, filename)
@@ -69,6 +78,33 @@ def clear_render_folder():
                     os.unlink(path)
             except Exception as e:
                 print(f"Failed to delete {path}: {e}")
+
+
+#
+def clean_up_files():
+    dir = os.path.dirname(__file__)
+
+    folder_path = os.path.join(dir, "renders")
+
+    if os.path.exists(folder_path):
+        render_mist = os.path.join(folder_path, "render_mist.png")
+        render_edge = os.path.join(folder_path, "render_edge.png")
+        render_depth = os.path.join(folder_path, "depth0001.png")
+        render_canny = os.path.join(folder_path, "outline0001.png")
+        render_depth_new = os.path.join(folder_path, "depth.png")
+        render_canny_new = os.path.join(folder_path, "outline.png")
+
+        print(render_mist)
+        print(render_edge)
+        if os.path.exists(render_mist):
+            os.remove(render_mist)
+        if os.path.exists(render_edge):
+            os.remove(render_edge)
+
+        if os.path.exists(render_depth):
+            os.rename(render_depth, render_depth_new)
+        if os.path.exists(render_canny):
+            os.rename(render_canny, render_canny_new)
 
 
 # -------------------------------------------
@@ -101,23 +137,6 @@ def render_to_buffer():
     # buffer.seek(0)
 
     # return buffer
-
-
-#
-def render_mask_to_file():
-    scene = bpy.context.scene
-    render = scene.render
-
-    dir = os.path.dirname(__file__)
-
-    output_path = os.path.join(dir, "renders", "render_color.png")
-    render.filepath = output_path
-
-    if scene.camera:
-        bpy.ops.render.render(write_still=True)
-        bpy.ops.render.view_show("INVOKE_DEFAULT")
-    else:
-        print("No active camera found in the scene")
 
 
 #
@@ -185,3 +204,5 @@ def render_image():
     # Send the rendered image to API
     # buffer = render_to_buffer()
     # send_render_to_api(api_url, buffer)
+
+    clean_up_files()

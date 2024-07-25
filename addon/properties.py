@@ -35,6 +35,7 @@ def update_enum_items(self, context):
     set_visible_objects(context)
     items = [(obj.name, obj.name, "") for obj in visible_objects]
     items.insert(0, ("None", "None", ""))
+    items.insert(1, ("Background", "Background", ""))
 
     return items
 
