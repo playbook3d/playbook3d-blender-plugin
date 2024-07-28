@@ -1,6 +1,14 @@
 # pylint: disable=fixme, import-error
 import bpy
-from bpy.props import StringProperty, FloatProperty, EnumProperty
+from bpy.props import (
+    IntProperty,
+    StringProperty,
+    FloatProperty,
+    EnumProperty,
+    CollectionProperty,
+    FloatVectorProperty,
+)
+from bpy.types import PropertyGroup
 
 
 visible_objects = []
@@ -21,6 +29,8 @@ prompt_styles = [
     ("3DCARTOON", "3D Cartoon", ""),
 ]
 
+upscale_options = [("1", "1x", ""), ("2", "2x", ""), ("4", "4x", "")]
+
 
 # Get all visible mesh objects in the scene
 def set_visible_objects(context):
@@ -40,21 +50,32 @@ def update_enum_items(self, context):
     return items
 
 
-class GlobalProperties(bpy.types.PropertyGroup):
-    global_prompt: StringProperty(name="", default="Describe the scene...")
-    global_structure_strength: FloatProperty(name="", default=50, min=0, max=100)
-    global_style: EnumProperty(
+class MaskListItem(PropertyGroup):
+    mask_name: StringProperty(name="")
+
+
+class MaskObjectListItem(PropertyGroup):
+    object_name: StringProperty(name="")
+    object_id: StringProperty(name="")
+
+
+class GeneralProperties(PropertyGroup):
+    general_prompt: StringProperty(name="", default="Describe the scene...")
+    general_structure_strength: FloatProperty(name="", default=50, min=0, max=100)
+    general_style: EnumProperty(
         name="",
         items=prompt_styles,
         options={"ANIMATABLE"},
     )
 
 
-class MaskProperties1(bpy.types.PropertyGroup):
+class MaskProperties1(PropertyGroup):
     # Add the selected dropdown option to the mask object list
     def update_enum(self, context):
         mask_objects["MASK1"] = self.object_dropdown
 
+    mask_objects: CollectionProperty(type=MaskObjectListItem, name="")
+    object_list_index: IntProperty(name="", default=0)
     mask_prompt: StringProperty(name="", default="Describe the scene...")
     mask_isolate: FloatProperty(name="", default=50, min=0, max=100)
     mask_style: EnumProperty(
@@ -69,7 +90,7 @@ class MaskProperties1(bpy.types.PropertyGroup):
     )
 
 
-class MaskProperties2(bpy.types.PropertyGroup):
+class MaskProperties2(PropertyGroup):
     # Add the selected dropdown option to the mask object list
     def update_enum(self, context):
         mask_objects["MASK2"] = self.object_dropdown
@@ -88,7 +109,7 @@ class MaskProperties2(bpy.types.PropertyGroup):
     )
 
 
-class MaskProperties3(bpy.types.PropertyGroup):
+class MaskProperties3(PropertyGroup):
     # Add the selected dropdown option to the mask object list
     def update_enum(self, context):
         mask_objects["MASK3"] = self.object_dropdown
@@ -107,7 +128,7 @@ class MaskProperties3(bpy.types.PropertyGroup):
     )
 
 
-class MaskProperties4(bpy.types.PropertyGroup):
+class MaskProperties4(PropertyGroup):
     # Add the selected dropdown option to the mask object list
     def update_enum(self, context):
         mask_objects["MASK4"] = self.object_dropdown
@@ -126,7 +147,7 @@ class MaskProperties4(bpy.types.PropertyGroup):
     )
 
 
-class MaskProperties5(bpy.types.PropertyGroup):
+class MaskProperties5(PropertyGroup):
     # Add the selected dropdown option to the mask object list
     def update_enum(self, context):
         mask_objects["MASK5"] = self.object_dropdown
@@ -145,7 +166,7 @@ class MaskProperties5(bpy.types.PropertyGroup):
     )
 
 
-class MaskProperties6(bpy.types.PropertyGroup):
+class MaskProperties6(PropertyGroup):
     # Add the selected dropdown option to the mask object list
     def update_enum(self, context):
         mask_objects["MASK6"] = self.object_dropdown
@@ -164,8 +185,7 @@ class MaskProperties6(bpy.types.PropertyGroup):
     )
 
 
-class MaskProperties7(bpy.types.PropertyGroup):
-
+class MaskProperties7(PropertyGroup):
     # Add the selected dropdown option to the mask object list
     def update_enum(self, context):
         mask_objects["MASK7"] = self.object_dropdown
@@ -182,3 +202,28 @@ class MaskProperties7(bpy.types.PropertyGroup):
         items=update_enum_items,
         update=lambda self, context: self.update_enum(context),
     )
+
+
+class StyleProperties(PropertyGroup):
+    style_image: StringProperty(name="", subtype="FILE_PATH", maxlen=1024)
+    style_strength: FloatProperty(name="")
+
+
+class RelightProperties(PropertyGroup):
+    def update_type(self, context):
+        context.scene.is_relight_image = self.relight_type == "IMAGE"
+
+    relight_type: EnumProperty(
+        name="Type",
+        items=[("IMAGE", "Image", ""), ("COLOR", "Color", "")],
+        update=lambda self, context: self.update_type(context),
+    )
+    relight_image: StringProperty(name="", subtype="FILE_PATH", maxlen=1024)
+    relight_color: FloatVectorProperty(
+        name="", subtype="COLOR", default=(1, 1, 1, 1), size=4
+    )
+    relight_strength: FloatProperty(name="")
+
+
+class UpscaleProperties(PropertyGroup):
+    upscale_scale: EnumProperty(name="", items=upscale_options)

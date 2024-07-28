@@ -5,14 +5,14 @@ from .properties import visible_objects, mask_objects
 original_materials = {}
 
 material_props = {
-    "MASK1": ("YELLOW", (1, 233 / 255, 6 / 255, 1)),
-    "MASK2": ("BLUE", (14 / 255, 125 / 255, 223 / 255, 1)),
-    "MASK3": ("TEAL", (121 / 255, 215 / 255, 219 / 255, 1)),
-    "MASK4": ("VIOLET", (2 / 255, 0, 43 / 255, 1)),
-    "MASK5": ("GREEN", (0, 158 / 255, 82 / 255, 1)),
-    "MASK6": ("PINK", (1, 108 / 255, 207 / 255, 1)),
-    "MASK7": ("ORANGE", (1, 135 / 255, 46 / 255, 1)),
-    "CATCHALL": ("RED", (221 / 225, 0, 0, 1)),
+    "MASK1": ("YELLOW", (1, 0.815, 0.002, 1)),
+    "MASK2": ("BLUE", (0.004, 0.205, 0.738, 1)),
+    "MASK3": ("TEAL", (0.191, 0.680, 0.708, 1)),
+    "MASK4": ("VIOLET", (0, 0, 0.024, 1)),
+    "MASK5": ("GREEN", (0, 0.342, 0.084, 1)),
+    "MASK6": ("PINK", (1, 0.150, 0.625, 1)),
+    "MASK7": ("ORANGE", (1, 0.242, 0.027, 1)),
+    "CATCHALL": ("RED", (0.723, 0, 0, 1)),
 }
 
 

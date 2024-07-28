@@ -181,21 +181,21 @@ def render_image():
     clear_render_folder()
 
     # Render mask image
-    save_object_materials()
-    save_mask_settings()
+    # save_object_materials()
+    # save_mask_settings()
     set_object_materials()
-    set_mask_settings()
+    # set_mask_settings()
     render_mask_to_file()
-    reset_object_materials()
-    reset_mask_settings()
+    # reset_object_materials()
+    # reset_mask_settings()
 
     # Render depth image
-    set_depth_settings()
-    render_depth_to_file()
+    # set_depth_settings()
+    # render_depth_to_file()
 
     # Render canny image
-    set_canny_settings()
-    render_canny_to_file()
+    # set_canny_settings()
+    # render_canny_to_file()
 
     # TODO: Temp
     # get_render_settings()
@@ -203,4 +203,4 @@ def render_image():
     # buffer = render_to_buffer()
     # send_render_to_api(api_url, buffer)
 
-    clean_up_files()
+    # clean_up_files()
