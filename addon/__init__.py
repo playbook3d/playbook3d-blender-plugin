@@ -38,13 +38,7 @@ classes = [
     MaskObjectListRemoveItem,
     MaskObjectListClearItems,
     GeneralProperties,
-    MaskProperties1,
-    MaskProperties2,
-    MaskProperties3,
-    MaskProperties4,
-    MaskProperties5,
-    MaskProperties6,
-    MaskProperties7,
+    MaskProperties,
     StyleProperties,
     RelightProperties,
     UpscaleProperties,
@@ -109,9 +103,8 @@ def register():
         setattr(
             scene,
             f"mask_properties{i}",
-            PointerProperty(type=eval(f"MaskProperties{i}")),
+            PointerProperty(type=MaskProperties),
         )
-        setattr(scene, f"show_mask_properties{i}", BoolProperty(default=False))
 
     scene.mask_list = CollectionProperty(type=MaskListItem)
     scene.mask_list_index = IntProperty(name="", default=-1)
@@ -137,7 +130,6 @@ def unregister():
 
     for i in range(1, 8):
         delattr(scene, f"mask_properties{i}")
-        delattr(scene, f"show_mask_properties{i}")
 
     del scene.mask_list
     del scene.mask_list_index

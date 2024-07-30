@@ -75,9 +75,8 @@ class GeneralProperties(PropertyGroup):
     )
 
 
-# MASK PROPERTIES
-class MaskProperties1(PropertyGroup):
-
+#
+class MaskProperties(PropertyGroup):
     mask_objects: CollectionProperty(type=MaskObjectListItem, name="")
     object_list_index: IntProperty(name="", default=-1)
     mask_prompt: StringProperty(name="", default="Describe the scene...")
@@ -90,127 +89,6 @@ class MaskProperties1(PropertyGroup):
     object_dropdown: EnumProperty(
         name="",
         items=update_enum_items,
-    )
-
-
-class MaskProperties2(PropertyGroup):
-    mask_objects: CollectionProperty(type=MaskObjectListItem, name="")
-    object_list_index: IntProperty(name="", default=0)
-    mask_prompt: StringProperty(name="", default="Describe the scene...")
-    mask_isolate: FloatProperty(name="", default=50, min=0, max=100)
-    mask_style: EnumProperty(
-        name="",
-        items=prompt_styles,
-        options={"ANIMATABLE"},
-    )
-    object_dropdown: EnumProperty(
-        name="",
-        items=update_enum_items,
-    )
-
-
-class MaskProperties3(PropertyGroup):
-    # Add the selected dropdown option to the mask object list
-    def update_enum(self, context):
-        mask_objects["MASK3"] = self.object_dropdown
-
-    mask_objects: CollectionProperty(type=MaskObjectListItem, name="")
-    object_list_index: IntProperty(name="", default=0)
-    mask_prompt: StringProperty(name="", default="Describe the scene...")
-    mask_isolate: FloatProperty(name="", default=50, min=0, max=100)
-    mask_style: EnumProperty(
-        name="",
-        items=prompt_styles,
-        options={"ANIMATABLE"},
-    )
-    object_dropdown: EnumProperty(
-        name="",
-        items=update_enum_items,
-        update=lambda self, context: self.update_enum(context),
-    )
-
-
-class MaskProperties4(PropertyGroup):
-    # Add the selected dropdown option to the mask object list
-    def update_enum(self, context):
-        mask_objects["MASK4"] = self.object_dropdown
-
-    mask_objects: CollectionProperty(type=MaskObjectListItem, name="")
-    object_list_index: IntProperty(name="", default=0)
-    mask_prompt: StringProperty(name="", default="Describe the scene...")
-    mask_isolate: FloatProperty(name="", default=50, min=0, max=100)
-    mask_style: EnumProperty(
-        name="",
-        items=prompt_styles,
-        options={"ANIMATABLE"},
-    )
-    object_dropdown: EnumProperty(
-        name="",
-        items=update_enum_items,
-        update=lambda self, context: self.update_enum(context),
-    )
-
-
-class MaskProperties5(PropertyGroup):
-    # Add the selected dropdown option to the mask object list
-    def update_enum(self, context):
-        mask_objects["MASK5"] = self.object_dropdown
-
-    mask_objects: CollectionProperty(type=MaskObjectListItem, name="")
-    object_list_index: IntProperty(name="", default=0)
-    mask_prompt: StringProperty(name="", default="Describe the scene...")
-    mask_isolate: FloatProperty(name="", default=50, min=0, max=100)
-    mask_style: EnumProperty(
-        name="",
-        items=prompt_styles,
-        options={"ANIMATABLE"},
-    )
-    object_dropdown: EnumProperty(
-        name="",
-        items=update_enum_items,
-        update=lambda self, context: self.update_enum(context),
-    )
-
-
-class MaskProperties6(PropertyGroup):
-    # Add the selected dropdown option to the mask object list
-    def update_enum(self, context):
-        mask_objects["MASK6"] = self.object_dropdown
-
-    mask_objects: CollectionProperty(type=MaskObjectListItem, name="")
-    object_list_index: IntProperty(name="", default=0)
-    mask_prompt: StringProperty(name="", default="Describe the scene...")
-    mask_isolate: FloatProperty(name="", default=50, min=0, max=100)
-    mask_style: EnumProperty(
-        name="",
-        items=prompt_styles,
-        options={"ANIMATABLE"},
-    )
-    object_dropdown: EnumProperty(
-        name="",
-        items=update_enum_items,
-        update=lambda self, context: self.update_enum(context),
-    )
-
-
-class MaskProperties7(PropertyGroup):
-    # Add the selected dropdown option to the mask object list
-    def update_enum(self, context):
-        mask_objects["MASK7"] = self.object_dropdown
-
-    mask_objects: CollectionProperty(type=MaskObjectListItem, name="")
-    object_list_index: IntProperty(name="", default=0)
-    mask_prompt: StringProperty(name="", default="Describe the scene...")
-    mask_isolate: FloatProperty(name="", default=50, min=0, max=100)
-    mask_style: EnumProperty(
-        name="",
-        items=prompt_styles,
-        options={"ANIMATABLE"},
-    )
-    object_dropdown: EnumProperty(
-        name="",
-        items=update_enum_items,
-        update=lambda self, context: self.update_enum(context),
     )
 
 

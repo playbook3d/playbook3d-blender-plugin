@@ -160,31 +160,6 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             mask_column.label(text="Prompt")
             mask_column.prop(property, "mask_prompt")
 
-        # for index, (properties, show_mask) in enumerate(
-        #     zip(mask_properties, show_mask)
-        # ):
-        #     mask_column.operator(f"op.mask_property_panel{index + 1}")
-
-        #     if show_mask:
-        #         # Mask Object
-        #         mask_column.label(text="Mask Object")
-        #         mask_column.prop(properties, "object_dropdown")
-
-        #         # Prompt
-        #         mask_column.label(text="Prompt")
-        #         mask_column.prop(properties, "mask_prompt")
-
-        #         # Style
-        #         style_row = mask_column.split(factor=0.2)
-        #         style_row.label(text="Style")
-        #         style_row.prop(properties, "mask_style", slider=True)
-
-        #         # Isolate
-        #         mask_column.label(text="Isolate")
-        #         mask_column.prop(properties, "mask_isolate", slider=True)
-
-        #         mask_column.separator(factor=BOX_PADDING)
-
     #
     def draw_style_layout(self, scene, layout):
         style_row = layout.row()
