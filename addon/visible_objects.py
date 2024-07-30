@@ -5,13 +5,13 @@ from .properties import visible_objects, mask_objects
 original_materials = {}
 
 material_props = {
-    "MASK1": ("YELLOW", (1, 0.815, 0.002, 1)),
-    "MASK2": ("BLUE", (0.004, 0.205, 0.738, 1)),
-    "MASK3": ("TEAL", (0.191, 0.680, 0.708, 1)),
-    "MASK4": ("VIOLET", (0, 0, 0.024, 1)),
-    "MASK5": ("GREEN", (0, 0.342, 0.084, 1)),
-    "MASK6": ("PINK", (1, 0.150, 0.625, 1)),
-    "MASK7": ("ORANGE", (1, 0.242, 0.027, 1)),
+    "MASK1": ("YELLOW", (1, 0.8148, 0.0018, 1)),
+    "MASK2": ("BLUE", (0.0044, 0.2051, 0.7378, 1)),
+    "MASK3": ("TEAL", (0.1912, 0.6795, 0.7083, 1)),
+    "MASK4": ("VIOLET", (0.0006, 0, 0.0242, 1)),
+    "MASK5": ("GREEN", (0, 0.3419, 0.0844, 1)),
+    "MASK6": ("PINK", (1, 0.15, 0.6239, 1)),
+    "MASK7": ("ORANGE", (1, 0.2423, 0.0273, 1)),
     "CATCHALL": ("RED", (0.723, 0, 0, 1)),
 }
 
@@ -46,18 +46,23 @@ def set_object_materials():
             break
 
     # Set objects in masks to their respective material colors
-    for mask, mask_obj in mask_objects.items():
-        print(f"Mask: {mask}, Object: {mask_obj}")
-        if mask_obj and mask_obj == "Background":
-            bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[
-                0
-            ].default_value = material_props[mask][1]
-        elif mask_obj and mask_obj in visible_objects_dict:
-            set_materials(
-                visible_objects_dict[mask_obj],
-                [create_rgb_material(material_props[mask][0], material_props[mask][1])],
-            )
-            visible_objects_dict.pop(mask_obj)
+    for mask, mask_objs in mask_objects.items():
+        for mask_obj in mask_objs:
+            print(f"Mask: {mask}, Object: {mask_obj}")
+            if mask_obj and mask_obj == "Background":
+                bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[
+                    0
+                ].default_value = material_props[mask][1]
+            elif mask_obj and mask_obj in visible_objects_dict:
+                set_materials(
+                    visible_objects_dict[mask_obj],
+                    [
+                        create_rgb_material(
+                            material_props[mask][0], material_props[mask][1]
+                        )
+                    ],
+                )
+                visible_objects_dict.pop(mask_obj)
 
     # All remaining visible objects are set in the catch-all mask
     for obj_name, obj in visible_objects_dict.items():

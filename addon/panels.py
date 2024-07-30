@@ -23,6 +23,7 @@ class MainPanel(PlaybookPanel, bpy.types.Panel):
         layout.label(text="engine for 3D scenes.")
 
 
+#
 class CredentialsPanel(PlaybookPanel, bpy.types.Panel):
     bl_idname = "SCENE_PT_credentials"
     bl_label = "Credentials"
@@ -38,13 +39,14 @@ class CredentialsPanel(PlaybookPanel, bpy.types.Panel):
         row1 = box.row()
         row1.scale_y = 1.8
         row1.separator(factor=BOX_PADDING)
-        row1.operator("op.login")
+        row1.operator("op.login", icon_value=icons["main"]["check_icon"].icon_id)
         row1.separator(factor=BOX_PADDING)
 
         row2 = box.row()
         row2.scale_y = 1.8
+        row2.active_default = True
         row2.separator(factor=BOX_PADDING)
-        row2.operator("op.credits")
+        row2.operator("op.upgrade")
         row2.separator(factor=BOX_PADDING)
 
         row3 = box.row()
@@ -57,6 +59,7 @@ class CredentialsPanel(PlaybookPanel, bpy.types.Panel):
         box.separator(factor=BOX_PADDING)
 
 
+#
 class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
     bl_idname = "SCENE_PT_render_settings"
     bl_label = ""
@@ -68,128 +71,119 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         scene = context.scene
 
         # General panel
-        self.draw_general_layout(scene, layout)
-
-        # Object mask panel
-        self.draw_mask_layout(scene, layout)
+        self.draw_retexture_layout(scene, layout)
 
         self.draw_style_layout(scene, layout)
         self.draw_relight_layout(scene, layout)
         self.draw_upscale_layout(scene, layout)
 
     #
-    def draw_general_layout(self, scene, layout):
-        general_row = layout.row()
+    def draw_retexture_layout(self, scene, layout):
+        retexture_row = layout.row()
 
-        general_box = general_row.box()
-        general_box.scale_y = BUTTON_Y_SCALE
+        retexture_box = retexture_row.box()
+        retexture_box.scale_y = BUTTON_Y_SCALE
 
-        if not scene.show_general_panel:
-            general_box.operator("op.general_panel", icon="PROP_OFF", emboss=False)
+        if not scene.show_retexture_panel:
+            retexture_box.operator("op.retexture_panel", icon="PROP_OFF", emboss=False)
         else:
-            general_box.operator("op.general_panel", icon="PROP_ON", emboss=False)
-            general_column = general_box.column()
+            retexture_box.operator("op.retexture_panel", icon="PROP_ON", emboss=False)
 
-            # Prompt
-            general_column.label(text="Prompt")
-            general_column.prop(scene.general_properties, "general_prompt")
-            general_column.operator("op.randomize_prompt")
+            self.draw_general_layout(scene, retexture_box)
 
-            # Style
-            general_column.label(text="Model")
-            general_column.prop(scene.general_properties, "general_style")
+            row = retexture_box.row()
+            row.scale_y = 0.05
+            row.label(text="")
 
-            # Structure Strength
-            general_column.label(text="Structure Strength")
-            general_column.prop(
-                scene.general_properties, "general_structure_strength", slider=True
-            )
+            self.draw_mask_layout(scene, retexture_box)
 
     #
-    def draw_mask_layout(self, scene, layout):
-        mask_properties = [
-            scene.mask_properties1,
-            scene.mask_properties2,
-            scene.mask_properties3,
-            scene.mask_properties4,
-            scene.mask_properties5,
-            scene.mask_properties6,
-            scene.mask_properties7,
-        ]
-        show_mask = [
-            scene.show_mask_properties1,
-            scene.show_mask_properties2,
-            scene.show_mask_properties3,
-            scene.show_mask_properties4,
-            scene.show_mask_properties5,
-            scene.show_mask_properties6,
-            scene.show_mask_properties7,
-        ]
+    def draw_general_layout(self, scene, box):
+        retexture_column = box.column()
 
-        mask_row = layout.row()
+        # Prompt
+        retexture_column.label(text="Prompt")
+        retexture_column.prop(scene.general_properties, "general_prompt")
+        retexture_column.operator("op.randomize_prompt")
 
-        mask_box = mask_row.box()
-        mask_box.scale_y = BUTTON_Y_SCALE
+        # Style
+        retexture_column.label(text="Model")
+        retexture_column.prop(scene.general_properties, "general_style")
 
-        if not scene.show_mask_panel:
-            mask_box.operator("op.object_mask_panel", icon="PROP_OFF", emboss=False)
-        else:
-            mask_box.operator("op.object_mask_panel", icon="PROP_ON", emboss=False)
-            mask_column = mask_box.column()
+        # Structure Strength
+        retexture_column.label(text="Structure Strength")
+        retexture_column.prop(
+            scene.general_properties, "general_structure_strength", slider=True
+        )
 
-            list_col = mask_column.column()
-            list_col.scale_y = 0.5
-            list_col.template_list(
-                "PB_UL_CustomList", "", scene, "mask_list", scene, "mask_list_index"
-            )
+    #
+    def draw_mask_layout(self, scene, box):
+        mask_column = box.column()
 
-            list_row = mask_column.row()
-            list_row.operator("list.add_mask_item", text="Add")
-            list_row.operator("list.remove_mask_item", text="Remove")
+        # Masks list
+        mask_column.label(text="Masks")
 
-            mask_column.label(text="Mask Objects")
+        list_col = mask_column.column()
+        list_col.scale_y = 0.5
+        list_col.template_list(
+            "PB_UL_CustomList", "", scene, "mask_list", scene, "mask_list_index"
+        )
+
+        list_row = mask_column.row()
+        list_row.operator("list.add_mask_item", text="Add")
+        list_row.operator("list.remove_mask_item", text="Remove")
+
+        # Objects in mask list
+        if scene.mask_list_index != -1:
+            mask_column.label(text="Objects in Mask")
+
+            property = getattr(scene, f"mask_properties{scene.mask_list_index + 1}")
 
             list_col = mask_column.column()
             list_col.scale_y = 0.5
             list_col.template_list(
                 "PB_UL_CustomList",
                 "",
-                scene.mask_properties1,
+                property,
                 "mask_objects",
-                scene.mask_properties1,
+                property,
                 "object_list_index",
             )
 
             list_row = mask_column.row()
             list_row.operator("list.add_mask_object_item", text="Add")
+            list_row.operator("list.remove_mask_object_item", text="Remove")
+            list_row.operator("list.clear_mask_object_list", text="Clear")
+
+            mask_column.prop(property, "object_dropdown", icon="PROP_ON")
 
             mask_column.label(text="Prompt")
-            mask_column.prop(scene.mask_properties1, "mask_prompt")
+            mask_column.prop(property, "mask_prompt")
 
-            # for index, (properties, show_mask) in enumerate(
-            #     zip(mask_properties, show_mask)
-            # ):
-            #     mask_column.operator(f"op.mask_property_panel{index + 1}")
+        # for index, (properties, show_mask) in enumerate(
+        #     zip(mask_properties, show_mask)
+        # ):
+        #     mask_column.operator(f"op.mask_property_panel{index + 1}")
 
-            #     if show_mask:
-            #         # Mask Object
-            #         mask_column.label(text="Mask Object")
-            #         mask_column.prop(properties, "object_dropdown")
+        #     if show_mask:
+        #         # Mask Object
+        #         mask_column.label(text="Mask Object")
+        #         mask_column.prop(properties, "object_dropdown")
 
-            #         # Prompt
-            #         mask_column.label(text="Prompt")
-            #         mask_column.prop(properties, "mask_prompt")
+        #         # Prompt
+        #         mask_column.label(text="Prompt")
+        #         mask_column.prop(properties, "mask_prompt")
 
-            #         # Style
-            #         style_row = mask_column.split(factor=0.2)
-            #         style_row.label(text="Style")
-            #         style_row.prop(properties, "mask_style", slider=True)
+        #         # Style
+        #         style_row = mask_column.split(factor=0.2)
+        #         style_row.label(text="Style")
+        #         style_row.prop(properties, "mask_style", slider=True)
 
-            #         # Isolate
-            #         mask_column.label(text="Isolate")
-            #         mask_column.prop(properties, "mask_isolate", slider=True)
+        #         # Isolate
+        #         mask_column.label(text="Isolate")
+        #         mask_column.prop(properties, "mask_isolate", slider=True)
 
-            #         mask_column.separator(factor=BOX_PADDING)
+        #         mask_column.separator(factor=BOX_PADDING)
 
     #
     def draw_style_layout(self, scene, layout):
@@ -312,6 +306,7 @@ class RenderPanel(PlaybookPanel, bpy.types.Panel):
         box.separator(factor=BOX_PADDING)
 
 
+# The panel that creates the Playbook links
 class LinksPanel(PlaybookPanel, bpy.types.Panel):
     bl_idname = "SCENE_PT_linkspanel"
     bl_parent_id = "SCENE_PT_playbook"

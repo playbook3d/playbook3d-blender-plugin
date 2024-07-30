@@ -21,6 +21,7 @@ from .utilities import icons as util_icons, PB_UL_CustomList
 NUM_MASK_LAYER = 7
 
 classes = [
+    #
     # Panels
     MainPanel,
     CredentialsPanel,
@@ -34,6 +35,8 @@ classes = [
     MaskListRemoveItem,
     MaskObjectListItem,
     MaskObjectListAddItem,
+    MaskObjectListRemoveItem,
+    MaskObjectListClearItems,
     GeneralProperties,
     MaskProperties1,
     MaskProperties2,
@@ -48,8 +51,8 @@ classes = [
     #
     # Operators
     LoginOperator,
-    CreditsOperator,
-    GeneralPanelOperator,
+    UpgradeOperator,
+    RetexturePanelOperator,
     RandomizePromptOperator,
     ObjectMaskPanelOperator,
     MaskPropertyPanelOperator1,
@@ -74,25 +77,28 @@ classes = [
 
 
 def register():
+    # Custom icons
     icons = previews.new()
     icons_dir = os.path.join(os.path.dirname(__file__), "images")
     icons.load("playbook_logo", os.path.join(icons_dir, "playbook_logo.png"), "IMAGE")
     icons.load("discord_logo", os.path.join(icons_dir, "discord_logo.png"), "IMAGE")
     icons.load("twitter_logo", os.path.join(icons_dir, "twitter_logo.png"), "IMAGE")
+    icons.load("check_icon", os.path.join(icons_dir, "check_icon.png"), "IMAGE")
     icons.load("credit_icon", os.path.join(icons_dir, "credit_icon.png"), "IMAGE")
-
     util_icons["main"] = icons
 
+    # Register classes
     for cls in classes:
         bpy.utils.register_class(cls)
 
+    # Set scene properties
     scene = bpy.types.Scene
     scene.general_properties = PointerProperty(type=GeneralProperties)
     scene.style_properties = PointerProperty(type=StyleProperties)
     scene.relight_properties = PointerProperty(type=RelightProperties)
     scene.upscale_properties = PointerProperty(type=UpscaleProperties)
 
-    scene.show_general_panel = BoolProperty(default=False)
+    scene.show_retexture_panel = BoolProperty(default=False)
     scene.show_mask_panel = BoolProperty(default=False)
     scene.show_style_panel = BoolProperty(default=False)
     scene.show_relight_panel = BoolProperty(default=False)
@@ -108,10 +114,11 @@ def register():
         setattr(scene, f"show_mask_properties{i}", BoolProperty(default=False))
 
     scene.mask_list = CollectionProperty(type=MaskListItem)
-    scene.mask_list_index = IntProperty(name="", default=0)
+    scene.mask_list_index = IntProperty(name="", default=-1)
 
 
 def unregister():
+    # Unregister classes
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
@@ -121,7 +128,7 @@ def unregister():
     del scene.relight_properties
     del scene.upscale_properties
 
-    del scene.show_general_panel
+    del scene.show_retexture_panel
     del scene.show_mask_panel
     del scene.show_style_panel
     del scene.show_relight_panel
@@ -135,6 +142,7 @@ def unregister():
     del scene.mask_list
     del scene.mask_list_index
 
+    # Clear custom icons
     for icon in util_icons.values():
         previews.remove(icon)
     util_icons.clear()

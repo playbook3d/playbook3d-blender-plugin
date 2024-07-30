@@ -1,6 +1,7 @@
 import bpy
 import webbrowser
 from .render_image import render_image
+from .properties import mask_objects
 from bpy.props import StringProperty
 from bpy.types import Operator
 
@@ -15,21 +16,23 @@ class LoginOperator(Operator):
 
 
 #
-class CreditsOperator(Operator):
-    bl_idname = "op.credits"
-    bl_label = "Get Credits"
+class UpgradeOperator(Operator):
+    bl_idname = "op.upgrade"
+    bl_label = "Upgrade"
 
     def execute(self, context):
         return {"FINISHED"}
 
 
-#
-class GeneralPanelOperator(Operator):
-    bl_idname = "op.general_panel"
-    bl_label = "Global"
+# Operator to show / hide the 'General' panel
+class RetexturePanelOperator(Operator):
+    bl_idname = "op.retexture_panel"
+    bl_label = "Retexture"
 
     def execute(self, context):
-        bpy.context.scene.show_general_panel = not bpy.context.scene.show_general_panel
+        bpy.context.scene.show_retexture_panel = (
+            not bpy.context.scene.show_retexture_panel
+        )
         return {"FINISHED"}
 
 
@@ -42,7 +45,7 @@ class RandomizePromptOperator(Operator):
         return {"FINISHED"}
 
 
-#
+# Operator to show / hide the 'Object Masks' panel
 class ObjectMaskPanelOperator(Operator):
     bl_idname = "op.object_mask_panel"
     bl_label = "Object Mask"
@@ -52,7 +55,7 @@ class ObjectMaskPanelOperator(Operator):
         return {"FINISHED"}
 
 
-#
+# Operator to show / hide the 'Style Transfer' panel
 class StylePanelOperator(Operator):
     bl_idname = "op.style_panel"
     bl_label = "Style Transfer"
@@ -62,7 +65,7 @@ class StylePanelOperator(Operator):
         return {"FINISHED"}
 
 
-#
+# Operator to show / hide the 'Relight' panel
 class RelightPanelOperator(Operator):
     bl_idname = "op.relight_panel"
     bl_label = "Relight"
@@ -72,7 +75,7 @@ class RelightPanelOperator(Operator):
         return {"FINISHED"}
 
 
-#
+# Operator to show / hide the 'Upscale' panel
 class UpscalePanelOperator(Operator):
     bl_idname = "op.upscale_panel"
     bl_label = "Upscale"
@@ -182,7 +185,7 @@ class QueueOperator(Operator):
         return {"FINISHED"}
 
 
-#
+# Render the image according to the settings
 class RenderOperator(Operator):
     bl_idname = "op.render_image"
     bl_label = "Render"
@@ -192,7 +195,7 @@ class RenderOperator(Operator):
         return {"FINISHED"}
 
 
-#
+# Direct the user to the Playbook website
 class PlaybookWebsiteOperator(Operator):
     bl_idname = "op.send_to_playbook"
     bl_label = ""
@@ -204,7 +207,7 @@ class PlaybookWebsiteOperator(Operator):
         return {"FINISHED"}
 
 
-#
+# Direct the user to the Playbook Discord
 class PlaybookDiscordOperator(Operator):
     bl_idname = "op.send_to_discord"
     bl_label = ""
@@ -216,7 +219,7 @@ class PlaybookDiscordOperator(Operator):
         return {"FINISHED"}
 
 
-#
+# Direct the user to the Playbook Twitter
 class PlaybookTwitterOperator(Operator):
     bl_idname = "op.send_to_twitter"
     bl_label = ""
@@ -228,18 +231,26 @@ class PlaybookTwitterOperator(Operator):
         return {"FINISHED"}
 
 
-#
+# Add a mask to the mask list
 class MaskListAddItem(Operator):
     bl_idname = "list.add_mask_item"
     bl_label = ""
 
     def execute(self, context):
+        mask_len = len(context.scene.mask_list)
+
+        if mask_len == 7:
+            return {"CANCELLED"}
+
         item = context.scene.mask_list.add()
-        item.name = f"Mask {len(context.scene.mask_list)}"
+        item.name = f"Mask {mask_len + 1}"
+
+        context.scene.mask_list_index = len(context.scene.mask_list) - 1
+
         return {"FINISHED"}
 
 
-#
+# Remove the last mask from the mask list
 class MaskListRemoveItem(Operator):
     bl_idname = "list.remove_mask_item"
     bl_label = ""
@@ -254,25 +265,32 @@ class MaskListRemoveItem(Operator):
 
         mask_list.remove(index)
 
-        if index == context.scene.mask_list_index:
-            context.scene.mask_list_index = min(max(0, index - 1), len(mask_list) - 1)
+        if len(mask_list) > 0:
+            context.scene.mask_list_index = 0
+        else:
+            context.scene.mask_list_index = -1
 
         return {"FINISHED"}
 
 
-#
+# Add the currently selected object (in the viewport) to the
+# currently selected mask
 class MaskObjectListAddItem(Operator):
     bl_idname = "list.add_mask_object_item"
     bl_label = ""
 
     def execute(self, context):
         obj = bpy.context.active_object
+
+        # There is no currently selected object or the currently
+        # selected object is not a mesh
         if not obj or obj.type != "MESH":
             return {"CANCELLED"}
 
         mask_index = context.scene.mask_list_index
         mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
 
+        # The currently selected item is already part of the list
         for item in mask.mask_objects:
             if item.object_id == obj.name_full:
                 return {"CANCELLED"}
@@ -281,7 +299,68 @@ class MaskObjectListAddItem(Operator):
         item.name = obj.name
         item.object_id = obj.name_full
 
+        mask_objects[f"MASK{mask_index + 1}"].append(item.object_id)
+
+        print("ADDED")
         for item in mask.mask_objects:
+            print(item.name)
             print(item.object_id)
+
+        return {"FINISHED"}
+
+
+# Remove the currently selected index in the list from the
+# currently selected mask
+class MaskObjectListRemoveItem(Operator):
+    bl_idname = "list.remove_mask_object_item"
+    bl_label = ""
+
+    @classmethod
+    def poll(cls, context):
+        mask_index = context.scene.mask_list_index
+        return getattr(context.scene, f"mask_properties{mask_index + 1}")
+
+    def execute(self, context):
+        mask_index = context.scene.mask_list_index
+        mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
+
+        if len(mask.mask_objects) == 0:
+            return {"CANCELLED"}
+
+        index = mask.object_list_index
+
+        # No object list index is selected but items exists in the list
+        # Delete the last object
+        if index == -1 and len(mask.mask_objects) > 0:
+            index = len(mask.mask_objects) - 1
+
+        mask.mask_objects.remove(index)
+        mask_objects[f"MASK{mask_index + 1}"].pop(index)
+
+        if len(mask.mask_objects) > 0:
+            mask.object_list_index = 0
+        else:
+            mask.object_list_index = -1
+
+        return {"FINISHED"}
+
+
+# Clear all the objects from the currently selected mask
+class MaskObjectListClearItems(Operator):
+    bl_idname = "list.clear_mask_object_list"
+    bl_label = ""
+
+    @classmethod
+    def poll(cls, context):
+        mask_index = context.scene.mask_list_index
+        return getattr(context.scene, f"mask_properties{mask_index + 1}")
+
+    def execute(self, context):
+        mask_index = context.scene.mask_list_index
+        mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
+
+        mask.mask_objects.clear()
+
+        mask.object_list_index = -1
 
         return {"FINISHED"}
