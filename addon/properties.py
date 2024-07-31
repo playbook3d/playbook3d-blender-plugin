@@ -7,6 +7,7 @@ from bpy.props import (
     EnumProperty,
     CollectionProperty,
     FloatVectorProperty,
+    BoolProperty,
 )
 from bpy.types import PropertyGroup
 
@@ -26,9 +27,18 @@ mask_objects = {
 
 # Available general model options
 prompt_styles = [
-    ("PHOTOREAL", "Photoreal", ""),
+    ("PHOTOREAL1", "Photoreal", ""),
+    ("PHOTOREAL2", "Photoreal (humans)", ""),
+    ("PHOTOREAL3", "Photoreal (product photography)", ""),
     ("ANIME", "Anime", ""),
     ("3DCARTOON", "3D Cartoon", ""),
+]
+
+angle_options = [
+    ("TOPLEFT", "Top left", ""),
+    ("TOPRIGHT", "Top right", ""),
+    ("BOTTOMLEFT", "Bottom left", ""),
+    ("BOTTOMRIGHT", "Bottom right", ""),
 ]
 
 # Available upscale options
@@ -47,8 +57,8 @@ def set_visible_objects(context):
 def update_enum_items(self, context):
     set_visible_objects(context)
     items = [(obj.name, obj.name, "") for obj in visible_objects]
-    items.insert(0, ("None", "None", ""))
-    items.insert(1, ("Background", "Background", ""))
+    items.insert(0, ("NONE", "None", ""))
+    items.insert(1, ("BACKGROUND", "Background", ""))
 
     return items
 
@@ -61,12 +71,22 @@ class MaskListItem(PropertyGroup):
 # Properties of each item in the mask objects list
 class MaskObjectListItem(PropertyGroup):
     object_name: StringProperty(name="")
-    object_id: StringProperty(name="")
 
 
 # Properties under the 'General' panel
 class GeneralProperties(PropertyGroup):
-    general_prompt: StringProperty(name="", default="Describe the scene...")
+    def on_update_prompt(self, context):
+        if not self.general_prompt:
+            self.general_prompt = "Describe the scene..."
+            context.scene.flag_properties.retexture_flag = False
+        else:
+            context.scene.flag_properties.retexture_flag = True
+
+    general_prompt: StringProperty(
+        name="",
+        default="Describe the scene...",
+        update=lambda self, context: self.on_update_prompt(context),
+    )
     general_structure_strength: FloatProperty(name="", default=50, min=0, max=100)
     general_style: EnumProperty(
         name="",
@@ -79,7 +99,7 @@ class GeneralProperties(PropertyGroup):
 class MaskProperties(PropertyGroup):
     mask_objects: CollectionProperty(type=MaskObjectListItem, name="")
     object_list_index: IntProperty(name="", default=-1)
-    mask_prompt: StringProperty(name="", default="Describe the scene...")
+    mask_prompt: StringProperty(name="", default="Describe masked objects...")
     mask_isolate: FloatProperty(name="", default=50, min=0, max=100)
     mask_style: EnumProperty(
         name="",
@@ -94,12 +114,33 @@ class MaskProperties(PropertyGroup):
 
 # Properties under the 'Style Transfer' panel
 class StyleProperties(PropertyGroup):
-    style_image: StringProperty(name="", subtype="FILE_PATH", maxlen=1024)
+    def on_update_image(self, context):
+        context.scene.flag_properties.style_flag = self.style_image
+
+    style_image: StringProperty(
+        name="",
+        subtype="FILE_PATH",
+        maxlen=1024,
+        update=lambda self, context: self.on_update_image(context),
+    )
     style_strength: FloatProperty(name="", default=50, min=0, max=100)
 
 
 # Properties under the 'Relight' panel
 class RelightProperties(PropertyGroup):
+    def on_update_image(self, context):
+        context.scene.flag_properties.relight_flag = self.relight_image
+
+    def on_update_prompt(self, context):
+        if not self.relight_prompt:
+            self.relight_prompt = "Describe the lighting..."
+            context.scene.flag_properties.relight_flag = False
+        else:
+            context.scene.flag_properties.relight_flag = True
+
+    def on_update_angle(self, context):
+        context.scene.flag_properties.relight_flag = self.relight_angle != "TOPLEFT"
+
     def update_type(self, context):
         context.scene.is_relight_image = self.relight_type == "IMAGE"
 
@@ -108,13 +149,43 @@ class RelightProperties(PropertyGroup):
         items=[("IMAGE", "Image", ""), ("COLOR", "Color", "")],
         update=lambda self, context: self.update_type(context),
     )
-    relight_image: StringProperty(name="", subtype="FILE_PATH", maxlen=1024)
+    relight_image: StringProperty(
+        name="",
+        subtype="FILE_PATH",
+        maxlen=1024,
+        update=lambda self, context: self.on_update_image(context),
+    )
     relight_color: FloatVectorProperty(
         name="", subtype="COLOR", default=(1, 1, 1, 1), size=4
+    )
+    relight_prompt: StringProperty(
+        name="",
+        default="Describe the lighting...",
+        update=lambda self, context: self.on_update_prompt(context),
+    )
+    relight_angle: EnumProperty(
+        name="",
+        items=angle_options,
+        update=lambda self, context: self.on_update_angle(context),
     )
     relight_strength: FloatProperty(name="", default=0, min=0, max=100)
 
 
 # Properties under the 'Upscale' panel
 class UpscaleProperties(PropertyGroup):
-    upscale_scale: EnumProperty(name="", items=upscale_options)
+    def on_update_scale(self, context):
+        context.scene.flag_properties.upscale_flag = self.upscale_scale != "1"
+
+    upscale_scale: EnumProperty(
+        name="",
+        items=upscale_options,
+        update=lambda self, context: self.on_update_scale(context),
+    )
+
+
+# Flags to keep track if the properties were modified
+class FlagProperties(PropertyGroup):
+    retexture_flag: BoolProperty(name="", default=False)
+    style_flag: BoolProperty(name="", default=False)
+    relight_flag: BoolProperty(name="", default=False)
+    upscale_flag: BoolProperty(name="", default=False)

@@ -176,8 +176,8 @@ def send_render_to_api(url):
 # Render the image from the active camera
 def render_image():
     print("----------------------------------------------")
-    set_visible_objects(bpy.context)
 
+    set_visible_objects(bpy.context)
     clear_render_folder()
 
     # Render mask image
@@ -196,11 +196,13 @@ def render_image():
     reset_depth_settings()
 
     # Render canny image
+    save_canny_settings()
     set_canny_settings()
     render_canny_to_file()
+    reset_canny_settings()
 
     # TODO: Temp
-    # get_render_settings()
+    get_render_settings()
     # Send the rendered image to API
     # buffer = render_to_buffer()
     # send_render_to_api(api_url, buffer)

@@ -25,6 +25,7 @@ classes = [
     # Panels
     MainPanel,
     CredentialsPanel,
+    ModificationPanel,
     RenderSettingsPanel,
     RenderPanel,
     LinksPanel,
@@ -42,6 +43,7 @@ classes = [
     StyleProperties,
     RelightProperties,
     UpscaleProperties,
+    FlagProperties,
     #
     # Operators
     LoginOperator,
@@ -49,13 +51,6 @@ classes = [
     RetexturePanelOperator,
     RandomizePromptOperator,
     ObjectMaskPanelOperator,
-    MaskPropertyPanelOperator1,
-    MaskPropertyPanelOperator2,
-    MaskPropertyPanelOperator3,
-    MaskPropertyPanelOperator4,
-    MaskPropertyPanelOperator5,
-    MaskPropertyPanelOperator6,
-    MaskPropertyPanelOperator7,
     StylePanelOperator,
     RelightPanelOperator,
     UpscalePanelOperator,
@@ -64,6 +59,8 @@ classes = [
     PlaybookWebsiteOperator,
     PlaybookDiscordOperator,
     PlaybookTwitterOperator,
+    ClearStyleImageOperator,
+    ClearRelightImageOperator,
     #
     # UI
     PB_UL_CustomList,
@@ -91,6 +88,7 @@ def register():
     scene.style_properties = PointerProperty(type=StyleProperties)
     scene.relight_properties = PointerProperty(type=RelightProperties)
     scene.upscale_properties = PointerProperty(type=UpscaleProperties)
+    scene.flag_properties = PointerProperty(type=FlagProperties)
 
     scene.show_retexture_panel = BoolProperty(default=False)
     scene.show_mask_panel = BoolProperty(default=False)
@@ -120,6 +118,7 @@ def unregister():
     del scene.style_properties
     del scene.relight_properties
     del scene.upscale_properties
+    del scene.flag_properties
 
     del scene.show_retexture_panel
     del scene.show_mask_panel

@@ -18,7 +18,7 @@ def save_mask_settings():
             "gamma": scene.view_settings.gamma,
             "sequencer": scene.sequencer_colorspace_settings.name,
             "user_curves": scene.view_settings.use_curve_mapping,
-            # "use_nodes": scene.use_nodes,
+            "use_nodes": scene.world.use_nodes,
             "film_transparent": scene.render.film_transparent,
             "color_mode": scene.render.image_settings.color_mode,
             "color_depth": scene.render.image_settings.color_depth,
@@ -36,7 +36,7 @@ def set_mask_settings():
     scene.view_settings.gamma = 1
     scene.sequencer_colorspace_settings.name = "sRGB"
     scene.view_settings.use_curve_mapping = False
-    # scene.use_nodes = False
+    scene.world.use_nodes = True
     scene.render.film_transparent = False
     scene.render.image_settings.color_mode = "RGBA"
     scene.render.image_settings.color_depth = "16"
@@ -52,7 +52,7 @@ def reset_mask_settings():
     scene.view_settings.gamma = original_settings["gamma"]
     scene.sequencer_colorspace_settings.name = original_settings["sequencer"]
     scene.view_settings.use_curve_mapping = original_settings["user_curves"]
-    # scene.use_nodes = original_settings["use_nodes"]
+    scene.world.use_nodes = original_settings["use_nodes"]
     scene.render.film_transparent = original_settings["film_transparent"]
     scene.render.image_settings.color_mode = original_settings["color_mode"]
     scene.render.image_settings.color_depth = original_settings["color_depth"]

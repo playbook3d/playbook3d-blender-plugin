@@ -86,97 +86,6 @@ class UpscalePanelOperator(Operator):
 
 
 #
-class MaskPropertyPanelOperator1(Operator):
-    bl_idname = "op.mask_property_panel1"
-    bl_label = "Mask 1"
-    property_name = "show_mask_properties1"
-
-    def execute(self, context):
-        # Toggle the property
-        current_value = getattr(context.scene, self.property_name)
-        setattr(context.scene, self.property_name, not current_value)
-        return {"FINISHED"}
-
-
-#
-class MaskPropertyPanelOperator2(Operator):
-    bl_idname = "op.mask_property_panel2"
-    bl_label = "Mask 2"
-    property_name = "show_mask_properties2"
-
-    def execute(self, context):
-        # Toggle the property
-        current_value = getattr(context.scene, self.property_name)
-        setattr(context.scene, self.property_name, not current_value)
-        return {"FINISHED"}
-
-
-#
-class MaskPropertyPanelOperator3(Operator):
-    bl_idname = "op.mask_property_panel3"
-    bl_label = "Mask 3"
-    property_name = "show_mask_properties3"
-
-    def execute(self, context):
-        # Toggle the property
-        current_value = getattr(context.scene, self.property_name)
-        setattr(context.scene, self.property_name, not current_value)
-        return {"FINISHED"}
-
-
-#
-class MaskPropertyPanelOperator4(Operator):
-    bl_idname = "op.mask_property_panel4"
-    bl_label = "Mask 4"
-    property_name = "show_mask_properties4"
-
-    def execute(self, context):
-        # Toggle the property
-        current_value = getattr(context.scene, self.property_name)
-        setattr(context.scene, self.property_name, not current_value)
-        return {"FINISHED"}
-
-
-#
-class MaskPropertyPanelOperator5(Operator):
-    bl_idname = "op.mask_property_panel5"
-    bl_label = "Mask 5"
-    property_name = "show_mask_properties5"
-
-    def execute(self, context):
-        # Toggle the property
-        current_value = getattr(context.scene, self.property_name)
-        setattr(context.scene, self.property_name, not current_value)
-        return {"FINISHED"}
-
-
-#
-class MaskPropertyPanelOperator6(Operator):
-    bl_idname = "op.mask_property_panel6"
-    bl_label = "Mask 6"
-    property_name = "show_mask_properties6"
-
-    def execute(self, context):
-        # Toggle the property
-        current_value = getattr(context.scene, self.property_name)
-        setattr(context.scene, self.property_name, not current_value)
-        return {"FINISHED"}
-
-
-#
-class MaskPropertyPanelOperator7(Operator):
-    bl_idname = "op.mask_property_panel7"
-    bl_label = "Mask 7"
-    property_name = "show_mask_properties7"
-
-    def execute(self, context):
-        # Toggle the property
-        current_value = getattr(context.scene, self.property_name)
-        setattr(context.scene, self.property_name, not current_value)
-        return {"FINISHED"}
-
-
-#
 class QueueOperator(Operator):
     bl_idname = "op.queue"
     bl_label = "Open Queue"
@@ -231,6 +140,26 @@ class PlaybookTwitterOperator(Operator):
         return {"FINISHED"}
 
 
+#
+class ClearStyleImageOperator(Operator):
+    bl_idname = "op.clear_style_image"
+    bl_label = ""
+
+    def execute(self, context):
+        bpy.context.scene.style_properties.style_image = ""
+        return {"FINISHED"}
+
+
+#
+class ClearRelightImageOperator(Operator):
+    bl_idname = "op.clear_relight_image"
+    bl_label = ""
+
+    def execute(self, context):
+        bpy.context.scene.relight_properties.relight_image = ""
+        return {"FINISHED"}
+
+
 # Add a mask to the mask list
 class MaskListAddItem(Operator):
     bl_idname = "list.add_mask_item"
@@ -280,31 +209,34 @@ class MaskObjectListAddItem(Operator):
     bl_label = ""
 
     def execute(self, context):
-        obj = bpy.context.active_object
-
-        # There is no currently selected object or the currently
-        # selected object is not a mesh
-        if not obj or obj.type != "MESH":
-            return {"CANCELLED"}
-
         mask_index = context.scene.mask_list_index
         mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
 
-        # The currently selected item is already part of the list
-        for item in mask.mask_objects:
-            if item.object_id == obj.name_full:
+        # No object selected in the object dropdown
+        if mask.object_dropdown == "NONE":
+            obj = bpy.context.active_object
+
+            # There is no currently selected object or the currently
+            # selected object is not a mesh
+            if not obj or obj.type != "MESH":
                 return {"CANCELLED"}
 
+            obj_name = obj.name
+
+        elif mask.object_dropdown == "BACKGROUND":
+            obj_name = "Background"
+
+        else:
+            obj_name = mask.object_dropdown
+
+        # The currently selected item is already part of the list
+        if any(item.name == obj_name for item in mask.mask_objects):
+            return {"CANCELLED"}
+
         item = mask.mask_objects.add()
-        item.name = obj.name
-        item.object_id = obj.name_full
+        item.name = obj_name
 
-        mask_objects[f"MASK{mask_index + 1}"].append(item.object_id)
-
-        print("ADDED")
-        for item in mask.mask_objects:
-            print(item.name)
-            print(item.object_id)
+        mask_objects[f"MASK{mask_index + 1}"].append(item.name)
 
         return {"FINISHED"}
 
@@ -324,23 +256,21 @@ class MaskObjectListRemoveItem(Operator):
         mask_index = context.scene.mask_list_index
         mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
 
-        if len(mask.mask_objects) == 0:
+        if not mask.mask_objects:
             return {"CANCELLED"}
 
-        index = mask.object_list_index
-
-        # No object list index is selected but items exists in the list
-        # Delete the last object
-        if index == -1 and len(mask.mask_objects) > 0:
-            index = len(mask.mask_objects) - 1
+        index = (
+            mask.object_list_index
+            if mask.object_list_index != -1
+            # If no object list index is selected but items exists in the list
+            # delete the last object
+            else len(mask.mask_objects) - 1
+        )
 
         mask.mask_objects.remove(index)
         mask_objects[f"MASK{mask_index + 1}"].pop(index)
 
-        if len(mask.mask_objects) > 0:
-            mask.object_list_index = 0
-        else:
-            mask.object_list_index = -1
+        mask.object_list_index = 0 if mask.mask_objects else -1
 
         return {"FINISHED"}
 

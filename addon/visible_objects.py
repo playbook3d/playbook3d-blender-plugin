@@ -40,20 +40,20 @@ def set_object_materials():
     visible_objects_dict = {obj.name: obj for obj in visible_objects}
 
     # Get the mask that has the world background, if any
-    for key, value in mask_objects.items():
-        if value == "Background":
-            background_mask = key
+    for mask, objs in mask_objects.items():
+        if "Background" in objs:
+            background_mask = mask
             break
 
     # Set objects in masks to their respective material colors
     for mask, mask_objs in mask_objects.items():
         for mask_obj in mask_objs:
             print(f"Mask: {mask}, Object: {mask_obj}")
-            if mask_obj and mask_obj == "Background":
+            if mask_obj == "Background":
                 bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[
                     0
                 ].default_value = material_props[mask][1]
-            elif mask_obj and mask_obj in visible_objects_dict:
+            elif mask_obj in visible_objects_dict:
                 set_materials(
                     visible_objects_dict[mask_obj],
                     [
@@ -65,15 +65,11 @@ def set_object_materials():
                 visible_objects_dict.pop(mask_obj)
 
     # All remaining visible objects are set in the catch-all mask
-    for obj_name, obj in visible_objects_dict.items():
-        set_materials(
-            obj,
-            [
-                create_rgb_material(
-                    material_props["CATCHALL"][0], material_props["CATCHALL"][1]
-                )
-            ],
-        )
+    catchall_mat = create_rgb_material(
+        material_props["CATCHALL"][0], material_props["CATCHALL"][1]
+    )
+    for obj in visible_objects_dict.values():
+        set_materials(obj, [catchall_mat])
 
     # Set the world background to the catch-call color if it was not part of a mask
     if not background_mask:

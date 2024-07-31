@@ -59,6 +59,37 @@ class CredentialsPanel(PlaybookPanel, bpy.types.Panel):
         box.separator(factor=BOX_PADDING)
 
 
+class ModificationPanel(PlaybookPanel, bpy.types.Panel):
+    bl_idname = "SCENE_PT_modification"
+    bl_label = ""
+    bl_parent_id = "SCENE_PT_playbook"
+    bl_options = {"HIDE_HEADER"}
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        flag_props = scene.flag_properties
+
+        flags = [
+            ("Retexture", flag_props.retexture_flag),
+            ("Style Transfer", flag_props.style_flag),
+            ("Relight", flag_props.relight_flag),
+            ("Upscale", flag_props.upscale_flag),
+        ]
+
+        # Filter the flags that are active
+        active_flags = [name for name, active in flags if active]
+
+        if active_flags:
+            row = layout.row()
+            row.alignment = "CENTER"
+            row.label(text="Applied:")
+
+            row = layout.row()
+            row.alignment = "CENTER"
+            row.label(text=", ".join(active_flags))
+
+
 #
 class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
     bl_idname = "SCENE_PT_render_settings"
@@ -70,11 +101,16 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         layout = self.layout
         scene = context.scene
 
-        # General panel
+        # Retexture panel
         self.draw_retexture_layout(scene, layout)
 
+        # Style Transfer panel
         self.draw_style_layout(scene, layout)
+
+        # Relight panel
         self.draw_relight_layout(scene, layout)
+
+        # Upscale panel
         self.draw_upscale_layout(scene, layout)
 
     #
@@ -102,7 +138,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         retexture_column = box.column()
 
         # Prompt
-        retexture_column.label(text="Prompt")
+        retexture_column.label(text="Scene Prompt")
         retexture_column.prop(scene.general_properties, "general_prompt")
         retexture_column.operator("op.randomize_prompt")
 
@@ -155,7 +191,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             list_row.operator("list.remove_mask_object_item", text="Remove")
             list_row.operator("list.clear_mask_object_list", text="Clear")
 
-            mask_column.prop(property, "object_dropdown", icon="PROP_ON")
+            mask_column.prop(property, "object_dropdown", icon="MESH_CUBE")
 
             mask_column.label(text="Prompt")
             mask_column.prop(property, "mask_prompt")
@@ -173,7 +209,9 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             style_box.operator("op.style_panel", icon="PROP_ON", emboss=False)
             style_column = style_box.column()
 
-            style_column.prop(scene.style_properties, "style_image")
+            row = style_column.row()
+            row.prop(scene.style_properties, "style_image")
+            row.operator("op.clear_style_image", icon="PANEL_CLOSE")
 
             style_column.label(text="Strength")
             style_column.prop(scene.style_properties, "style_strength", slider=True)
@@ -195,10 +233,21 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             row.prop(scene.relight_properties, "relight_type", expand=True)
 
             if scene.is_relight_image:
-                relight_column.prop(scene.relight_properties, "relight_image")
+                row = relight_column.row()
+                row.prop(scene.relight_properties, "relight_image")
+                row.operator("op.clear_relight_image", icon="PANEL_CLOSE")
             else:
                 relight_column.prop(scene.relight_properties, "relight_color")
 
+            # Angle
+            relight_column.label(text="Angle")
+            relight_column.prop(scene.relight_properties, "relight_angle")
+
+            # Prompt
+            relight_column.label(text="prompt")
+            relight_column.prop(scene.relight_properties, "relight_prompt")
+
+            # Strength
             relight_column.label(text="Strength")
             relight_column.prop(
                 scene.relight_properties, "relight_strength", slider=True
