@@ -22,13 +22,13 @@ class ComfyDeployClient:
     async def get_render_progress(self, run_id: str) -> int:
         return self.client.run.get(run_id=run_id).progress
 
-    async def upload_image(self, image_data: bytes, image_size: str) -> None:
+    async def upload_image(self, image_data: bytes, image_size: str, maskType: str) -> None:
         image_type = operations.Type.APPLICATION_OCTET_STREAM
         logging.info(f"Starting file upload for pass: {image_type}")
         upload_url_result = self.client.files.get_upload_url(type_=image_type, file_size=image_size)
 
         if upload_url_result is not None:
-            match image_type:
+            match maskType:
                 case "mask":
                     self.mask = upload_url_result.file_id
                 case "depth":
