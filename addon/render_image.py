@@ -202,7 +202,7 @@ def render_image():
     reset_canny_settings()
 
     # TODO: Temp
-    get_render_settings()
+    # get_render_settings()
     # Send the rendered image to API
     # buffer = render_to_buffer()
     # send_render_to_api(api_url, buffer)

@@ -10,6 +10,8 @@ from bpy.props import (
     BoolProperty,
 )
 from bpy.types import PropertyGroup
+from bpy.utils import register_class, unregister_class
+from .ui.lists import MaskObjectListItem
 
 
 visible_objects = []
@@ -61,16 +63,6 @@ def update_enum_items(self, context):
     items.insert(1, ("BACKGROUND", "Background", ""))
 
     return items
-
-
-# Properties of each item in the mask list
-class MaskListItem(PropertyGroup):
-    mask_name: StringProperty(name="")
-
-
-# Properties of each item in the mask objects list
-class MaskObjectListItem(PropertyGroup):
-    object_name: StringProperty(name="")
 
 
 # Properties under the 'General' panel
@@ -189,3 +181,25 @@ class FlagProperties(PropertyGroup):
     style_flag: BoolProperty(name="", default=False)
     relight_flag: BoolProperty(name="", default=False)
     upscale_flag: BoolProperty(name="", default=False)
+
+
+classes = [
+    GeneralProperties,
+    MaskProperties,
+    StyleProperties,
+    RelightProperties,
+    UpscaleProperties,
+    FlagProperties,
+]
+
+
+def register():
+    global classes
+    for cls in classes:
+        register_class(cls)
+
+
+def unregister():
+    global classes
+    for cls in classes:
+        unregister_class(cls)

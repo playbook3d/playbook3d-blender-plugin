@@ -11,41 +11,22 @@ bl_info = {
 
 import bpy
 import os
-from bpy.props import PointerProperty, IntProperty, BoolProperty, CollectionProperty
+from bpy.props import PointerProperty, BoolProperty
 from bpy.utils import previews
 from .operators import *
-from .panels import *
+from . import ui
 from .properties import *
-from .utilities import icons as util_icons, PB_UL_CustomList
+from .utilities import icons as util_icons
 
 NUM_MASK_LAYER = 7
 
 classes = [
-    #
-    # Panels
-    MainPanel,
-    CredentialsPanel,
-    ModificationPanel,
-    RenderSettingsPanel,
-    RenderPanel,
-    LinksPanel,
-    #
-    # Properties
-    MaskListItem,
+    # Operators
     MaskListAddItem,
     MaskListRemoveItem,
-    MaskObjectListItem,
     MaskObjectListAddItem,
     MaskObjectListRemoveItem,
     MaskObjectListClearItems,
-    GeneralProperties,
-    MaskProperties,
-    StyleProperties,
-    RelightProperties,
-    UpscaleProperties,
-    FlagProperties,
-    #
-    # Operators
     LoginOperator,
     UpgradeOperator,
     RetexturePanelOperator,
@@ -61,9 +42,6 @@ classes = [
     PlaybookTwitterOperator,
     ClearStyleImageOperator,
     ClearRelightImageOperator,
-    #
-    # UI
-    PB_UL_CustomList,
 ]
 
 
@@ -78,9 +56,13 @@ def register():
     icons.load("credit_icon", os.path.join(icons_dir, "credit_icon.png"), "IMAGE")
     util_icons["main"] = icons
 
+    ui.register()
+
     # Register classes
     for cls in classes:
         bpy.utils.register_class(cls)
+
+    properties.register()
 
     # Set scene properties
     scene = bpy.types.Scene
@@ -104,14 +86,15 @@ def register():
             PointerProperty(type=MaskProperties),
         )
 
-    scene.mask_list = CollectionProperty(type=MaskListItem)
-    scene.mask_list_index = IntProperty(name="", default=-1)
-
 
 def unregister():
+    ui.unregister()
+
     # Unregister classes
     for cls in classes:
         bpy.utils.unregister_class(cls)
+
+    properties.unregister()
 
     scene = bpy.types.Scene
     del scene.general_properties
@@ -129,9 +112,6 @@ def unregister():
 
     for i in range(1, 8):
         delattr(scene, f"mask_properties{i}")
-
-    del scene.mask_list
-    del scene.mask_list_index
 
     # Clear custom icons
     for icon in util_icons.values():

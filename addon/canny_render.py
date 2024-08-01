@@ -19,7 +19,7 @@ def save_canny_settings():
             "freestyle": scene.render.use_freestyle,
             "freestyle_pass": view_layer.use_freestyle,
             "render_pass": view_layer.freestyle_settings.as_render_pass,
-            "sillhouette": view_layer.freestyle_settings.linesets.active.select_silhouette,
+            "silhouette": view_layer.freestyle_settings.linesets.active.select_silhouette,
             "crease": view_layer.freestyle_settings.linesets.active.select_crease,
             "border": view_layer.freestyle_settings.linesets.active.select_border,
             "freestyle_color": bpy.data.linestyles["LineStyle"].color,

@@ -1,19 +1,7 @@
 import bpy
 import os
-from bpy.types import UIList
 
 icons = {}
-
-
-#
-class PB_UL_CustomList(UIList):
-    def draw_item(
-        self, context, layout, data, item, icon, active_data, active_propname, index
-    ):
-        if self.layout_type in {"DEFAULT", "COMPACT"}:
-            layout.label(text=item.name)
-        elif self.layout_type in {"GRID"}:
-            layout.alignment = "CENTER"
 
 
 # Create a new simple RGB material

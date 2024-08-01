@@ -1,5 +1,6 @@
 import bpy
-from .utilities import icons
+from bpy.utils import register_class, unregister_class
+from ..utilities import icons
 
 BOX_PADDING = 0.1
 BUTTON_Y_SCALE = 1.7
@@ -18,9 +19,15 @@ class MainPanel(PlaybookPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.alignment = "CENTER"
-        layout.label(text="Playbook is a diffusion based")
-        layout.label(text="engine for 3D scenes.")
+
+        row1 = layout.row()
+        row2 = layout.row()
+
+        row1.alignment = "CENTER"
+        row2.alignment = "CENTER"
+
+        row1.label(text="Playbook is a diffusion based")
+        row2.label(text="engine for 3D scenes.")
 
 
 #
@@ -39,7 +46,7 @@ class CredentialsPanel(PlaybookPanel, bpy.types.Panel):
         row1 = box.row()
         row1.scale_y = 1.8
         row1.separator(factor=BOX_PADDING)
-        row1.operator("op.login", icon_value=icons["main"]["check_icon"].icon_id)
+        row1.operator("op.login", text="✓ skylar@playbookxr.com")
         row1.separator(factor=BOX_PADDING)
 
         row2 = box.row()
@@ -162,7 +169,13 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         list_col = mask_column.column()
         list_col.scale_y = 0.5
         list_col.template_list(
-            "PB_UL_CustomList", "", scene, "mask_list", scene, "mask_list_index"
+            "PB_UL_CustomList",
+            "",
+            scene,
+            "mask_list",
+            scene,
+            "mask_list_index",
+            sort_lock=True,
         )
 
         list_row = mask_column.row()
@@ -184,6 +197,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
                 "mask_objects",
                 property,
                 "object_list_index",
+                sort_lock=True,
             )
 
             list_row = mask_column.row()
@@ -191,7 +205,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             list_row.operator("list.remove_mask_object_item", text="Remove")
             list_row.operator("list.clear_mask_object_list", text="Clear")
 
-            mask_column.prop(property, "object_dropdown", icon="MESH_CUBE")
+            mask_column.prop(property, "object_dropdown", icon="OBJECT_DATA")
 
             mask_column.label(text="Prompt")
             mask_column.prop(property, "mask_prompt")
@@ -244,7 +258,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             relight_column.prop(scene.relight_properties, "relight_angle")
 
             # Prompt
-            relight_column.label(text="prompt")
+            relight_column.label(text="Prompt")
             relight_column.prop(scene.relight_properties, "relight_prompt")
 
             # Strength
@@ -301,18 +315,18 @@ class RenderPanel(PlaybookPanel, bpy.types.Panel):
         row = box.row()
         row.separator(factor=BOX_PADDING)
         split = row.split()
-        column1 = split.column()
+        column1 = split.column(align=True)
         column1.alignment = "LEFT"
         column1.label(text="Final resolution:")
         column1.label(text="Estimated time:")
         column1.label(text="Credit cost:")
         row.separator(factor=BOX_PADDING)
 
-        column2 = split.column()
+        column2 = split.column(align=True)
         column2.alignment = "RIGHT"
         column2.label(text="512 x 512")
         column2.label(text="5s")
-        column2.label(text="2 credits", icon_value=icons["main"]["credit_icon"].icon_id)
+        column2.label(text="2 credits")
 
         row1 = box.row()
         row1.scale_y = BUTTON_Y_SCALE
@@ -340,12 +354,8 @@ class LinksPanel(PlaybookPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        split = layout.split(factor=1 / 3)
-        col1 = split.column()
-        col2 = split.column()
-        col3 = split.column()
-
-        icon_row = col2.row()
+        icon_row = layout.row()
+        icon_row.alignment = "CENTER"
         icon_row.operator(
             "op.send_to_playbook",
             icon_value=icons["main"]["playbook_logo"].icon_id,
@@ -363,3 +373,25 @@ class LinksPanel(PlaybookPanel, bpy.types.Panel):
         )
 
         layout.separator(factor=BOX_PADDING)
+
+
+classes = [
+    MainPanel,
+    CredentialsPanel,
+    ModificationPanel,
+    RenderSettingsPanel,
+    RenderPanel,
+    LinksPanel,
+]
+
+
+def register():
+    global classes
+    for cls in classes:
+        register_class(cls)
+
+
+def unregister():
+    global classes
+    for cls in classes:
+        unregister_class(cls)
