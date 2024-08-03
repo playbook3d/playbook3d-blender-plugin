@@ -1,8 +1,6 @@
 import bpy
 import os
 
-icons = {}
-
 
 # Create a new simple RGB material
 def create_rgb_material(name, color):

@@ -20,7 +20,7 @@ class PB_UL_CustomList(UIList):
     ):
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             row = layout.row()
-            row.label(text=item.name, icon="OBJECT_DATA")
+            row.label(text=item.name)
         elif self.layout_type in {"GRID"}:
             layout.alignment = "CENTER"
 
@@ -34,7 +34,7 @@ def register():
         register_class(cls)
 
     Scene.mask_list = CollectionProperty(type=MaskListItem)
-    Scene.mask_list_index = IntProperty(name="", default=-1)
+    Scene.mask_list_index = IntProperty(name="", default=0)
 
 
 def unregister():

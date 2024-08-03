@@ -1,9 +1,11 @@
 import bpy
 import webbrowser
+from .objects import visible_objects
 from .render_image import render_image
-from .properties import mask_objects
 from bpy.props import StringProperty
 from bpy.types import Operator
+from bpy.utils import register_class, unregister_class
+from bpy.app.handlers import persistent
 
 
 #
@@ -24,18 +26,6 @@ class UpgradeOperator(Operator):
         return {"FINISHED"}
 
 
-# Operator to show / hide the 'General' panel
-class RetexturePanelOperator(Operator):
-    bl_idname = "op.retexture_panel"
-    bl_label = "Retexture"
-
-    def execute(self, context):
-        bpy.context.scene.show_retexture_panel = (
-            not bpy.context.scene.show_retexture_panel
-        )
-        return {"FINISHED"}
-
-
 #
 class RandomizePromptOperator(Operator):
     bl_idname = "op.randomize_prompt"
@@ -45,43 +35,12 @@ class RandomizePromptOperator(Operator):
         return {"FINISHED"}
 
 
-# Operator to show / hide the 'Object Masks' panel
-class ObjectMaskPanelOperator(Operator):
-    bl_idname = "op.object_mask_panel"
-    bl_label = "Object Mask"
+#
+class RandomizeMaskPromptOperator(Operator):
+    bl_idname = "op.randomize_mask_prompt"
+    bl_label = "Randomize"
 
     def execute(self, context):
-        bpy.context.scene.show_mask_panel = not bpy.context.scene.show_mask_panel
-        return {"FINISHED"}
-
-
-# Operator to show / hide the 'Style Transfer' panel
-class StylePanelOperator(Operator):
-    bl_idname = "op.style_panel"
-    bl_label = "Style Transfer"
-
-    def execute(self, context):
-        bpy.context.scene.show_style_panel = not bpy.context.scene.show_style_panel
-        return {"FINISHED"}
-
-
-# Operator to show / hide the 'Relight' panel
-class RelightPanelOperator(Operator):
-    bl_idname = "op.relight_panel"
-    bl_label = "Relight"
-
-    def execute(self, context):
-        bpy.context.scene.show_relight_panel = not bpy.context.scene.show_relight_panel
-        return {"FINISHED"}
-
-
-# Operator to show / hide the 'Upscale' panel
-class UpscalePanelOperator(Operator):
-    bl_idname = "op.upscale_panel"
-    bl_label = "Upscale"
-
-    def execute(self, context):
-        bpy.context.scene.show_upscale_panel = not bpy.context.scene.show_upscale_panel
         return {"FINISHED"}
 
 
@@ -160,137 +119,71 @@ class ClearRelightImageOperator(Operator):
         return {"FINISHED"}
 
 
-# Add a mask to the mask list
-class MaskListAddItem(Operator):
-    bl_idname = "list.add_mask_item"
-    bl_label = ""
-
-    def execute(self, context):
-        mask_len = len(context.scene.mask_list)
-
-        if mask_len == 7:
-            return {"CANCELLED"}
-
-        item = context.scene.mask_list.add()
-        item.name = f"Mask {mask_len + 1}"
-
-        context.scene.mask_list_index = len(context.scene.mask_list) - 1
-
-        return {"FINISHED"}
+classes = [
+    LoginOperator,
+    UpgradeOperator,
+    RandomizePromptOperator,
+    RandomizeMaskPromptOperator,
+    QueueOperator,
+    RenderOperator,
+    PlaybookWebsiteOperator,
+    PlaybookDiscordOperator,
+    PlaybookTwitterOperator,
+    ClearStyleImageOperator,
+    ClearRelightImageOperator,
+]
 
 
-# Remove the last mask from the mask list
-class MaskListRemoveItem(Operator):
-    bl_idname = "list.remove_mask_item"
-    bl_label = ""
+# Automatically add Mask 1 to the mask list if it is empty
+def on_register():
+    list = bpy.context.scene.mask_list
 
-    @classmethod
-    def poll(cls, context):
-        return context.scene.mask_list
-
-    def execute(self, context):
-        mask_list = context.scene.mask_list
-        index = len(context.scene.mask_list) - 1
-
-        mask_list.remove(index)
-
-        if len(mask_list) > 0:
-            context.scene.mask_list_index = 0
-        else:
-            context.scene.mask_list_index = -1
-
-        return {"FINISHED"}
+    if not list:
+        item = list.add()
+        item.name = "Mask 1"
 
 
-# Add the currently selected object (in the viewport) to the
-# currently selected mask
-class MaskObjectListAddItem(Operator):
-    bl_idname = "list.add_mask_object_item"
-    bl_label = ""
-
-    def execute(self, context):
-        mask_index = context.scene.mask_list_index
-        mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
-
-        # No object selected in the object dropdown
-        if mask.object_dropdown == "NONE":
-            obj = bpy.context.active_object
-
-            # There is no currently selected object or the currently
-            # selected object is not a mesh
-            if not obj or obj.type != "MESH":
-                return {"CANCELLED"}
-
-            obj_name = obj.name
-
-        elif mask.object_dropdown == "BACKGROUND":
-            obj_name = "Background"
-
-        else:
-            obj_name = mask.object_dropdown
-
-        # The currently selected item is already part of the list
-        if any(item.name == obj_name for item in mask.mask_objects):
-            return {"CANCELLED"}
-
-        item = mask.mask_objects.add()
-        item.name = obj_name
-
-        mask_objects[f"MASK{mask_index + 1}"].append(item.name)
-
-        return {"FINISHED"}
+def update_object_dropdown():
+    update_object_dropdown_handler(bpy.context.scene)
 
 
-# Remove the currently selected index in the list from the
-# currently selected mask
-class MaskObjectListRemoveItem(Operator):
-    bl_idname = "list.remove_mask_object_item"
-    bl_label = ""
+# Set the currently selected object in the viewport as the object dropdown
+# option
+@persistent
+def update_object_dropdown_handler(scene):
+    # No mask has been created yet
+    if scene.mask_list_index == -1:
+        return
 
-    @classmethod
-    def poll(cls, context):
-        mask_index = context.scene.mask_list_index
-        return getattr(context.scene, f"mask_properties{mask_index + 1}")
+    property = getattr(scene, f"mask_properties{scene.mask_list_index + 1}")
 
-    def execute(self, context):
-        mask_index = context.scene.mask_list_index
-        mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
+    selected_obj = bpy.context.view_layer.objects.active
 
-        if not mask.mask_objects:
-            return {"CANCELLED"}
+    if selected_obj and selected_obj.select_get():
+        print(selected_obj.name)
+    else:
+        print("None")
 
-        index = (
-            mask.object_list_index
-            if mask.object_list_index != -1
-            # If no object list index is selected but items exists in the list
-            # delete the last object
-            else len(mask.mask_objects) - 1
-        )
+    if selected_obj and selected_obj.select_get() and selected_obj in visible_objects:
+        property.object_dropdown = selected_obj.name
 
-        mask.mask_objects.remove(index)
-        mask_objects[f"MASK{mask_index + 1}"].pop(index)
-
-        mask.object_list_index = 0 if mask.mask_objects else -1
-
-        return {"FINISHED"}
+    else:
+        property.object_dropdown = "NONE"
 
 
-# Clear all the objects from the currently selected mask
-class MaskObjectListClearItems(Operator):
-    bl_idname = "list.clear_mask_object_list"
-    bl_label = ""
+def register():
+    global classes
+    for cls in classes:
+        register_class(cls)
 
-    @classmethod
-    def poll(cls, context):
-        mask_index = context.scene.mask_list_index
-        return getattr(context.scene, f"mask_properties{mask_index + 1}")
+    bpy.app.handlers.depsgraph_update_post.append(update_object_dropdown_handler)
+    bpy.app.timers.register(update_object_dropdown, first_interval=1)
+    bpy.app.timers.register(on_register, first_interval=0.1)
 
-    def execute(self, context):
-        mask_index = context.scene.mask_list_index
-        mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
 
-        mask.mask_objects.clear()
+def unregister():
+    global classes
+    for cls in classes:
+        unregister_class(cls)
 
-        mask.object_list_index = -1
-
-        return {"FINISHED"}
+    bpy.app.handlers.depsgraph_update_post.remove(update_object_dropdown_handler)

@@ -3,6 +3,7 @@ import requests
 import io
 import os
 import base64
+from .beauty_render import render_beauty_to_file
 from .mask_render import (
     save_mask_settings,
     set_mask_settings,
@@ -179,6 +180,9 @@ def render_image():
 
     set_visible_objects(bpy.context)
     clear_render_folder()
+
+    # Render unmodified image
+    render_beauty_to_file()
 
     # Render mask image
     save_object_materials()

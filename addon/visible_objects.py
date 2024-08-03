@@ -1,6 +1,6 @@
 import bpy
 from .utilities import create_rgb_material
-from .properties import visible_objects, mask_objects
+from .objects import visible_objects, mask_objects
 
 original_materials = {}
 
