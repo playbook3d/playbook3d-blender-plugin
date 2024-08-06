@@ -1,5 +1,5 @@
 import json
-from typing import Sequence
+from typing import Sequence, Optional
 import logging
 
 import jsonpath
@@ -71,6 +71,8 @@ class ComfyDeployClient:
         self.mask: bytes = b""
         self.depth: bytes = b""
         self.outline: bytes = b""
+        self.normal: Optional[bytes] = b""
+        self.beauty: Optional[bytes] = b""
 
     async def run_workflow(
         self, prompt: str, prompt_a: str, prompt_b: str, prompt_c: str, prompt_d: str
@@ -105,4 +107,8 @@ class ComfyDeployClient:
                 self.depth = image
             case "outline":
                 self.outline = image
-                
+            case "normal":
+                self.normal = image
+            case "beauty":
+                self.beauty = image
+
