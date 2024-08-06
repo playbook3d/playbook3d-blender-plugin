@@ -4,6 +4,7 @@ import io
 import os
 import base64
 import asyncio
+from .beauty_render import render_beauty_to_file
 from .mask_render import (
     save_mask_settings,
     set_mask_settings,
@@ -183,9 +184,12 @@ async def send_render_to_api(url):
 # Render the image from the active camera
 def render_image():
     print("----------------------------------------------")
-    set_visible_objects(bpy.context)
 
+    set_visible_objects(bpy.context)
     clear_render_folder()
+
+    # Render unmodified image
+    render_beauty_to_file()
 
     # Render mask image
     save_object_materials()
@@ -203,8 +207,10 @@ def render_image():
     reset_depth_settings()
 
     # Render canny image
+    save_canny_settings()
     set_canny_settings()
     render_canny_to_file()
+    reset_canny_settings()
 
     # TODO: Temp
     # get_render_settings()
