@@ -43,6 +43,7 @@ def set_visible_objects(context):
     visible_objects.clear()
     for obj in context.scene.objects:
         if obj.type == "MESH" and obj.visible_get():
+            print(obj)
             visible_objects.append(obj)
 
 

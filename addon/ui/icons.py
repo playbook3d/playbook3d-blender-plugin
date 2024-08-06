@@ -25,4 +25,5 @@ def unregister():
     # Clear custom icons
     for icon in icons.values():
         previews.remove(icon)
-    icons.clear()
+
+    del icons["main"]

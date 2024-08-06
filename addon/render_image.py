@@ -156,15 +156,19 @@ def get_render_settings():
 async def send_render_to_api(url):
     dir = os.path.dirname(__file__)
 
+    beauty_path = os.path.join(dir, "renders", "beauty.png")
     mask_path = os.path.join(dir, "renders", "mask.png")
     depth_path = os.path.join(dir, "renders", "depth.png")
     outline_path = os.path.join(dir, "renders", "outline.png")
 
+    print(f"Render path: {beauty_path}")
     print(f"Render path: {mask_path}")
     print(f"Render path: {depth_path}")
     print(f"Render path: {outline_path}")
 
     # Open the PNG file in binary mode
+    with open(beauty_path, "rb") as beauty_file:
+        beauty_blob = base64.b64encode(beauty_file.read())
     with open(mask_path, "rb") as mask_file:
         mask_blob = base64.b64encode(mask_file.read())
     with open(depth_path, "rb") as depth_file:
@@ -175,9 +179,10 @@ async def send_render_to_api(url):
     comfy_deploy = ComfyDeployClient()
 
     responses = await asyncio.gather(
-        comfy_deploy.upload_image(mask_blob, "", "mask"),
-        comfy_deploy.upload_image(depth_blob, "", "depth"),
-        comfy_deploy.upload_image(outline_blob, "", "outline"),
+        comfy_deploy.upload_image(beauty_blob, str(len(beauty_blob)), "beauty"),
+        comfy_deploy.upload_image(mask_blob, str(len(mask_blob)), "mask"),
+        comfy_deploy.upload_image(depth_blob, str(len(depth_blob)), "depth"),
+        comfy_deploy.upload_image(outline_blob, str(len(outline_blob)), "outline"),
     )
 
 

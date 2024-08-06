@@ -9,10 +9,37 @@ bl_info = {
     "doc_url": "https://www.playbookengine.com",
 }
 
+import sys
+import subprocess
+import os
+
+
+def install_packages():
+    addon_dir = os.path.dirname(__file__)
+    requirements_path = os.path.join(addon_dir, "requirements.txt")
+
+    python_executable = sys.executable
+    try:
+        with open(requirements_path, "r") as f:
+            packages = f.readlines()
+        for package in packages:
+            package_name = package.split("==")[0]
+            try:
+                __import__(package_name)
+            except ImportError:
+                subprocess.check_call(
+                    [python_executable, "-m", "pip", "install", package]
+                )
+    except Exception as e:
+        print(f"Error reading requirements.txt: {e}")
+
+
+# Call the install_packages function
+install_packages()
+
 from . import ui
 from .properties import *
 from .operators import *
-from bpy.app.handlers import persistent
 
 
 def register():
