@@ -1,13 +1,8 @@
-import json
 from typing import Sequence, Optional
 import logging
-
-import jsonpath
+import os
 import requests
 import datetime
-
-baseUrl = "https://api.playbookengine.com"
-
 
 class ComfyDeployImage:
     url: str
@@ -92,7 +87,7 @@ class ComfyDeployClient:
                 "depth": self.depth,
                 "outline": self.outline,
             }
-            run_result = requests.post(baseUrl + "/upload-images", files=files)
+            run_result = requests.post(os.getenv("BASE_URL") + "/upload-images", files=files)
 
             if run_result is not None:
                 return run_result.json()
