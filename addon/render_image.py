@@ -3,6 +3,7 @@ import requests
 import io
 import os
 import base64
+import asyncio
 from .mask_render import (
     save_mask_settings,
     set_mask_settings,
@@ -27,6 +28,7 @@ from .canny_render import (
     render_canny_to_file,
 )
 from .properties import set_visible_objects
+from .comfy_deploy_api.network import ComfyDeployClient
 
 # VARIABLES
 
@@ -150,27 +152,32 @@ def get_render_settings():
 
 
 #
-def send_render_to_api(url):
+async def send_render_to_api(url):
     dir = os.path.dirname(__file__)
 
-    render_path = os.path.join(dir, "renders", "render_color.png")
+    mask_path = os.path.join(dir, "renders", "mask.png")
+    depth_path = os.path.join(dir, "renders", "depth.png")
+    outline_path = os.path.join(dir, "renders", "outline.png")
 
-    print(f"Render path: {render_path}")
+    print(f"Render path: {mask_path}")
+    print(f"Render path: {depth_path}")
+    print(f"Render path: {outline_path}")
 
     # Open the PNG file in binary mode
-    with open(render_path, "rb") as file:
-        image_blob = base64.b64encode(file.read())
+    with open(mask_path, "rb") as mask_file:
+        mask_blob = base64.b64encode(mask_file.read())
+    with open(depth_path, "rb") as depth_file:
+        depth_blob = base64.b64encode(depth_file.read())
+    with open(outline_path, "rb") as outline_file:
+        outline_blob = base64.b64encode(outline_file.read())
 
-        # Send the POST request with the file
-        response = requests.post(url, json={{"image": image_blob}})
+    comfy_deploy = ComfyDeployClient()
 
-        # Check the response status
-        if response.status_code == 200:
-            print("File uploaded successfully!")
-        else:
-            print(
-                f"Failed to upload file. Status code: {response.status_code}, Response: {response.text}"
-            )
+    responses = await asyncio.gather(
+        comfy_deploy.upload_image(mask_blob, "", "mask"),
+        comfy_deploy.upload_image(depth_blob, "", "depth"),
+        comfy_deploy.upload_image(outline_blob, "", "outline"),
+    )
 
 
 # Render the image from the active camera
