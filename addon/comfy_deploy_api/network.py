@@ -172,3 +172,6 @@ class ComfyDeployClient:
             case "beauty":
                 self.beauty = image
 
+    def save_internal_image(self, image_url: str):
+        self.internal_pass = image_url
+
