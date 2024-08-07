@@ -68,7 +68,7 @@ class PlaybookWebsiteOperator(Operator):
     bl_idname = "op.send_to_playbook"
     bl_label = ""
 
-    url: StringProperty(name="", default="https://www.playbookengine.com/")
+    url: StringProperty(name="", default="https://www.playbook3d.com/")
 
     def execute(self, context):
         webbrowser.open(self.url)

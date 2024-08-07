@@ -165,13 +165,13 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         create_label_row(box, "Scene Prompt")
 
         prompt_row = box.row()
-        prompt_row.scale_y = 2
+        prompt_row.scale_y = 1.25
         prompt_row.separator(factor=BOX_PADDING)
         prompt_row.prop(scene.general_properties, "general_prompt")
         prompt_row.separator(factor=BOX_PADDING)
 
         randomize_row = box.row()
-        randomize_row.scale_y = 1.5
+        randomize_row.scale_y = 1.25
         randomize_row.separator(factor=BOX_PADDING)
         randomize_row.operator("op.randomize_prompt")
         randomize_row.separator(factor=BOX_PADDING)
@@ -182,7 +182,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         create_label_row(box, "Model")
 
         model_row = box.row()
-        model_row.scale_y = 1.5
+        model_row.scale_y = 1.25
         model_row.separator(factor=BOX_PADDING)
         model_row.prop(scene.general_properties, "general_style")
         model_row.separator(factor=BOX_PADDING)
@@ -193,7 +193,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         create_label_row(box, "Structure Strength")
 
         strength_row = box.row()
-        strength_row.scale_y = 1
+        strength_row.scale_y = 1.25
         strength_row.separator(factor=BOX_PADDING)
         strength_row.prop(
             scene.general_properties, "general_structure_strength", slider=True
@@ -219,6 +219,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         list_row.separator(factor=BOX_PADDING)
 
         list_row = box.row()
+        list_row.scale_y = 1.25
         list_row.separator(factor=BOX_PADDING)
         list_row.operator("list.add_mask_item", text="Add")
         list_row.operator("list.remove_mask_item", text="Remove")
@@ -226,6 +227,8 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
 
         # Objects in mask list
         if scene.mask_list_index != -1:
+            box.separator()
+
             create_label_row(box, "Objects in Mask")
 
             property = getattr(scene, f"mask_properties{scene.mask_list_index + 1}")
@@ -252,6 +255,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             op_row.separator(factor=BOX_PADDING)
 
             drop_row = box.row()
+            drop_row.scale_y = 1.25
             drop_row.separator(factor=BOX_PADDING)
             drop_row.prop(property, "object_dropdown", icon="OBJECT_DATA")
             drop_row.separator(factor=BOX_PADDING)
@@ -259,7 +263,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             # Prompt
             create_label_row(box, "Mask Prompt")
             prompt_row = box.row()
-            prompt_row.scale_y = 1.75
+            prompt_row.scale_y = 1.25
             prompt_row.separator(factor=BOX_PADDING)
             prompt_row.prop(property, "mask_prompt")
             prompt_row.separator(factor=BOX_PADDING)
@@ -278,7 +282,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
 
         if scene.show_style_panel:
             image_row = style_box.row()
-            image_row.scale_y = 0.75
+            image_row.scale_y = 1
             image_row.separator(factor=BOX_PADDING)
             image_row.prop(scene.style_properties, "style_image")
             image_row.operator("op.clear_style_image", icon="PANEL_CLOSE")
@@ -287,7 +291,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             create_label_row(style_box, "Strength")
 
             strength_row = style_box.row()
-            strength_row.scale_y = 0.75
+            strength_row.scale_y = 1
             strength_row.separator(factor=BOX_PADDING)
             strength_row.prop(scene.style_properties, "style_strength", slider=True)
             strength_row.separator(factor=BOX_PADDING)
@@ -314,14 +318,14 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
 
             if scene.is_relight_image:
                 image_row = relight_box.row()
-                image_row.scale_y = 0.75
+                image_row.scale_y = 1
                 image_row.separator(factor=BOX_PADDING)
                 image_row.prop(scene.relight_properties, "relight_image")
                 image_row.operator("op.clear_relight_image", icon="PANEL_CLOSE")
                 image_row.separator(factor=BOX_PADDING)
             else:
                 color_row = relight_box.row()
-                color_row.scale_y = 0.75
+                color_row.scale_y = 1
                 color_row.separator(factor=BOX_PADDING)
                 color_row.prop(scene.relight_properties, "relight_color")
                 color_row.separator(factor=BOX_PADDING)
@@ -329,7 +333,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             # Angle
             create_label_row(relight_box, "Angle")
             angle_row = relight_box.row()
-            angle_row.scale_y = 1.25
+            angle_row.scale_y = 1
             angle_row.separator(factor=BOX_PADDING)
             angle_row.prop(scene.relight_properties, "relight_angle")
             angle_row.separator(factor=BOX_PADDING)
@@ -337,7 +341,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             # Prompt
             create_label_row(relight_box, "Prompt")
             prompt_row = relight_box.row()
-            prompt_row.scale_y = 1.5
+            prompt_row.scale_y = 1
             prompt_row.separator(factor=BOX_PADDING)
             prompt_row.prop(scene.relight_properties, "relight_prompt")
             prompt_row.separator(factor=BOX_PADDING)
@@ -345,7 +349,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             # Strength
             create_label_row(relight_box, "Strength")
             strength_row = relight_box.row()
-            strength_row.scale_y = 0.75
+            strength_row.scale_y = 1
             strength_row.separator(factor=BOX_PADDING)
             strength_row.prop(scene.relight_properties, "relight_strength", slider=True)
             strength_row.separator(factor=BOX_PADDING)
@@ -367,7 +371,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             # Prompt
             create_label_row(upscale_box, "Scale")
             scale_row = upscale_box.row()
-            scale_row.scale_y = 1.25
+            scale_row.scale_y = 1
             scale_row.separator(factor=BOX_PADDING)
             scale_row.prop(scene.upscale_properties, "upscale_scale")
             scale_row.separator(factor=BOX_PADDING)
