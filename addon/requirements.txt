@@ -1,1 +1,3 @@
 comfydeploy==0.2.3
+websockets==12.0
+python-dotenv==1.0.1

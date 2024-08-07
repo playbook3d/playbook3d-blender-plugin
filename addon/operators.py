@@ -159,11 +159,6 @@ def update_object_dropdown_handler(scene):
 
     selected_obj = bpy.context.view_layer.objects.active
 
-    if selected_obj and selected_obj.select_get():
-        print(selected_obj.name)
-    else:
-        print("None")
-
     if selected_obj and selected_obj.select_get() and selected_obj in visible_objects:
         property.object_dropdown = selected_obj.name
 

@@ -2,9 +2,9 @@ import bpy
 from .utilities import create_rgb_material
 from .objects import visible_objects, mask_objects
 
-original_materials = {}
+original_materials: dict[str, bpy.types.Material] = {}
 
-material_props = {
+material_props: dict[str, tuple[str, tuple]] = {
     "MASK1": ("YELLOW", (1, 0.8148, 0.0018, 1)),
     "MASK2": ("BLUE", (0.0044, 0.2051, 0.7378, 1)),
     "MASK3": ("TEAL", (0.1912, 0.6795, 0.7083, 1)),
@@ -15,9 +15,19 @@ material_props = {
     "CATCHALL": ("RED", (0.723, 0, 0, 1)),
 }
 
+color_hex: dict[str, str] = {
+    "MASK1": "#ffe906",
+    "MASK2": "#0e7ddf",
+    "MASK3": "#79d7db",
+    "MASK4": "#02002b",
+    "MASK5": "#009e52",
+    "MASK6": "#ff6ccf",
+    "MASK7": "#ff872e",
+}
+
 
 # Set the given materials to the object
-def set_materials(obj, materials):
+def set_materials(obj: bpy.types.Object, materials: list[bpy.types.Material]):
     obj.data.materials.clear()
     for mat in materials:
         obj.data.materials.append(mat)
