@@ -1,9 +1,43 @@
-from typing import Sequence, Optional
+import pathlib
+from typing import Sequence
 import logging
 import os
 import requests
 import datetime
 import numpy as np
+
+
+class GeneralSettings:
+    def __init__(self, model: int, prompt: str, strength: float) -> None:
+        self.model = model
+        self.scene_prompt = prompt
+        self.structure_strength = strength
+
+
+class MaskSettings:
+    def __init__(self, prompt: str, color: str) -> None:
+        self.mask_prompt = prompt
+        self.color = color
+
+
+class StyleTransferSettings:
+    def __init__(self, strength: float) -> None:
+        self.style_transfer_strength = strength
+
+
+class RelightSettings:
+    def __init__(self, color: str, prompt: str, angle: int) -> None:
+        self.relight_color = color
+        self.relight_prompt = prompt
+        self.relight_angle = angle
+
+
+class UpscaleSettings:
+    def __init__(self, model: int, value: int, creativity: int) -> None:
+        self.upscale_model = model
+        self.upscale_value = value
+        self.upscale_creativity = creativity
+
 
 class ComfyDeployImage:
     url: str
@@ -32,7 +66,14 @@ class ComfyDeployOutput:
     created_at: datetime
     updated_at: datetime
 
-    def __init__(self, id: str, run_id: str, data: OutputData, created_at: datetime, updated_at: datetime):
+    def __init__(
+        self,
+        id: str,
+        run_id: str,
+        data: OutputData,
+        created_at: datetime,
+        updated_at: datetime,
+    ):
         self.id = id
         self.run_id = run_id
         self.data = data
@@ -79,34 +120,27 @@ class ComfyDeployClient:
 
     async def run_workflow(
         self,
-            retexture_model: int,  # 0 Juggernaut, 1 pixar, 2 anime
-            retexture_bias: int,
-            retexture_scene_prompt: str,
-            retexture_structure_strength: int,  # 0-100 clamp Control nets depth (0.6 - 1), canny (0.1 - 0.3)
-            retexture_prompt_1: str,
-            retexture_prompt_2: str,
-            retexture_prompt_3: str,
-            retexture_prompt_4: str,
-            retexture_prompt_5: str,
-            retexture_prompt_6: str,
-            retexture_prompt_7: str,
-            style_transfer_strength: int,  # 0-100 (0.3 - 1) ipAdapter
-            relight_color: str,
-            relight_prompt: str,
-            relight_angle: int,
-            upscale_model: int,
-            upscale_value: int,
-            upscale_creativity: int,  # 0 - 100 (0.3 - 0.75) denoise
-            upscale_prompt: str,
-            render_mode: int,  # 0 render image / 1 render video
-            retexture_enabled: bool,
-            style_transfer_enabled: bool,
-            relight_enabled: bool,
-            upscale_enabled: bool,
+        general_settings: GeneralSettings,
+        mask_settings1: MaskSettings,
+        mask_settings2: MaskSettings,
+        mask_settings3: MaskSettings,
+        mask_settings4: MaskSettings,
+        mask_settings5: MaskSettings,
+        mask_settings6: MaskSettings,
+        mask_settings7: MaskSettings,
+        fixed_seed: bool,
+        style_transfer_settings: StyleTransferSettings,
+        relight_settings: RelightSettings,
+        upscale_settings: UpscaleSettings,
+        render_mode: int,
+        retexture_enabled: bool,
+        style_transfer_enabled: bool,
+        relight_enabled: bool,
+        upscale_enabled: bool,
     ) -> str:
         clamped_structure_strength = np_clamp(retexture_structure_strength, 0.6, 1)
         clamped_style_transfer_strength = np_clamp(style_transfer_strength, 0.3, 1)
-        clamped_upscale_creativity = np_clamp(upscale_creativity, 0.3, 0.75)
+        clamped_upscale_creativity = np_clamp(upscale_settings.upscale_creativity, 0.3, 0.75)
 
         internal_model = ""
         match retexture_model:
@@ -119,75 +153,100 @@ class ComfyDeployClient:
 
         if self.mask and self.depth and self.outline:
             logging.info(
-                f"Starting workflow for prompt: {retexture_scene_prompt} "
-                f"with detailed prompt {retexture_prompt_1}, {retexture_prompt_2}, {retexture_prompt_3}, {retexture_prompt_4}"
+                f"Starting workflow for prompt: {general_settings.scene_prompt} "
             )
             files = {
-                "model": internal_model,
-                "prompt": retexture_scene_prompt,
-                "prompt_a": retexture_prompt_1,
-                "prompt_b": retexture_prompt_2,
-                "prompt_c": retexture_prompt_3,
-                "prompt_d": retexture_prompt_4,
+                "model": general_settings.model,
+                "scenePrompt": general_settings.scene_prompt,
+                "structureStrength": general_settings.structure_strength,
+                "mask1": mask_settings1,
+                "mask2": mask_settings2,
+                "mask3": mask_settings3,
+                "mask4": mask_settings4,
+                "mask5": mask_settings5,
+                "mask6": mask_settings6,
+                "mask7": mask_settings7,
+                "fixedSeed": fixed_seed,
+                "beauty": self.beauty,
                 "mask": self.mask,
                 "depth": self.depth,
                 "outline": self.outline,
             }
-            run_result = requests.post(os.getenv("BASE_URL") + "/upload-images", files=files)
+
+            env_file_path = pathlib.Path(__file__).parent.parent / ".env"
+
+            # Load environment variables from the .env file
+            load_dotenv(dotenv_path=env_file_path)
+            url = os.getenv("BASE_URL")
+
+            run_result = requests.post(url + "/upload-images", data=files)
+
+            if retexture_enabled:
+                self.run_retexture(general_settings.scene_prompt, url)
 
             if style_transfer_enabled:
-                self.run_style_transfer(clamped_style_transfer_strength)
+                self.run_style_transfer(style_transfer_settings, url)
 
             if relight_enabled:
-                self.run_relight(relight_color, relight_prompt, relight_angle)
+                self.run_relight(relight_settings, url)
 
             if upscale_enabled:
-                self.run_upscale(upscale_prompt, upscale_value, clamped_upscale_creativity)
+                self.run_upscale(upscale_settings)
 
             if run_result is not None:
                 return run_result.json()
             else:
                 logging.error(f"Error running workflow: {run_result}")
 
-    def run_relight(self, color: str, prompt: str, angle: int):
-        # TODO: connect to new endpoint for relight
-        if color and prompt and angle:
-            files = {
-                "relight_color": color,
-                "relight_prompt": prompt,
-                "relight_angle": angle,
-                "input_image": self.internal_pass
-            }
-            relight_result = requests.post(os.getenv("BASE_URL") + "/relight", files=files)
-            if relight_result is not None:
-                self.internal_pass = relight_result.json()["internal_pass"]
+    #
+    def run_retexture(self, prompt: str, url: str):
+        # TODO: retexture
+        if prompt:
+            retexture_result = requests.post(
+                url + "/retexture", json={"prompt": prompt}
+            )
+            if retexture_result is not None:
+                self.internal_pass = retexture_result.json()["internal_pass"]
 
-    def run_upscale(self, model: str, prompt: str, value: int, creativity: int):
-        # TODO: connect to new endpoint for upscale(flux)
-        if value and creativity:
-            files = {
-                "model": model,
-                "prompt": prompt,
-                "upscale_value": value,
-                "upscale_creativity": creativity,
-                "input_image": self.internal_pass
-            }
-            upscale_result = requests.post(os.getenv("BASE_URL") + "/upscale", files=files)
-            if upscale_result is not None:
-                self.internal_pass = upscale_result.json()["internal_pass"]
-
-    def run_style_transfer(self, strength: int):
+    #
+    def run_style_transfer(
+        self, style_transfer_settings: StyleTransferSettings, url: str
+    ):
         # TODO: style transfer
+        strength = style_transfer_settings.style_transfer_strength
         if strength:
-            files = {
-                "style_transfer_strength": strength,
-                "input_image": self.internal_pass
-            }
-            style_transfer_result = requests.post(os.getenv("BASE_URL") + "/style-transfer",
-                                                  files=files)
+            style_transfer_result = requests.post(
+                url + "/style-transfer",
+                json={"strength": strength},
+            )
             if style_transfer_result is not None:
                 self.internal_pass = style_transfer_result.json()["internal_pass"]
 
+    #
+    def run_relight(
+        self,
+        relight_settings: RelightSettings,
+        url: str,
+    ):
+        # TODO: relight
+        color = relight_settings.relight_color
+        prompt = relight_settings.relight_prompt
+        angle = relight_settings.relight_angle
+        if color and prompt and angle:
+            relight_result = requests.post(url + "/relight")
+            if relight_result is not None:
+                self.internal_pass = relight_result.json()["internal_pass"]
+
+    #
+    def run_upscale(self, upscale_settings: UpscaleSettings, url: str):
+        # TODO: upscale
+        value = upscale_settings.upscale_value
+        if value:
+            upscale_result = requests.post(url + "/upscale", json={"value": value})
+            if upscale_result is not None:
+                self.internal_pass = upscale_result.json()["internal_pass"]
+
+    #
     def save_image(self, image: bytes, pass_type: str):
         match pass_type:
             case "mask":
@@ -205,6 +264,6 @@ class ComfyDeployClient:
             case "relight":
                 self.relight = image
 
+    #
     def save_internal_image(self, image_url: str):
         self.internal_pass = image_url
-

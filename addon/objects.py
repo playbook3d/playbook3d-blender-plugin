@@ -1,7 +1,9 @@
-visible_objects = []
+import bpy
+
+visible_objects: list[bpy.types.Object] = []
 
 # Objects that are part of each mask
-mask_objects = {
+mask_objects: dict[str, list[str]] = {
     "MASK1": [],
     "MASK2": [],
     "MASK3": [],

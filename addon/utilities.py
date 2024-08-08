@@ -1,9 +1,8 @@
 import bpy
-import os
 
 
 # Create a new simple RGB material
-def create_rgb_material(name, color):
+def create_rgb_material(name: str, color: tuple) -> bpy.types.Material:
     mat = bpy.data.materials.new(name=name)
 
     mat.use_nodes = True
@@ -24,3 +23,13 @@ def create_rgb_material(name, color):
     )
 
     return mat
+
+
+# Convert a Blender FloatVectorProperty color to a hexadecimal color string
+def color_to_hex(color) -> str:
+    r, g, b, a = [int(c * 255) for c in color]
+
+    # Format the RGBA components into a hex string
+    hex_color = "#{:02X}{:02X}{:02X}{:02X}".format(r, g, b, a)
+
+    return hex_color

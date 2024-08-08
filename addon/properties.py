@@ -19,7 +19,7 @@ NUM_MASKS_ALLOWED = 7
 
 
 # Available general model options
-prompt_styles = [
+general_models = [
     ("PHOTOREAL1", "Photoreal", ""),
     ("PHOTOREAL2", "Photoreal (humans)", ""),
     ("PHOTOREAL3", "Photoreal (product photography)", ""),
@@ -43,7 +43,6 @@ def set_visible_objects(context):
     visible_objects.clear()
     for obj in context.scene.objects:
         if obj.type == "MESH" and obj.visible_get():
-            print(obj)
             visible_objects.append(obj)
 
 
@@ -64,7 +63,7 @@ class GeneralProperties(PropertyGroup):
     general_structure_strength: FloatProperty(name="", default=50, min=0, max=100)
     general_style: EnumProperty(
         name="",
-        items=prompt_styles,
+        items=general_models,
         options={"ANIMATABLE"},
     )
 
@@ -86,7 +85,7 @@ class MaskProperties(PropertyGroup):
     mask_isolate: FloatProperty(name="", default=50, min=0, max=100)
     mask_style: EnumProperty(
         name="",
-        items=prompt_styles,
+        items=general_models,
         options={"ANIMATABLE"},
     )
     object_dropdown: EnumProperty(

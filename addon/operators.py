@@ -68,7 +68,7 @@ class PlaybookWebsiteOperator(Operator):
     bl_idname = "op.send_to_playbook"
     bl_label = ""
 
-    url: StringProperty(name="", default="https://www.playbookengine.com/")
+    url: StringProperty(name="", default="https://www.playbook3d.com/")
 
     def execute(self, context):
         webbrowser.open(self.url)
@@ -158,11 +158,6 @@ def update_object_dropdown_handler(scene):
     property = getattr(scene, f"mask_properties{scene.mask_list_index + 1}")
 
     selected_obj = bpy.context.view_layer.objects.active
-
-    if selected_obj and selected_obj.select_get():
-        print(selected_obj.name)
-    else:
-        print("None")
 
     if selected_obj and selected_obj.select_get() and selected_obj in visible_objects:
         property.object_dropdown = selected_obj.name

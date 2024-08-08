@@ -1,9 +1,7 @@
+import asyncio
 import bpy
-import requests
-import io
 import os
 import base64
-import asyncio
 from .beauty_render import render_beauty_to_file
 from .mask_render import (
     save_mask_settings,
@@ -15,6 +13,7 @@ from .visible_objects import (
     save_object_materials,
     set_object_materials,
     reset_object_materials,
+    color_hex,
 )
 from .depth_render import (
     save_depth_settings,
@@ -29,35 +28,19 @@ from .canny_render import (
     render_canny_to_file,
 )
 from .properties import set_visible_objects
-from .comfy_deploy_api.network import ComfyDeployClient
+from .utilities import color_to_hex
+from .comfy_deploy_api.network import (
+    GeneralSettings,
+    MaskSettings,
+    StyleTransferSettings,
+    RelightSettings,
+    UpscaleSettings,
+    ComfyDeployClient,
+)
 
 # VARIABLES
 
 api_url = "https://api.playbookengine.com?token=MZLGGjo8JNn3O7EfyePoael1aPxAz1qFCrPGwKdpikDkd2QuJQ9GjYB68XuAz29B3ugJqx805X3N8Px3FDY6IASGYQeqimldsJa0TiRjF2o13124SwY2RCUzJkPA1XWI"
-
-
-class RenderSettings:
-    def __init__(
-        self,
-        style,
-        prompt,
-        structure_strength,
-        # style_transfer_strength,
-        # relight_strength,
-        # relight_coordinates,
-        # upres_value,
-        # render_mode,
-        # fixed_seed=False,
-    ):
-        self.style = style  # 0 = Photoreal, 1 = Anime, 2 = 3D Cartoon
-        self.prompt = prompt
-        self.structure_strength = structure_strength
-        # self.style_transfer_strength = style_transfer_strength
-        # self.relight_strength = relight_strength
-        # self.relight_coordinates = relight_coordinates
-        # self.upres_value = upres_value
-        # self.render_mode = render_mode  # 0 = Render Image (Empty latent), 1 = Render Image (Re-render existing image)
-        # self.fixed_seed = fixed_seed
 
 
 class MaskData:
@@ -114,46 +97,50 @@ def clean_up_files():
 
 
 #
-def render_to_buffer():
-    # Create an off-screen buffer to render the image
-    scene = bpy.context.scene
-    render = scene.render
+def get_general_settings() -> GeneralSettings:
+    general_props = bpy.context.scene.general_properties
 
-    # Ensure the render is done in RGBA mode
-    render.image_settings.color_mode = "RGBA"
-    render.image_settings.file_format = "PNG"
-
-    # Render the image
-    bpy.ops.render.render("INVOKE DEFAULT", write_still=True)
-
-    # Get the rendered image
-    rendered_image = bpy.data.images["Render Result"]
-
-    # Save the image to a bytes buffer
-    # buffer = io.BytesIO()
-    # rendered_image.save_render(filepath="/dev/stdout", scene=scene)
-    # rendered_image.pixels.foreach_get(buffer.write())
-
-    # # Reset buffer position to the start
-    # buffer.seek(0)
-
-    # return buffer
-
-
-#
-def get_render_settings():
-    scene = bpy.context.scene
-    global_props = scene.global_properties
-
-    render_settings = RenderSettings(
-        style=global_props.global_style,
-        prompt=global_props.global_prompt,
-        structure_strength=global_props.global_structure_strength,
+    return GeneralSettings(
+        general_props.general_style,
+        general_props.general_prompt,
+        general_props.general_structure_strength,
     )
 
 
 #
-async def send_render_to_api(url):
+def get_mask_settings(index: int) -> MaskSettings:
+    mask_props = getattr(bpy.context.scene, f"mask_properties{index}")
+
+    return MaskSettings(mask_props.mask_prompt, color_hex[f"MASK{index}"])
+
+
+#
+def get_style_transfer_settings() -> StyleTransferSettings:
+    style_props = bpy.context.scene.style_properties
+
+    return StyleTransferSettings(style_props.style_strength)
+
+
+#
+def get_relight_settings() -> RelightSettings:
+    relight_props = bpy.context.scene.relight_properties
+
+    return RelightSettings(
+        color_to_hex(relight_props.relight_color),
+        relight_props.relight_prompt,
+        relight_props.relight_angle,
+    )
+
+
+#
+def get_upscale_settings() -> UpscaleSettings:
+    upscale_props = bpy.context.scene.upscale_properties
+
+    return UpscaleSettings(upscale_props.upscale_scale)
+
+
+#
+def set_comfy_images(comfy_deploy: ComfyDeployClient):
     dir = os.path.dirname(__file__)
 
     beauty_path = os.path.join(dir, "renders", "beauty.png")
@@ -176,14 +163,49 @@ async def send_render_to_api(url):
     with open(outline_path, "rb") as outline_file:
         outline_blob = base64.b64encode(outline_file.read())
 
-    comfy_deploy = ComfyDeployClient()
+    comfy_deploy.save_image(beauty_blob, "beauty")
+    comfy_deploy.save_image(mask_blob, "mask")
+    comfy_deploy.save_image(depth_blob, "depth")
+    comfy_deploy.save_image(outline_blob, "outline")
 
-    responses = await asyncio.gather(
-        comfy_deploy.upload_image(beauty_blob, str(len(beauty_blob)), "beauty"),
-        comfy_deploy.upload_image(mask_blob, str(len(mask_blob)), "mask"),
-        comfy_deploy.upload_image(depth_blob, str(len(depth_blob)), "depth"),
-        comfy_deploy.upload_image(outline_blob, str(len(outline_blob)), "outline"),
+
+#
+async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
+    flags = bpy.context.scene.flag_properties
+
+    general_settings = get_general_settings()
+    mask_settings1 = get_mask_settings(1)
+    mask_settings2 = get_mask_settings(2)
+    mask_settings3 = get_mask_settings(3)
+    mask_settings4 = get_mask_settings(4)
+    mask_settings5 = get_mask_settings(5)
+    mask_settings6 = get_mask_settings(6)
+    mask_settings7 = get_mask_settings(7)
+    style_settings = get_style_transfer_settings()
+    relight_settings = get_relight_settings()
+    upscale_settings = get_upscale_settings()
+
+    response = await comfy_deploy.run_workflow(
+        general_settings,
+        mask_settings1,
+        mask_settings2,
+        mask_settings3,
+        mask_settings4,
+        mask_settings5,
+        mask_settings6,
+        mask_settings7,
+        False,
+        style_settings,
+        relight_settings,
+        upscale_settings,
+        0,
+        flags.retexture_flag,
+        flags.style_flag,
+        flags.relight_flag,
+        flags.upscale_flag,
     )
+
+    print(response)
 
 
 # Render the image from the active camera
@@ -217,10 +239,8 @@ def render_image():
     render_canny_to_file()
     reset_canny_settings()
 
-    # TODO: Temp
-    # get_render_settings()
-    # Send the rendered image to API
-    # buffer = render_to_buffer()
-    # send_render_to_api(api_url, buffer)
-
     clean_up_files()
+
+    comfy = ComfyDeployClient()
+    set_comfy_images(comfy)
+    asyncio.run(run_comfy_workflow(comfy))
