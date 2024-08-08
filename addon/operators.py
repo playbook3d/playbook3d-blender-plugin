@@ -12,6 +12,7 @@ from bpy.app.handlers import persistent
 class LoginOperator(Operator):
     bl_idname = "op.login"
     bl_label = "skylar@playbookxr.com"
+    bl_description = "Logout of Playbook"
 
     def execute(self, context):
         return {"FINISHED"}
@@ -21,6 +22,7 @@ class LoginOperator(Operator):
 class UpgradeOperator(Operator):
     bl_idname = "op.upgrade"
     bl_label = "Upgrade"
+    bl_description = "Upgrade"
 
     def execute(self, context):
         return {"FINISHED"}
@@ -30,6 +32,7 @@ class UpgradeOperator(Operator):
 class RandomizePromptOperator(Operator):
     bl_idname = "op.randomize_prompt"
     bl_label = "Randomize"
+    bl_description = "Randomize"
 
     def execute(self, context):
         return {"FINISHED"}
@@ -39,6 +42,7 @@ class RandomizePromptOperator(Operator):
 class RandomizeMaskPromptOperator(Operator):
     bl_idname = "op.randomize_mask_prompt"
     bl_label = "Randomize"
+    bl_description = "Randomize"
 
     def execute(self, context):
         return {"FINISHED"}
@@ -48,6 +52,7 @@ class RandomizeMaskPromptOperator(Operator):
 class QueueOperator(Operator):
     bl_idname = "op.queue"
     bl_label = "Open Queue"
+    bl_description = "Open queue"
 
     def execute(self, context):
         return {"FINISHED"}
@@ -57,6 +62,7 @@ class QueueOperator(Operator):
 class RenderOperator(Operator):
     bl_idname = "op.render_image"
     bl_label = "Render"
+    bl_description = "Render the image"
 
     def execute(self, context):
         render_image()
@@ -67,8 +73,9 @@ class RenderOperator(Operator):
 class PlaybookWebsiteOperator(Operator):
     bl_idname = "op.send_to_playbook"
     bl_label = ""
+    bl_description = "Go to Playbook3D"
 
-    url: StringProperty(name="", default="https://www.playbookengine.com/")
+    url: StringProperty(name="", default="https://www.playbook3d.com/")
 
     def execute(self, context):
         webbrowser.open(self.url)
@@ -79,6 +86,7 @@ class PlaybookWebsiteOperator(Operator):
 class PlaybookDiscordOperator(Operator):
     bl_idname = "op.send_to_discord"
     bl_label = ""
+    bl_description = "Join our Discord"
 
     url: StringProperty(name="", default="https://discord.com/invite/FDFEa836Pc")
 
@@ -91,8 +99,9 @@ class PlaybookDiscordOperator(Operator):
 class PlaybookTwitterOperator(Operator):
     bl_idname = "op.send_to_twitter"
     bl_label = ""
+    bl_description = "Check out our Twitter"
 
-    url: StringProperty(name="", default="https://x.com/playbookengine?s=21")
+    url: StringProperty(name="", default="https://x.com/playbook3d")
 
     def execute(self, context):
         webbrowser.open(self.url)
@@ -103,6 +112,7 @@ class PlaybookTwitterOperator(Operator):
 class ClearStyleImageOperator(Operator):
     bl_idname = "op.clear_style_image"
     bl_label = ""
+    bl_description = "Choose an image from local files"
 
     def execute(self, context):
         bpy.context.scene.style_properties.style_image = ""
@@ -113,6 +123,7 @@ class ClearStyleImageOperator(Operator):
 class ClearRelightImageOperator(Operator):
     bl_idname = "op.clear_relight_image"
     bl_label = ""
+    bl_description = "Choose an image from local files"
 
     def execute(self, context):
         bpy.context.scene.relight_properties.relight_image = ""
@@ -160,15 +171,10 @@ def update_object_dropdown_handler(scene):
     selected_obj = bpy.context.view_layer.objects.active
 
     if selected_obj and selected_obj.select_get():
-        print(selected_obj.name)
-    else:
-        print("None")
-
-    if selected_obj and selected_obj.select_get() and selected_obj in visible_objects:
-        property.object_dropdown = selected_obj.name
-
+        scene.show_object_dropdown = False
     else:
         property.object_dropdown = "NONE"
+        scene.show_object_dropdown = True
 
 
 def register():

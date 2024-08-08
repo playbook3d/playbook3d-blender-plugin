@@ -193,6 +193,7 @@ def register():
     Scene.relight_properties = PointerProperty(type=RelightProperties)
     Scene.upscale_properties = PointerProperty(type=UpscaleProperties)
     Scene.flag_properties = PointerProperty(type=FlagProperties)
+    Scene.show_object_dropdown = BoolProperty(default=False)
 
     for i in range(NUM_MASKS_ALLOWED):
         setattr(
@@ -212,6 +213,7 @@ def unregister():
     del Scene.relight_properties
     del Scene.upscale_properties
     del Scene.flag_properties
+    del Scene.show_object_dropdown
 
     for i in range(NUM_MASKS_ALLOWED):
         delattr(Scene, f"mask_properties{i + 1}")

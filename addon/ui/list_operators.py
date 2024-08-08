@@ -8,6 +8,7 @@ from ..objects import mask_objects
 class MaskListAddItem(Operator):
     bl_idname = "list.add_mask_item"
     bl_label = ""
+    bl_description = "Add mask"
 
     def execute(self, context):
         mask_len = len(context.scene.mask_list)
@@ -27,6 +28,7 @@ class MaskListAddItem(Operator):
 class MaskListRemoveItem(Operator):
     bl_idname = "list.remove_mask_item"
     bl_label = ""
+    bl_description = "Remove mask"
 
     @classmethod
     def poll(cls, context):
@@ -51,6 +53,7 @@ class MaskListRemoveItem(Operator):
 class MaskObjectListAddItem(Operator):
     bl_idname = "list.add_mask_object_item"
     bl_label = ""
+    bl_description = "Add object"
 
     def execute(self, context):
         mask_index = context.scene.mask_list_index
@@ -90,6 +93,7 @@ class MaskObjectListAddItem(Operator):
 class MaskObjectListRemoveItem(Operator):
     bl_idname = "list.remove_mask_object_item"
     bl_label = ""
+    bl_description = "Remove object"
 
     @classmethod
     def poll(cls, context):
@@ -123,6 +127,7 @@ class MaskObjectListRemoveItem(Operator):
 class MaskObjectListClearItems(Operator):
     bl_idname = "list.clear_mask_object_list"
     bl_label = ""
+    bl_description = "Clear objects"
 
     @classmethod
     def poll(cls, context):
