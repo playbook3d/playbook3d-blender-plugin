@@ -3,30 +3,11 @@ import requests
 import io
 import os
 import base64
-from .beauty_render import render_beauty_to_file
-from .mask_render import (
-    save_mask_settings,
-    set_mask_settings,
-    reset_mask_settings,
-    render_mask_to_file,
-)
-from .visible_objects import (
-    save_object_materials,
-    set_object_materials,
-    reset_object_materials,
-)
-from .depth_render import (
-    save_depth_settings,
-    set_depth_settings,
-    reset_depth_settings,
-    render_depth_to_file,
-)
-from .canny_render import (
-    save_canny_settings,
-    set_canny_settings,
-    reset_canny_settings,
-    render_canny_to_file,
-)
+from .beauty_render import render_beauty_pass
+from .mask_render import render_mask_pass
+from .depth_render import render_depth_pass
+from .outline_render import render_outline_pass
+from .workspace import open_render_window
 from .properties import set_visible_objects
 
 # VARIABLES
@@ -91,9 +72,9 @@ def clean_up_files():
         render_mist = os.path.join(folder_path, "render_mist.png")
         render_edge = os.path.join(folder_path, "render_edge.png")
         render_depth = os.path.join(folder_path, "depth0001.png")
-        render_canny = os.path.join(folder_path, "outline0001.png")
+        render_outline = os.path.join(folder_path, "outline0001.png")
         render_depth_new = os.path.join(folder_path, "depth.png")
-        render_canny_new = os.path.join(folder_path, "outline.png")
+        render_outline_new = os.path.join(folder_path, "outline.png")
 
         if os.path.exists(render_mist):
             os.remove(render_mist)
@@ -102,8 +83,8 @@ def clean_up_files():
 
         if os.path.exists(render_depth):
             os.rename(render_depth, render_depth_new)
-        if os.path.exists(render_canny):
-            os.rename(render_canny, render_canny_new)
+        if os.path.exists(render_outline):
+            os.rename(render_outline, render_outline_new)
 
 
 # -------------------------------------------
@@ -182,33 +163,18 @@ def render_image():
     clear_render_folder()
 
     # Render unmodified image
-    render_beauty_to_file()
+    render_beauty_pass()
 
     # Render mask image
-    save_object_materials()
-    save_mask_settings()
-    set_object_materials()
-    set_mask_settings()
-    render_mask_to_file()
-    reset_object_materials()
-    reset_mask_settings()
+    render_mask_pass()
 
     # Render depth image
-    save_depth_settings()
-    set_depth_settings()
-    render_depth_to_file()
-    reset_depth_settings()
+    render_depth_pass()
 
-    # Render canny image
-    save_canny_settings()
-    set_canny_settings()
-    render_canny_to_file()
-    reset_canny_settings()
+    # Render outline image
+    render_outline_pass()
 
-    # TODO: Temp
-    # get_render_settings()
-    # Send the rendered image to API
-    # buffer = render_to_buffer()
-    # send_render_to_api(api_url, buffer)
+    # Open the render workspace
+    open_render_window()
 
     clean_up_files()
