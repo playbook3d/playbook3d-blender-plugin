@@ -58,9 +58,6 @@ class CredentialsPanel(PlaybookPanel, bpy.types.Panel):
 
         row3 = box.row()
         row3.alignment = "CENTER"
-        row3.label(
-            text="100 credits remaining",
-            icon_value=icons["main"]["credit_icon"].icon_id,
-        )
+        row3.label(text="100 credits remaining")
 
         box.separator(factor=BOX_PADDING)

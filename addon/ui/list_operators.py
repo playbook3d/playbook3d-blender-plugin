@@ -55,13 +55,45 @@ class MaskObjectListAddItem(Operator):
     bl_label = ""
     bl_description = "Add object"
 
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+
+        print(obj)
+
+        # There is no currently selected object or the currently
+        # selected object is not a mesh
+        if obj and obj.select_get() and obj.type == "MESH":
+            return True
+
+        mask_index = context.scene.mask_list_index
+        mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
+
+        # No object selected in the object dropdown
+        if mask.object_dropdown == "NONE":
+            print("1")
+            return False
+
+        elif mask.object_dropdown == "BACKGROUND":
+            obj_name = "Background"
+
+        else:
+            obj_name = mask.object_dropdown
+        print("2")
+
+        # The currently selected item is already part of the list
+        if any(item.name == obj_name for item in mask.mask_objects):
+            return False
+
+        return True
+
     def execute(self, context):
         mask_index = context.scene.mask_list_index
         mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
 
         # No object selected in the object dropdown
         if mask.object_dropdown == "NONE":
-            obj = bpy.context.active_object
+            obj = context.active_object
 
             # There is no currently selected object or the currently
             # selected object is not a mesh
@@ -98,7 +130,8 @@ class MaskObjectListRemoveItem(Operator):
     @classmethod
     def poll(cls, context):
         mask_index = context.scene.mask_list_index
-        return getattr(context.scene, f"mask_properties{mask_index + 1}")
+        mask_props = getattr(context.scene, f"mask_properties{mask_index + 1}")
+        return mask_props.mask_objects
 
     def execute(self, context):
         mask_index = context.scene.mask_list_index
@@ -132,7 +165,8 @@ class MaskObjectListClearItems(Operator):
     @classmethod
     def poll(cls, context):
         mask_index = context.scene.mask_list_index
-        return getattr(context.scene, f"mask_properties{mask_index + 1}")
+        mask_props = getattr(context.scene, f"mask_properties{mask_index + 1}")
+        return mask_props.mask_objects
 
     def execute(self, context):
         mask_index = context.scene.mask_list_index

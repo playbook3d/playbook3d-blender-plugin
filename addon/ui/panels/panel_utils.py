@@ -15,6 +15,6 @@ def create_label_row(layout, text, scale_y=TEXT_Y_SCALE):
 
 
 class PlaybookPanel(bpy.types.Panel):
-    bl_space_type = "PROPERTIES"
-    bl_region_type = "WINDOW"
-    bl_context = "render"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Playbook"

@@ -156,13 +156,16 @@ class RelightProperties(PropertyGroup):
 # Properties under the 'Upscale' panel
 class UpscaleProperties(PropertyGroup):
     def on_update_scale(self, context):
-        context.scene.flag_properties.upscale_flag = self.upscale_scale != "1"
+        context.scene.flag_properties.upscale_flag = self.upscale_value != "1"
 
-    upscale_scale: EnumProperty(
+    upscale_model: EnumProperty(name="", items=prompt_styles)
+    upscale_value: EnumProperty(
         name="",
         items=upscale_options,
         update=lambda self, context: self.on_update_scale(context),
     )
+    upscale_creativity: FloatProperty(name="", default=50, min=0, max=100)
+    upscale_prompt: StringProperty(name="", default="Describe the prompt...")
 
 
 # Flags to keep track if the properties were modified

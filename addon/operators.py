@@ -173,7 +173,6 @@ def update_object_dropdown_handler(scene):
     if selected_obj and selected_obj.select_get():
         scene.show_object_dropdown = False
     else:
-        property.object_dropdown = "NONE"
         scene.show_object_dropdown = True
 
 

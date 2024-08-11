@@ -270,12 +270,33 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         )
 
         if scene.show_upscale_panel:
-            # Prompt
-            create_label_row(upscale_box, "Scale")
+            # Model
+            create_label_row(upscale_box, "Model")
+            model_row = upscale_box.row()
+            model_row.separator(factor=BOX_PADDING)
+            model_row.prop(scene.upscale_properties, "upscale_model")
+            model_row.separator(factor=BOX_PADDING)
+
+            # Value
+            create_label_row(upscale_box, "Value")
             scale_row = upscale_box.row()
             scale_row.scale_y = 1
             scale_row.separator(factor=BOX_PADDING)
-            scale_row.prop(scene.upscale_properties, "upscale_scale")
+            scale_row.prop(scene.upscale_properties, "upscale_value")
             scale_row.separator(factor=BOX_PADDING)
+
+            # Creativity
+            create_label_row(upscale_box, "Creativity")
+            creat_row = upscale_box.row()
+            creat_row.separator(factor=BOX_PADDING)
+            creat_row.prop(scene.upscale_properties, "upscale_creativity", slider=True)
+            creat_row.separator(factor=BOX_PADDING)
+
+            # Prompt
+            create_label_row(upscale_box, "Prompt")
+            prompt_row = upscale_box.row()
+            prompt_row.separator(factor=BOX_PADDING)
+            prompt_row.prop(scene.upscale_properties, "upscale_prompt")
+            prompt_row.separator(factor=BOX_PADDING)
 
             upscale_box.separator(factor=BOX_PADDING)
