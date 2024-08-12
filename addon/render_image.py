@@ -36,11 +36,12 @@ from .comfy_deploy_api.network import (
     RelightSettings,
     UpscaleSettings,
     ComfyDeployClient,
+    PlaybookWebsocket
 )
 
 # VARIABLES
 
-api_url = "https://api.playbookengine.com?token=MZLGGjo8JNn3O7EfyePoael1aPxAz1qFCrPGwKdpikDkd2QuJQ9GjYB68XuAz29B3ugJqx805X3N8Px3FDY6IASGYQeqimldsJa0TiRjF2o13124SwY2RCUzJkPA1XWI"
+api_url = os.getenv("API_URL")
 
 
 class MaskData:
@@ -211,6 +212,8 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
 # Render the image from the active camera
 def render_image():
     print("----------------------------------------------")
+
+    asyncio.run(PlaybookWebsocket().websocket_message())
 
     set_visible_objects(bpy.context)
     clear_render_folder()

@@ -1,9 +1,12 @@
+import json
 from typing import Sequence
 import logging
 import os
 import requests
 import datetime
 import numpy as np
+from websockets.sync.client import connect
+import asyncio
 
 
 class GeneralSettings:
@@ -159,13 +162,13 @@ class ComfyDeployClient:
                 "model": internal_model,
                 "scenePrompt": general_settings.scene_prompt,
                 "structureStrength": clamped_structure_strength,
-                "mask1": mask_settings1,
-                "mask2": mask_settings2,
-                "mask3": mask_settings3,
-                "mask4": mask_settings4,
-                "mask5": mask_settings5,
-                "mask6": mask_settings6,
-                "mask7": mask_settings7,
+                "mask1": mask_settings1.mask_prompt,
+                "mask2": mask_settings2.mask_prompt,
+                "mask3": mask_settings3.mask_prompt,
+                "mask4": mask_settings4.mask_prompt,
+                "mask5": mask_settings5.mask_prompt,
+                "mask6": mask_settings6.mask_prompt,
+                "mask7": mask_settings7.mask_prompt,
                 "beauty": self.beauty,
                 "mask": self.mask,
                 "depth": self.depth,
@@ -275,3 +278,31 @@ class ComfyDeployClient:
     #
     def save_internal_image(self, image_url: str):
         self.internal_pass = image_url
+
+
+class PlaybookWebsocket:
+    def __init__(self):
+        self.base_url = os.getenv("BASE_URL")
+        self.websocket = None
+
+    async def websocket_message(self) -> str:
+        try:
+            async with connect(self.base_url) as websocket:
+                self.websocket = websocket
+
+                while True:
+                    message = await websocket.recv()
+                    try:
+                        data = json.loads(message)
+
+                        if data.get("status") == "success":
+                            extracted_data = data.get["data"]
+                            image_url = extracted_data.outputs[0].data.images[0].url
+                            return image_url
+
+                    except json.JSONDecodeError:
+                        print("Error while parsing response from server", message)
+
+        except Exception as exception:
+            print(f"Error while parsing response from server: {exception}")
+
