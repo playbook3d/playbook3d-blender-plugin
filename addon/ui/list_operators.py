@@ -59,8 +59,6 @@ class MaskObjectListAddItem(Operator):
     def poll(cls, context):
         obj = context.active_object
 
-        print(obj)
-
         # There is no currently selected object or the currently
         # selected object is not a mesh
         if obj and obj.select_get() and obj.type == "MESH":
@@ -71,7 +69,6 @@ class MaskObjectListAddItem(Operator):
 
         # No object selected in the object dropdown
         if mask.object_dropdown == "NONE":
-            print("1")
             return False
 
         elif mask.object_dropdown == "BACKGROUND":
@@ -79,7 +76,6 @@ class MaskObjectListAddItem(Operator):
 
         else:
             obj_name = mask.object_dropdown
-        print("2")
 
         # The currently selected item is already part of the list
         if any(item.name == obj_name for item in mask.mask_objects):

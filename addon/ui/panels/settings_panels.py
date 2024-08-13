@@ -13,18 +13,57 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         layout = self.layout
         scene = context.scene
 
+        box = layout.box()
+        box.separator(factor=BOX_PADDING)
+
+        # Workflow
+        create_label_row(box, "Workflow")
+        workflow_row = box.row()
+        workflow_row.separator(factor=BOX_PADDING)
+        workflow_row.template_icon_view(
+            scene.general_properties,
+            "general_workflow",
+            show_labels=True,
+            scale_popup=5,
+        )
+        workflow_row.separator(factor=BOX_PADDING)
+
+        box.separator(factor=BOX_PADDING)
+
+        # Style
+        create_label_row(box, "Style")
+        style_row = box.row()
+        style_row.scale_y = 1.25
+        style_row.separator(factor=BOX_PADDING)
+        style_row.prop(scene.general_properties, "general_style")
+        style_row.separator(factor=BOX_PADDING)
+
+        box.separator(factor=BOX_PADDING)
+
+        # Structure Strength
+        create_label_row(box, "Structure Strength")
+        strength_row = box.row()
+        strength_row.scale_y = 1.25
+        strength_row.separator(factor=BOX_PADDING)
+        strength_row.prop(
+            scene.general_properties, "general_structure_strength", slider=True
+        )
+        strength_row.separator(factor=BOX_PADDING)
+
+        box.separator(factor=BOX_PADDING)
+
+        self.draw_mask_layout(scene, box)
         # Retexture panel
-        self.draw_retexture_layout(scene, layout)
+        # self.draw_retexture_layout(scene, layout)
 
         # Style Transfer panel
-        self.draw_style_layout(scene, layout)
+        # self.draw_style_layout(scene, layout)
 
         # Relight panel
-        # TODO: Hide until later update
         # self.draw_relight_layout(scene, layout)
 
         # Upscale panel
-        self.draw_upscale_layout(scene, layout)
+        # self.draw_upscale_layout(scene, layout)
 
     #
     def draw_retexture_layout(self, scene, layout):
@@ -39,7 +78,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         )
 
         if scene.show_retexture_panel:
-            self.draw_general_layout(scene, retexture_box)
+            # self.draw_general_layout(scene, retexture_box)
 
             retexture_box.separator(factor=2)
 

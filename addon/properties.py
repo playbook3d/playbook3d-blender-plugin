@@ -14,17 +14,19 @@ from bpy.types import Scene, PropertyGroup
 from bpy.utils import register_class, unregister_class
 from .ui.lists import MaskObjectListItem
 from .objects import visible_objects
+from .ui.workflow_icons import get_workflow_icons
+from .ui.style_icons import get_style_icon
 
 NUM_MASKS_ALLOWED = 7
 
 
 # Available general model options
 prompt_styles = [
-    ("PHOTOREAL1", "Photoreal", ""),
-    ("PHOTOREAL2", "Photoreal (humans)", ""),
-    ("PHOTOREAL3", "Photoreal (product photography)", ""),
-    ("ANIME", "Anime", ""),
-    ("3DCARTOON", "3D Cartoon", ""),
+    ("PHOTOREAL1", "Photoreal", "", "photoreal_style_icon"),
+    ("PHOTOREAL2", "Photoreal (humans)", "", "photoreal_style_icon"),
+    ("PHOTOREAL3", "Photoreal (product photography)", "", "photoreal_style_icon"),
+    ("ANIME", "Anime", "", "photoreal_style_icon"),
+    ("3DCARTOON", "3D Cartoon", "", "photoreal_style_icon"),
 ]
 
 angle_options = [
@@ -55,6 +57,18 @@ class GeneralProperties(PropertyGroup):
         else:
             context.scene.flag_properties.retexture_flag = True
 
+    def get_prompt_styles(self, context):
+        enum_items = []
+        for i, style in enumerate(prompt_styles):
+            id, name, desc, icon = style
+            if icon:
+                enum_items.append((id, name, desc, get_style_icon(icon), i))
+            else:
+                enum_items.append((id, name, desc))
+
+        return enum_items
+
+    general_workflow: EnumProperty(name="", items=get_workflow_icons)
     general_prompt: StringProperty(
         name="",
         default="Describe the scene...",
@@ -63,8 +77,7 @@ class GeneralProperties(PropertyGroup):
     general_structure_strength: FloatProperty(name="", default=50, min=0, max=100)
     general_style: EnumProperty(
         name="",
-        items=prompt_styles,
-        options={"ANIMATABLE"},
+        items=get_prompt_styles,
     )
 
 
@@ -79,14 +92,24 @@ class MaskProperties(PropertyGroup):
 
         return items
 
+    def get_prompt_styles(self, context):
+        enum_items = []
+        for i, style in enumerate(prompt_styles):
+            id, name, desc, icon = style
+            if icon:
+                enum_items.append((id, name, desc, get_style_icon(icon), i))
+            else:
+                enum_items.append((id, name, desc))
+
+        return enum_items
+
     mask_objects: CollectionProperty(type=MaskObjectListItem, name="")
     object_list_index: IntProperty(name="", default=-1)
     mask_prompt: StringProperty(name="", default="Describe masked objects...")
     mask_isolate: FloatProperty(name="", default=50, min=0, max=100)
     mask_style: EnumProperty(
         name="",
-        items=prompt_styles,
-        options={"ANIMATABLE"},
+        items=get_prompt_styles,
     )
     object_dropdown: EnumProperty(
         name="",
@@ -158,7 +181,18 @@ class UpscaleProperties(PropertyGroup):
     def on_update_scale(self, context):
         context.scene.flag_properties.upscale_flag = self.upscale_value != "1"
 
-    upscale_model: EnumProperty(name="", items=prompt_styles)
+    def get_prompt_styles(self, context):
+        enum_items = []
+        for i, style in enumerate(prompt_styles):
+            id, name, desc, icon = style
+            if icon:
+                enum_items.append((id, name, desc, get_style_icon(icon), i))
+            else:
+                enum_items.append((id, name, desc))
+
+        return enum_items
+
+    upscale_model: EnumProperty(name="", items=get_prompt_styles)
     upscale_value: EnumProperty(
         name="",
         items=upscale_options,
