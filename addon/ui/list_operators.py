@@ -8,6 +8,7 @@ from ..objects import mask_objects
 class MaskListAddItem(Operator):
     bl_idname = "list.add_mask_item"
     bl_label = ""
+    bl_description = "Add mask"
 
     def execute(self, context):
         mask_len = len(context.scene.mask_list)
@@ -27,6 +28,7 @@ class MaskListAddItem(Operator):
 class MaskListRemoveItem(Operator):
     bl_idname = "list.remove_mask_item"
     bl_label = ""
+    bl_description = "Remove mask"
 
     @classmethod
     def poll(cls, context):
@@ -51,6 +53,35 @@ class MaskListRemoveItem(Operator):
 class MaskObjectListAddItem(Operator):
     bl_idname = "list.add_mask_object_item"
     bl_label = ""
+    bl_description = "Add object"
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+
+        # There is no currently selected object or the currently
+        # selected object is not a mesh
+        if obj and obj.select_get() and obj.type == "MESH":
+            return True
+
+        mask_index = context.scene.mask_list_index
+        mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
+
+        # No object selected in the object dropdown
+        if mask.object_dropdown == "NONE":
+            return False
+
+        elif mask.object_dropdown == "BACKGROUND":
+            obj_name = "Background"
+
+        else:
+            obj_name = mask.object_dropdown
+
+        # The currently selected item is already part of the list
+        if any(item.name == obj_name for item in mask.mask_objects):
+            return False
+
+        return True
 
     def execute(self, context):
         mask_index = context.scene.mask_list_index
@@ -58,7 +89,7 @@ class MaskObjectListAddItem(Operator):
 
         # No object selected in the object dropdown
         if mask.object_dropdown == "NONE":
-            obj = bpy.context.active_object
+            obj = context.active_object
 
             # There is no currently selected object or the currently
             # selected object is not a mesh
@@ -90,11 +121,13 @@ class MaskObjectListAddItem(Operator):
 class MaskObjectListRemoveItem(Operator):
     bl_idname = "list.remove_mask_object_item"
     bl_label = ""
+    bl_description = "Remove object"
 
     @classmethod
     def poll(cls, context):
         mask_index = context.scene.mask_list_index
-        return getattr(context.scene, f"mask_properties{mask_index + 1}")
+        mask_props = getattr(context.scene, f"mask_properties{mask_index + 1}")
+        return mask_props.mask_objects
 
     def execute(self, context):
         mask_index = context.scene.mask_list_index
@@ -123,11 +156,13 @@ class MaskObjectListRemoveItem(Operator):
 class MaskObjectListClearItems(Operator):
     bl_idname = "list.clear_mask_object_list"
     bl_label = ""
+    bl_description = "Clear objects"
 
     @classmethod
     def poll(cls, context):
         mask_index = context.scene.mask_list_index
-        return getattr(context.scene, f"mask_properties{mask_index + 1}")
+        mask_props = getattr(context.scene, f"mask_properties{mask_index + 1}")
+        return mask_props.mask_objects
 
     def execute(self, context):
         mask_index = context.scene.mask_list_index

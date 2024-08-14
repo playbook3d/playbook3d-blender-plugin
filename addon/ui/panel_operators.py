@@ -7,6 +7,7 @@ from bpy.utils import register_class, unregister_class
 class RetexturePanelOperator(Operator):
     bl_idname = "op.retexture_panel"
     bl_label = "Retexture"
+    bl_description = "Retexture"
 
     def execute(self, context):
         bpy.context.scene.show_retexture_panel = (
@@ -15,20 +16,11 @@ class RetexturePanelOperator(Operator):
         return {"FINISHED"}
 
 
-# Operator to show / hide the 'Object Masks' panel
-class ObjectMaskPanelOperator(Operator):
-    bl_idname = "op.object_mask_panel"
-    bl_label = "Object Mask"
-
-    def execute(self, context):
-        bpy.context.scene.show_mask_panel = not bpy.context.scene.show_mask_panel
-        return {"FINISHED"}
-
-
 # Operator to show / hide the 'Style Transfer' panel
 class StylePanelOperator(Operator):
     bl_idname = "op.style_panel"
     bl_label = "Style Transfer"
+    bl_description = "Style transfer"
 
     def execute(self, context):
         bpy.context.scene.show_style_panel = not bpy.context.scene.show_style_panel
@@ -39,6 +31,7 @@ class StylePanelOperator(Operator):
 class RelightPanelOperator(Operator):
     bl_idname = "op.relight_panel"
     bl_label = "Relight"
+    bl_description = "Relight"
 
     def execute(self, context):
         bpy.context.scene.show_relight_panel = not bpy.context.scene.show_relight_panel
@@ -49,6 +42,7 @@ class RelightPanelOperator(Operator):
 class UpscalePanelOperator(Operator):
     bl_idname = "op.upscale_panel"
     bl_label = "Upscale"
+    bl_description = "Upscale"
 
     def execute(self, context):
         bpy.context.scene.show_upscale_panel = not bpy.context.scene.show_upscale_panel
@@ -57,7 +51,6 @@ class UpscalePanelOperator(Operator):
 
 classes = [
     RetexturePanelOperator,
-    ObjectMaskPanelOperator,
     StylePanelOperator,
     RelightPanelOperator,
     UpscalePanelOperator,

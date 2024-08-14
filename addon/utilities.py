@@ -1,6 +1,14 @@
 import bpy
 
 
+def get_filepath_in_package(path, filename=""):
+    # Convert a relative path in the add-on package to an absolute path
+    addon_path = os.path.dirname(os.path.realpath(__file__))
+    subpath = path + os.sep + filename if path else filename
+
+    return os.path.join(addon_path, subpath)
+
+
 # Create a new simple RGB material
 def create_rgb_material(name: str, color: tuple) -> bpy.types.Material:
     mat = bpy.data.materials.new(name=name)

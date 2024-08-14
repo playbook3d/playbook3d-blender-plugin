@@ -1,3 +1,4 @@
+import bpy
 from . import lists
 from . import list_operators
 from . import panels
