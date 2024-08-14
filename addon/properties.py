@@ -14,19 +14,49 @@ from bpy.types import Scene, PropertyGroup
 from bpy.utils import register_class, unregister_class
 from .ui.lists import MaskObjectListItem
 from .objects import visible_objects
-from .ui.workflow_icons import get_workflow_icons
-from .ui.style_icons import get_style_icon
+from .ui.icons import get_workflow_icon
+from .ui.icons import get_style_icon
 
 NUM_MASKS_ALLOWED = 7
+
+workflows = [
+    (
+        "RETEXTURE",
+        "Generative Retexture",
+        "Retexture a grayboxed scene with per-object segmentation and consistent geometry via ControlNet",
+        "retexture_workflow_icon",
+    ),
+    (
+        "STYLETRANSFER",
+        "Style Tranfer",
+        "Transform your scene to match the style of an image reference via IPAdapter",
+        "style_transfer_workflow_icon",
+    ),
+]
+
+
+base_models = [
+    ("SD15", "SD 1.5", "Model by Stability AI. Comparatively lowest quality, fastest"),
+    ("SDXL", "SDXL", "Model by Stability AI. Better quality, medium speed"),
+    ("Flux", "Flux", "SOTA model by Black Forest Labs. Best quality, takes most time"),
+]
 
 
 # Available general model options
 prompt_styles = [
-    ("PHOTOREAL1", "Photoreal", "", "photoreal_style_icon"),
-    ("PHOTOREAL2", "Photoreal (humans)", "", "photoreal_style_icon"),
-    ("PHOTOREAL3", "Photoreal (product photography)", "", "photoreal_style_icon"),
-    ("ANIME", "Anime", "", "photoreal_style_icon"),
-    ("3DCARTOON", "3D Cartoon", "", "photoreal_style_icon"),
+    (
+        "PHOTOREAL",
+        "Photoreal",
+        "Default. Works well with most scenes",
+        "photoreal_style_icon",
+    ),
+    (
+        "3DCARTOON",
+        "3D Cartoon",
+        "3D cartoon style with soft lighting",
+        "3dcartoon_style_icon",
+    ),
+    ("ANIME", "Anime", "2D anime style with drawn outlines", "anime_style_icon"),
 ]
 
 angle_options = [
@@ -57,6 +87,17 @@ class GeneralProperties(PropertyGroup):
         else:
             context.scene.flag_properties.retexture_flag = True
 
+    def get_workflows(self, context):
+        enum_items = []
+        for i, style in enumerate(workflows):
+            id, name, desc, icon = style
+            if icon:
+                enum_items.append((id, name, desc, get_workflow_icon(icon), i))
+            else:
+                enum_items.append((id, name, desc))
+
+        return enum_items
+
     def get_prompt_styles(self, context):
         enum_items = []
         for i, style in enumerate(prompt_styles):
@@ -68,7 +109,15 @@ class GeneralProperties(PropertyGroup):
 
         return enum_items
 
-    general_workflow: EnumProperty(name="", items=get_workflow_icons)
+    def on_update_workflow(self, context):
+        context.scene.show_retexture_panel = self.general_workflow == "RETEXTURE"
+
+    general_workflow: EnumProperty(
+        name="",
+        items=get_workflows,
+        update=lambda self, context: self.on_update_workflow(context),
+    )
+    general_model: EnumProperty(name="", items=base_models)
     general_prompt: StringProperty(
         name="",
         default="Describe the scene...",
@@ -230,6 +279,7 @@ def register():
     Scene.relight_properties = PointerProperty(type=RelightProperties)
     Scene.upscale_properties = PointerProperty(type=UpscaleProperties)
     Scene.flag_properties = PointerProperty(type=FlagProperties)
+    Scene.show_retexture_panel = BoolProperty(default=True)
     Scene.show_object_dropdown = BoolProperty(default=False)
 
     for i in range(NUM_MASKS_ALLOWED):
@@ -250,6 +300,7 @@ def unregister():
     del Scene.relight_properties
     del Scene.upscale_properties
     del Scene.flag_properties
+    del Scene.show_retexture_panel
     del Scene.show_object_dropdown
 
     for i in range(NUM_MASKS_ALLOWED):

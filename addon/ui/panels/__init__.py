@@ -2,7 +2,7 @@ from bpy.utils import register_class, unregister_class
 from bpy.props import BoolProperty
 from bpy.types import Scene
 from .main_panels import MainPanel, CredentialsPanel
-from .settings_panels import RenderSettingsPanel
+from .settings_panels import RenderSettingsPanel, AdvancedSettingsPanel
 from .render_panels import RenderPanel
 from .misc_panels import ModificationPanel, LinksPanel
 
@@ -11,6 +11,7 @@ classes = [
     CredentialsPanel,
     ModificationPanel,
     RenderSettingsPanel,
+    AdvancedSettingsPanel,
     RenderPanel,
     LinksPanel,
 ]

@@ -19,14 +19,20 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         # Workflow
         create_label_row(box, "Workflow")
         workflow_row = box.row()
+        workflow_row.scale_y = 1.25
         workflow_row.separator(factor=BOX_PADDING)
-        workflow_row.template_icon_view(
-            scene.general_properties,
-            "general_workflow",
-            show_labels=True,
-            scale_popup=5,
-        )
+        workflow_row.prop(scene.general_properties, "general_workflow")
         workflow_row.separator(factor=BOX_PADDING)
+
+        box.separator(factor=BOX_PADDING)
+
+        # Base Model
+        create_label_row(box, "Base Model")
+        model_row = box.row()
+        model_row.scale_y = 1.25
+        model_row.separator(factor=BOX_PADDING)
+        model_row.prop(scene.general_properties, "general_model")
+        model_row.separator(factor=BOX_PADDING)
 
         box.separator(factor=BOX_PADDING)
 
@@ -40,30 +46,23 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
 
         box.separator(factor=BOX_PADDING)
 
-        # Structure Strength
-        create_label_row(box, "Structure Strength")
-        strength_row = box.row()
-        strength_row.scale_y = 1.25
-        strength_row.separator(factor=BOX_PADDING)
-        strength_row.prop(
-            scene.general_properties, "general_structure_strength", slider=True
-        )
-        strength_row.separator(factor=BOX_PADDING)
+        if scene.show_retexture_panel:
+            # Prompt
+            create_label_row(box, "Scene Prompt")
+            prompt_row = box.row()
+            prompt_row.scale_y = 1.25
+            prompt_row.separator(factor=BOX_PADDING)
+            prompt_row.prop(scene.general_properties, "general_prompt")
+            prompt_row.separator(factor=BOX_PADDING)
+        else:
+            create_label_row(box, "Style Transfer Image")
+            image_row = box.row()
+            image_row.separator(factor=BOX_PADDING)
+            image_row.prop(scene.style_properties, "style_image")
+            image_row.operator("op.clear_style_image", icon="PANEL_CLOSE")
+            image_row.separator(factor=BOX_PADDING)
 
         box.separator(factor=BOX_PADDING)
-
-        self.draw_mask_layout(scene, box)
-        # Retexture panel
-        # self.draw_retexture_layout(scene, layout)
-
-        # Style Transfer panel
-        # self.draw_style_layout(scene, layout)
-
-        # Relight panel
-        # self.draw_relight_layout(scene, layout)
-
-        # Upscale panel
-        # self.draw_upscale_layout(scene, layout)
 
     #
     def draw_retexture_layout(self, scene, layout):
@@ -124,92 +123,6 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             scene.general_properties, "general_structure_strength", slider=True
         )
         strength_row.separator(factor=BOX_PADDING)
-
-    #
-    def draw_mask_layout(self, scene, box):
-        # Masks list
-        create_label_row(box, "Masks")
-
-        list_row = box.row()
-        list_row.separator(factor=BOX_PADDING)
-        list_row.template_list(
-            "PB_UL_CustomList",
-            "",
-            scene,
-            "mask_list",
-            scene,
-            "mask_list_index",
-            sort_lock=True,
-        )
-        list_row.separator(factor=BOX_PADDING)
-
-        list_row = box.row()
-        list_row.scale_y = 1.25
-        list_row.separator(factor=BOX_PADDING)
-        list_row.operator("list.add_mask_item", text="Add")
-        list_row.operator("list.remove_mask_item", text="Remove")
-        list_row.separator(factor=BOX_PADDING)
-
-        # Objects in mask list
-        if scene.mask_list_index != -1:
-            box.separator()
-
-            create_label_row(box, "Objects in Mask")
-
-            property = getattr(scene, f"mask_properties{scene.mask_list_index + 1}")
-
-            list_row = box.row()
-            list_row.separator(factor=BOX_PADDING)
-            list_row.template_list(
-                "PB_UL_CustomList",
-                "",
-                property,
-                "mask_objects",
-                property,
-                "object_list_index",
-                sort_lock=True,
-            )
-            list_row.separator(factor=BOX_PADDING)
-
-            op_row = box.row()
-            op_row.scale_y = 1.25
-            op_row.separator(factor=BOX_PADDING)
-            op_row.operator("list.add_mask_object_item", text="Add")
-            op_row.operator("list.remove_mask_object_item", text="Remove")
-            op_row.operator("list.clear_mask_object_list", text="Clear")
-            op_row.separator(factor=BOX_PADDING)
-
-            if scene.show_object_dropdown:
-                drop_row = box.row()
-                drop_row.scale_y = 1.25
-                drop_row.separator(factor=BOX_PADDING)
-                drop_row.prop(property, "object_dropdown", icon="OBJECT_DATA")
-                drop_row.separator(factor=BOX_PADDING)
-            else:
-                box_row = box.row()
-                box_row.scale_y = 0.25
-                box_row.separator(factor=BOX_PADDING)
-                drop_box = box_row.box()
-                drop_box.scale_y = 0.25
-                drop_box.separator(factor=BOX_PADDING)
-                drop_box.label(
-                    text=bpy.context.view_layer.objects.active.name, icon="OBJECT_DATA"
-                )
-                drop_box.separator(factor=BOX_PADDING)
-                box_row.separator(factor=BOX_PADDING)
-                box.separator(factor=1.4)
-
-            box.separator()
-
-            # Prompt
-            create_label_row(box, "Mask Prompt")
-            prompt_row = box.row()
-            prompt_row.scale_y = 1.25
-            prompt_row.separator(factor=BOX_PADDING)
-            prompt_row.prop(property, "mask_prompt")
-            prompt_row.separator(factor=BOX_PADDING)
-
-        box.separator(factor=BOX_PADDING)
 
     #
     def draw_style_layout(self, scene, layout):
@@ -339,3 +252,131 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
             prompt_row.separator(factor=BOX_PADDING)
 
             upscale_box.separator(factor=BOX_PADDING)
+
+
+class AdvancedSettingsPanel(PlaybookPanel, bpy.types.Panel):
+    bl_idname = "SCENE_PT_advanced_settings"
+    bl_label = "Advanced"
+    bl_parent_id = "SCENE_PT_render_settings"
+    bl_options = {"HEADER_LAYOUT_EXPAND"}
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+
+        if scene.show_retexture_panel:
+            box = layout.box()
+            box.separator(factor=BOX_PADDING)
+
+            # Structure Strength
+            create_label_row(box, "Structure Strength")
+            strength_row = box.row()
+            strength_row.scale_y = 1.25
+            strength_row.separator(factor=BOX_PADDING)
+            strength_row.prop(
+                scene.general_properties, "general_structure_strength", slider=True
+            )
+            strength_row.separator(factor=BOX_PADDING)
+
+            box.separator(factor=BOX_PADDING)
+
+            self.draw_mask_layout(scene, box)
+        else:
+            box = layout.box()
+            box.separator(factor=BOX_PADDING)
+
+            # Structure Strength
+            create_label_row(box, "Style Transfer Strength")
+            strength_row = box.row()
+            strength_row.scale_y = 1.25
+            strength_row.separator(factor=BOX_PADDING)
+            strength_row.prop(scene.style_properties, "style_strength", slider=True)
+            strength_row.separator(factor=BOX_PADDING)
+
+            box.separator(factor=BOX_PADDING)
+
+    #
+    def draw_mask_layout(self, scene, box):
+        # Masks list
+        create_label_row(box, "Masks")
+
+        list_row = box.row()
+        list_row.separator(factor=BOX_PADDING)
+        list_row.template_list(
+            "PB_UL_CustomList",
+            "",
+            scene,
+            "mask_list",
+            scene,
+            "mask_list_index",
+            sort_lock=True,
+        )
+        list_row.separator(factor=BOX_PADDING)
+
+        list_row = box.row()
+        list_row.scale_y = 1.25
+        list_row.separator(factor=BOX_PADDING)
+        list_row.operator("list.add_mask_item", text="Add")
+        list_row.operator("list.remove_mask_item", text="Remove")
+        list_row.separator(factor=BOX_PADDING)
+
+        # Objects in mask list
+        if scene.mask_list_index != -1:
+            box.separator()
+
+            create_label_row(box, "Objects in Mask")
+
+            property = getattr(scene, f"mask_properties{scene.mask_list_index + 1}")
+
+            list_row = box.row()
+            list_row.separator(factor=BOX_PADDING)
+            list_row.template_list(
+                "PB_UL_CustomList",
+                "",
+                property,
+                "mask_objects",
+                property,
+                "object_list_index",
+                sort_lock=True,
+            )
+            list_row.separator(factor=BOX_PADDING)
+
+            op_row = box.row()
+            op_row.scale_y = 1.25
+            op_row.separator(factor=BOX_PADDING)
+            op_row.operator("list.add_mask_object_item", text="Add")
+            op_row.operator("list.remove_mask_object_item", text="Remove")
+            op_row.operator("list.clear_mask_object_list", text="Clear")
+            op_row.separator(factor=BOX_PADDING)
+
+            if scene.show_object_dropdown:
+                drop_row = box.row()
+                drop_row.scale_y = 1.25
+                drop_row.separator(factor=BOX_PADDING)
+                drop_row.prop(property, "object_dropdown", icon="OBJECT_DATA")
+                drop_row.separator(factor=BOX_PADDING)
+            else:
+                box_row = box.row()
+                box_row.scale_y = 0.25
+                box_row.separator(factor=BOX_PADDING)
+                drop_box = box_row.box()
+                drop_box.scale_y = 0.25
+                drop_box.separator(factor=BOX_PADDING)
+                drop_box.label(
+                    text=bpy.context.view_layer.objects.active.name, icon="OBJECT_DATA"
+                )
+                drop_box.separator(factor=BOX_PADDING)
+                box_row.separator(factor=BOX_PADDING)
+                box.separator(factor=1.4)
+
+            box.separator()
+
+            # Prompt
+            create_label_row(box, "Mask Prompt")
+            prompt_row = box.row()
+            prompt_row.scale_y = 1.25
+            prompt_row.separator(factor=BOX_PADDING)
+            prompt_row.prop(property, "mask_prompt")
+            prompt_row.separator(factor=BOX_PADDING)
+
+        box.separator(factor=BOX_PADDING)
