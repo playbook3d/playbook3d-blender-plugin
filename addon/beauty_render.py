@@ -3,7 +3,7 @@ import os
 
 
 #
-def render_beauty_to_file():
+def render_beauty_pass():
     scene = bpy.context.scene
     render = scene.render
 

@@ -85,3 +85,11 @@ def render_depth_to_file():
     bpy.ops.render.render(write_still=True)
 
     # nodes.clear()
+
+
+#
+def render_depth_pass():
+    save_depth_settings()
+    set_depth_settings()
+    render_depth_to_file()
+    reset_depth_settings()

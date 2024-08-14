@@ -20,7 +20,7 @@ class PB_UL_CustomList(UIList):
     ):
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             row = layout.row()
-            row.label(text=item.name)
+            row.label(text=item.name, icon="OBJECT_DATA")
         elif self.layout_type in {"GRID"}:
             layout.alignment = "CENTER"
 

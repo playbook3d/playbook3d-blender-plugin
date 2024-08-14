@@ -5,7 +5,7 @@ original_settings = {}
 
 
 # Save the current color management settings
-def save_canny_settings():
+def save_outline_settings():
     scene = bpy.context.scene
     view_layer = scene.view_layers["ViewLayer"]
 
@@ -28,7 +28,7 @@ def save_canny_settings():
 
 
 #
-def set_canny_settings():
+def set_outline_settings():
     scene = bpy.context.scene
     view_layer = scene.view_layers["ViewLayer"]
 
@@ -48,7 +48,7 @@ def set_canny_settings():
 
 
 #
-def reset_canny_settings():
+def reset_outline_settings():
     scene = bpy.context.scene
     view_layer = scene.view_layers["ViewLayer"]
 
@@ -71,7 +71,7 @@ def reset_canny_settings():
 
 
 #
-def render_canny_to_file():
+def render_outline_to_file():
     scene = bpy.context.scene
     render = scene.render
 
@@ -109,3 +109,11 @@ def render_canny_to_file():
     bpy.ops.render.render(write_still=True)
 
     # nodes.clear()
+
+
+#
+def render_outline_pass():
+    save_outline_settings()
+    set_outline_settings()
+    render_outline_to_file()
+    reset_outline_settings()
