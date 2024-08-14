@@ -54,6 +54,29 @@ class ComfyDeployClient:
 
         self.url = os.getenv("BASE_URL")
 
+    async def run_retexture_workflow(
+        self,
+        mask_settings1: MaskSettings,
+        mask_settings2: MaskSettings,
+        mask_settings3: MaskSettings,
+        mask_settings4: MaskSettings,
+        retexture_settings: RetextureSettings,
+    ) -> str:
+        files = {
+            "prompt": retexture_settings.prompt,
+            "prompt a": mask_settings1.mask_prompt,
+            "prompt b": mask_settings2.mask_prompt,
+            "prompt c": mask_settings3.mask_prompt,
+            "prompt d": mask_settings4.mask_prompt,
+            "mask": self.mask,
+            "depth": self.depth,
+            "outline": self.outline,
+        }
+
+        render_result = requests.post(self.url + "/upload-images", files=files)
+        if render_result.status_code != 200:
+            return render_result.json()
+
     async def run_workflow(
         self,
         general_settings: GeneralSettings,
