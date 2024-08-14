@@ -26,8 +26,8 @@ class MainPanel(PlaybookPanel, bpy.types.Panel):
 
         row0.label(text="", icon_value=icons["main"]["playbook_logo_main"].icon_id)
         row1.label(text="Playbook")
-        row2.label(text="Playbook is a diffusion based")
-        row3.label(text="engine for 3D scenes.")
+        row2.label(text="Playbook is the best way for 3D artists")
+        row3.label(text="to leverage ComfyUI.")
 
 
 #
