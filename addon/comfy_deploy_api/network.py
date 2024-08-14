@@ -107,65 +107,60 @@ class ComfyDeployClient:
             clamped_retexture_depth = np_clamp(retexture_settings.structure_strength, 0.6, 1.0)
             clamped_retexture_outline = np_clamp(retexture_settings.structure_strength, 0.1, 0.3)
             clamped_style_transfer_strength = np_clamp(style_transfer_settings.style_transfer_strength, 0.0, 1.0)
-            files = None
+            retexture_input = {
+                "width": 512,
+                "height": 512,
+                "input_checkpoint": internal_model,
+                "scene_prompt": retexture_settings.prompt,
+                "structure_strength_depth": clamped_retexture_depth,
+                "structure_strength_outline": clamped_retexture_outline,
+                "mask_prompt_1": mask_settings1.mask_prompt,
+                "mask_prompt_2": mask_settings2.mask_prompt,
+                "mask_prompt_3": mask_settings3.mask_prompt,
+                "mask_prompt_4": mask_settings4.mask_prompt,
+                "mask_prompt_5": mask_settings5.mask_prompt,
+                "mask_prompt_6": mask_settings6.mask_prompt,
+                "mask_prompt_7": mask_settings7.mask_prompt,
+                "mask": self.mask,
+                "depth": self.depth,
+                "outline": self.outline,
+                "style": 1
+            }
+
+            style_transfer_input = {
+                "strength": clamped_style_transfer_strength,
+                "width": 512,
+                "height": 512,
+                "beauty": self.beauty,
+                "depth": self.depth,
+                "outline": self.outline,
+                "style_transfer_image": self.style_transfer
+            }
 
             match general_settings.workflow:
                 case 0:
                     #  SD Retexture
-                    files = {
-                        "workflow": os.getenv("RETEXTURE_WORKFLOW"),
-                        "model": internal_model,
-                        "scenePrompt": retexture_settings.prompt,
-                        "depthStrength": clamped_retexture_depth,
-                        "outlineStrength": clamped_retexture_outline,
-                        "mask1": mask_settings1.mask_prompt,
-                        "mask2": mask_settings2.mask_prompt,
-                        "mask3": mask_settings3.mask_prompt,
-                        "mask4": mask_settings4.mask_prompt,
-                        "mask5": mask_settings5.mask_prompt,
-                        "mask6": mask_settings6.mask_prompt,
-                        "mask7": mask_settings7.mask_prompt,
-                        "mask": self.mask,
-                        "depth": self.depth,
-                        "outline": self.outline,
-                    }
+                    render_result = requests.post(self.url + "/retexture", files=retexture_input)
+                    if render_result.status_code != 200:
+                        return render_result.json()
+
                 case 1:
                     #  FLUX Retexture
-                    files = {
-                        "workflow": os.getenv("RETEXTURE_FLUX_WORKFLOW"),
-                        "model": internal_model,
-                        "scenePrompt": retexture_settings.prompt,
-                        "depthStrength": clamped_retexture_depth,
-                        "outlineStrength": clamped_retexture_outline,
-                        "mask1": mask_settings1.mask_prompt,
-                        "mask2": mask_settings2.mask_prompt,
-                        "mask3": mask_settings3.mask_prompt,
-                        "mask4": mask_settings4.mask_prompt,
-                        "mask5": mask_settings5.mask_prompt,
-                        "mask6": mask_settings6.mask_prompt,
-                        "mask7": mask_settings7.mask_prompt,
-                        "mask": self.mask,
-                        "depth": self.depth,
-                        "outline": self.outline,
-                    }
+                    render_result = requests.post(self.url + "/flux-retexture", files=retexture_input)
+                    if render_result.status_code != 200:
+                        return render_result.json()
+
                 case 2:
                     #  SD Style Transfer
-                    files = {
-                        "workflow": os.getenv("STYLE_TRANSFER_WORKFLOW"),
-                        "strength": clamped_style_transfer_strength,
-                        "input_image": self.style_transfer
-                    }
+                    render_result = requests.post(self.url + "/style-transfer", files=style_transfer_input)
+                    if render_result.status_code != 200:
+                        return render_result.json()
+
                 case 3:
                     #  FLUX Style Transfer
-                    files = {
-                        "workflow": os.getenv("STYLE_TRANSFER_FLUX_WORKFLOW"),
-                        "strength": clamped_style_transfer_strength,
-                        "input_image": self.style_transfer
-                    }
-
-            render_result = requests.post(self.url + "/run-workflow", files=files)
-            if render_result.status_code != 200:
-                return render_result.json()
+                    render_result = requests.post(self.url + "/flux-style-transfer", files=style_transfer_input)
+                    if render_result.status_code != 200:
+                        return render_result.json()
 
     def save_image(self, image: bytes, pass_type: str):
         match pass_type:
