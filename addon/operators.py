@@ -64,6 +64,10 @@ class RenderOperator(Operator):
     bl_label = "Render"
     bl_description = "Render the image"
 
+    @classmethod
+    def poll(cls, context):
+        return not context.scene.is_rendering
+
     def execute(self, context):
         render_image()
         return {"FINISHED"}

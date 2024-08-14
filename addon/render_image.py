@@ -46,6 +46,29 @@ class MaskData:
         self.color = color
 
 
+# Returns True if an error occurs while attempting to render the image.
+def error_exists_in_flow(scene) -> bool:
+    # [workflow, condition for error message]
+    workflow_checks = {
+        "RETEXTURE": scene.retexture_properties.retexture_prompt
+        == "Describe the scene...",
+        "STYLETRANSFER": not scene.style_properties.style_image,
+    }
+
+    # [workflow, error message]
+    messages = {
+        "RETEXTURE": "Scene prompt is missing.",
+        "STYLETRANSFER": "Style transfer image is missing.",
+    }
+
+    if workflow_checks.get(scene.general_properties.general_workflow):
+        scene.error_message = messages[scene.general_properties.general_workflow]
+        return True
+
+    scene.error_message = ""
+    return False
+
+
 #
 def clear_render_folder():
     dir = os.path.dirname(__file__)
@@ -159,6 +182,13 @@ def send_render_to_api(url):
 def render_image():
     print("----------------------------------------------")
 
+    scene = bpy.context.scene
+
+    if error_exists_in_flow(scene):
+        return
+
+    scene.is_rendering = True
+
     set_visible_objects(bpy.context)
     clear_render_folder()
 
@@ -178,3 +208,5 @@ def render_image():
     open_render_window()
 
     clean_up_files()
+
+    scene.is_rendering = False

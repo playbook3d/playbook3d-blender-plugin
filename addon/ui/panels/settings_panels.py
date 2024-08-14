@@ -16,12 +16,40 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         box = layout.box()
         box.separator(factor=BOX_PADDING)
 
+        # General layout
+        self.draw_general_layout(scene, box)
+
+        box.separator(factor=BOX_PADDING)
+
+        # Retexture workflow
+        if scene.show_retexture_panel:
+            # Prompt
+            create_label_row(box, "Scene Prompt")
+            prompt_row = box.row()
+            prompt_row.scale_y = 1.25
+            prompt_row.separator(factor=BOX_PADDING)
+            prompt_row.prop(scene.retexture_properties, "retexture_prompt")
+            prompt_row.separator(factor=BOX_PADDING)
+
+        # Style transfer workflow
+        else:
+            # Style transfer image
+            create_label_row(box, "Style Transfer Image")
+            image_row = box.row()
+            image_row.separator(factor=BOX_PADDING)
+            image_row.prop(scene.style_properties, "style_image")
+            image_row.operator("op.clear_style_image", icon="PANEL_CLOSE")
+            image_row.separator(factor=BOX_PADDING)
+
+        box.separator(factor=BOX_PADDING)
+
+    def draw_general_layout(self, scene, box):
         # Workflow
         create_label_row(box, "Workflow")
         workflow_row = box.row()
         workflow_row.scale_y = 1.25
         workflow_row.separator(factor=BOX_PADDING)
-        workflow_row.prop(scene.retexture_properties, "retexture_workflow")
+        workflow_row.prop(scene.general_properties, "general_workflow")
         workflow_row.separator(factor=BOX_PADDING)
 
         box.separator(factor=BOX_PADDING)
@@ -31,7 +59,7 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         model_row = box.row()
         model_row.scale_y = 1.25
         model_row.separator(factor=BOX_PADDING)
-        model_row.prop(scene.retexture_properties, "retexture_model")
+        model_row.prop(scene.general_properties, "general_model")
         model_row.separator(factor=BOX_PADDING)
 
         box.separator(factor=BOX_PADDING)
@@ -41,28 +69,8 @@ class RenderSettingsPanel(PlaybookPanel, bpy.types.Panel):
         style_row = box.row()
         style_row.scale_y = 1.25
         style_row.separator(factor=BOX_PADDING)
-        style_row.prop(scene.retexture_properties, "retexture_style")
+        style_row.prop(scene.general_properties, "general_style")
         style_row.separator(factor=BOX_PADDING)
-
-        box.separator(factor=BOX_PADDING)
-
-        if scene.show_retexture_panel:
-            # Prompt
-            create_label_row(box, "Scene Prompt")
-            prompt_row = box.row()
-            prompt_row.scale_y = 1.25
-            prompt_row.separator(factor=BOX_PADDING)
-            prompt_row.prop(scene.retexture_properties, "retexture_prompt")
-            prompt_row.separator(factor=BOX_PADDING)
-        else:
-            create_label_row(box, "Style Transfer Image")
-            image_row = box.row()
-            image_row.separator(factor=BOX_PADDING)
-            image_row.prop(scene.style_properties, "style_image")
-            image_row.operator("op.clear_style_image", icon="PANEL_CLOSE")
-            image_row.separator(factor=BOX_PADDING)
-
-        box.separator(factor=BOX_PADDING)
 
     #
     # def draw_retexture_layout(self, scene, layout):
