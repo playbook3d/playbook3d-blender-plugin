@@ -1,11 +1,18 @@
 import json
-from typing import Sequence
 import logging
 import os
 import requests
-import datetime
 import numpy as np
 from websockets.sync.client import connect
+from comfydeploy import ComfyDeploy
+
+
+def machine_id_status(machine_id: str):
+    client = ComfyDeploy(bearer_auth="")
+
+    client.machines.get_v1_machines_machine_id_(machine_id=machine_id)
+
+    #  /run-workflow
 
 
 class GeneralSettings:
@@ -133,7 +140,7 @@ class ComfyDeployClient:
                         "input_image": self.style_transfer
                     }
 
-            render_result = requests.post(self.url + "/upload-images", files=files)
+            render_result = requests.post(self.url + "/run-workflow", files=files)
             if render_result.status_code != 200:
                 return render_result.json()
 
