@@ -10,9 +10,7 @@ class RetexturePanelOperator(Operator):
     bl_description = "Retexture"
 
     def execute(self, context):
-        bpy.context.scene.show_retexture_panel = (
-            not bpy.context.scene.show_retexture_panel
-        )
+
         return {"FINISHED"}
 
 
@@ -49,12 +47,7 @@ class UpscalePanelOperator(Operator):
         return {"FINISHED"}
 
 
-classes = [
-    RetexturePanelOperator,
-    StylePanelOperator,
-    RelightPanelOperator,
-    UpscalePanelOperator,
-]
+classes = []
 
 
 def register():
