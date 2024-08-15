@@ -90,15 +90,6 @@ class ComfyDeployClient:
         retexture_settings: RetextureSettings,
         style_transfer_settings: StyleTransferSettings,
     ) -> str:
-        internal_model = ""
-
-        match general_settings.model:
-            case 0:
-                internal_model = "juggernaut_reborn.safetensors"
-            case 1:
-                internal_model = "disneyPixarCartoon_v10.safetensors"
-            case 2:
-                internal_model = "flat2DAnimerge_v45Sharp.safetensors"
 
         if self.mask and self.depth and self.outline:
             logging.info(
@@ -110,7 +101,6 @@ class ComfyDeployClient:
             retexture_input = {
                 "width": 512,
                 "height": 512,
-                "input_checkpoint": internal_model,
                 "scene_prompt": retexture_settings.prompt,
                 "structure_strength_depth": clamped_retexture_depth,
                 "structure_strength_outline": clamped_retexture_outline,
@@ -123,8 +113,7 @@ class ComfyDeployClient:
                 "mask_prompt_7": mask_settings7.mask_prompt,
                 "mask": self.mask,
                 "depth": self.depth,
-                "outline": self.outline,
-                "style": 1
+                "outline": self.outline
             }
 
             style_transfer_input = {
