@@ -8,13 +8,12 @@ from .depth_render import render_depth_pass
 from .outline_render import render_outline_pass
 from .workspace import open_render_window
 from .properties import set_visible_objects
-from .utilities import color_to_hex
+from .visible_objects import color_hex
 from .comfy_deploy_api.network import (
-    GeneralSettings,
+    GlobalSettings,
+    RetextureSettings,
     MaskSettings,
     StyleTransferSettings,
-    RelightSettings,
-    UpscaleSettings,
     ComfyDeployClient,
     PlaybookWebsocket,
 )
@@ -46,8 +45,8 @@ def error_exists_in_flow(scene) -> bool:
         "STYLETRANSFER": "Style transfer image is missing.",
     }
 
-    if workflow_checks.get(scene.general_properties.general_workflow):
-        scene.error_message = messages[scene.general_properties.general_workflow]
+    if workflow_checks.get(scene.global_properties.global_workflow):
+        scene.error_message = messages[scene.global_properties.global_workflow]
         return True
 
     scene.error_message = ""
@@ -101,13 +100,22 @@ def clean_up_files():
 
 
 #
-def get_general_settings() -> GeneralSettings:
-    general_props = bpy.context.scene.general_properties
+def get_global_settings() -> GlobalSettings:
+    global_props = bpy.context.scene.global_properties
 
-    return GeneralSettings(
-        general_props.general_style,
-        general_props.general_prompt,
-        general_props.general_structure_strength,
+    return GlobalSettings(
+        global_props.global_style,
+        global_props.global_prompt,
+        global_props.global_structure_strength,
+    )
+
+
+#
+def get_retexture_settings() -> RetextureSettings:
+    retexture_props = bpy.context.scene.retexture_properties
+
+    return RetextureSettings(
+        retexture_props.retexture_prompt, retexture_props.retexture_structure_strength
     )
 
 
@@ -126,21 +134,21 @@ def get_style_transfer_settings() -> StyleTransferSettings:
 
 
 #
-def get_relight_settings() -> RelightSettings:
-    relight_props = bpy.context.scene.relight_properties
+# def get_relight_settings() -> RelightSettings:
+#     relight_props = bpy.context.scene.relight_properties
 
-    return RelightSettings(
-        color_to_hex(relight_props.relight_color),
-        relight_props.relight_prompt,
-        relight_props.relight_angle,
-    )
+#     return RelightSettings(
+#         color_to_hex(relight_props.relight_color),
+#         relight_props.relight_prompt,
+#         relight_props.relight_angle,
+#     )
 
 
 #
-def get_upscale_settings() -> UpscaleSettings:
-    upscale_props = bpy.context.scene.upscale_properties
+# def get_upscale_settings() -> UpscaleSettings:
+#     upscale_props = bpy.context.scene.upscale_properties
 
-    return UpscaleSettings(upscale_props.upscale_scale)
+#     return UpscaleSettings(upscale_props.upscale_scale)
 
 
 #
@@ -175,40 +183,46 @@ def set_comfy_images(comfy_deploy: ComfyDeployClient):
 
 #
 async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
-    flags = bpy.context.scene.flag_properties
+    # flags = bpy.context.scene.flag_properties
 
-    general_settings = get_general_settings()
+    # global_settings = get_global_settings()
+    retexture_settings = get_retexture_settings()
     mask_settings1 = get_mask_settings(1)
     mask_settings2 = get_mask_settings(2)
     mask_settings3 = get_mask_settings(3)
     mask_settings4 = get_mask_settings(4)
-    mask_settings5 = get_mask_settings(5)
-    mask_settings6 = get_mask_settings(6)
-    mask_settings7 = get_mask_settings(7)
-    style_settings = get_style_transfer_settings()
-    relight_settings = get_relight_settings()
-    upscale_settings = get_upscale_settings()
+    # mask_settings5 = get_mask_settings(5)
+    # mask_settings6 = get_mask_settings(6)
+    # mask_settings7 = get_mask_settings(7)
+    # style_settings = get_style_transfer_settings()
 
-    response = await comfy_deploy.run_workflow(
-        general_settings,
+    # response = await comfy_deploy.run_workflow(
+    #     global_settings,
+    #     mask_settings1,
+    #     mask_settings2,
+    #     mask_settings3,
+    #     mask_settings4,
+    #     mask_settings5,
+    #     mask_settings6,
+    #     mask_settings7,
+    #     False,
+    #     style_settings,
+    #     0,
+    #     flags.retexture_flag,
+    #     flags.style_flag,
+    #     flags.relight_flag,
+    #     flags.upscale_flag,
+    # )
+
+    response = await comfy_deploy.run_retexture_workflow(
         mask_settings1,
         mask_settings2,
         mask_settings3,
         mask_settings4,
-        mask_settings5,
-        mask_settings6,
-        mask_settings7,
-        False,
-        style_settings,
-        relight_settings,
-        upscale_settings,
-        0,
-        flags.retexture_flag,
-        flags.style_flag,
-        flags.relight_flag,
-        flags.upscale_flag,
+        retexture_settings,
     )
 
+    print("Is it here?")
     print(response)
 
 

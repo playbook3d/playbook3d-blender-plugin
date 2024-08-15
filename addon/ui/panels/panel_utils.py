@@ -14,7 +14,13 @@ def create_label_row(layout, text, scale_y=TEXT_Y_SCALE):
     row.separator(factor=BOX_PADDING)
 
 
-class PlaybookPanel(bpy.types.Panel):
+class PlaybookPanel3D(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Playbook"
+
+
+class PlaybookPanelRender(bpy.types.Panel):
+    bl_space_type = "IMAGE_EDITOR"
     bl_region_type = "UI"
     bl_category = "Playbook"

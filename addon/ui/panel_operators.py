@@ -3,7 +3,7 @@ from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
 
 
-# Operator to show / hide the 'General' panel
+# Operator to show / hide the 'Global' panel
 class RetexturePanelOperator(Operator):
     bl_idname = "op.retexture_panel"
     bl_label = "Retexture"

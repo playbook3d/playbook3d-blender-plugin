@@ -39,7 +39,7 @@ base_models = [
 ]
 
 
-# Available general model options
+# Available global model options
 prompt_styles = [
     (
         "PHOTOREAL",
@@ -76,7 +76,7 @@ def set_visible_objects(context):
 
 
 #
-class GeneralProperties(PropertyGroup):
+class GlobalProperties(PropertyGroup):
     def get_prompt_styles(self, context):
         enum_items = []
         for i, style in enumerate(prompt_styles):
@@ -91,13 +91,13 @@ class GeneralProperties(PropertyGroup):
     def on_update_workflow(self, context):
         context.scene.show_retexture_panel = self.retexture_workflow == "RETEXTURE"
 
-    general_workflow: EnumProperty(
+    global_workflow: EnumProperty(
         name="",
         items=workflows,
         update=lambda self, context: self.on_update_workflow(context),
     )
-    general_model: EnumProperty(name="", items=base_models)
-    general_style: EnumProperty(
+    global_model: EnumProperty(name="", items=base_models)
+    global_style: EnumProperty(
         name="",
         items=get_prompt_styles,
     )
@@ -106,8 +106,8 @@ class GeneralProperties(PropertyGroup):
 #
 class RetextureProperties(PropertyGroup):
     def on_update_prompt(self, context):
-        if not self.general_prompt:
-            self.general_prompt = "Describe the scene..."
+        if not self.global_prompt:
+            self.global_prompt = "Describe the scene..."
             context.scene.flag_properties.retexture_flag = False
         else:
             context.scene.flag_properties.retexture_flag = True
@@ -259,7 +259,7 @@ class FlagProperties(PropertyGroup):
 
 
 classes = [
-    GeneralProperties,
+    GlobalProperties,
     RetextureProperties,
     MaskProperties,
     StyleProperties,
@@ -274,7 +274,7 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    Scene.general_properties = PointerProperty(type=GeneralProperties)
+    Scene.global_properties = PointerProperty(type=GlobalProperties)
     Scene.retexture_properties = PointerProperty(type=RetextureProperties)
     Scene.style_properties = PointerProperty(type=StyleProperties)
     Scene.relight_properties = PointerProperty(type=RelightProperties)
@@ -298,7 +298,7 @@ def unregister():
     for cls in classes:
         unregister_class(cls)
 
-    del Scene.general_properties
+    del Scene.global_properties
     del Scene.retexture_properties
     del Scene.style_properties
     del Scene.relight_properties

@@ -5,6 +5,7 @@ import requests
 import numpy as np
 from websockets.sync.client import connect
 from comfydeploy import ComfyDeploy
+from dotenv import load_dotenv
 
 
 def machine_id_status(machine_id: str):
@@ -15,7 +16,7 @@ def machine_id_status(machine_id: str):
     #  /run-workflow
 
 
-class GeneralSettings:
+class GlobalSettings:
     def __init__(self, workflow: int, model: int, style: int, render_mode: int):
         self.workflow = workflow
         self.model = model
@@ -52,6 +53,12 @@ class ComfyDeployClient:
         self.beauty: bytes = b""
         self.style_transfer: bytes = b""
 
+        # Determine the path to the .env file
+        env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+
+        # Load the .env file
+        load_dotenv(dotenv_path=env_path)
+
         self.url = os.getenv("BASE_URL")
 
     async def run_retexture_workflow(
@@ -62,6 +69,7 @@ class ComfyDeployClient:
         mask_settings4: MaskSettings,
         retexture_settings: RetextureSettings,
     ) -> str:
+        print(f"Prompt: {retexture_settings.prompt}")
         files = {
             "prompt": retexture_settings.prompt,
             "prompt a": mask_settings1.mask_prompt,
@@ -79,7 +87,7 @@ class ComfyDeployClient:
 
     async def run_workflow(
         self,
-        general_settings: GeneralSettings,
+        global_settings: GlobalSettings,
         mask_settings1: MaskSettings,
         mask_settings2: MaskSettings,
         mask_settings3: MaskSettings,
@@ -92,12 +100,17 @@ class ComfyDeployClient:
     ) -> str:
 
         if self.mask and self.depth and self.outline:
-            logging.info(
-                f"Starting workflow for prompt: {retexture_settings.prompt}")
+            logging.info(f"Starting workflow for prompt: {retexture_settings.prompt}")
 
-            clamped_retexture_depth = np_clamp(retexture_settings.structure_strength, 0.6, 1.0)
-            clamped_retexture_outline = np_clamp(retexture_settings.structure_strength, 0.1, 0.3)
-            clamped_style_transfer_strength = np_clamp(style_transfer_settings.style_transfer_strength, 0.0, 1.0)
+            clamped_retexture_depth = np_clamp(
+                retexture_settings.structure_strength, 0.6, 1.0
+            )
+            clamped_retexture_outline = np_clamp(
+                retexture_settings.structure_strength, 0.1, 0.3
+            )
+            clamped_style_transfer_strength = np_clamp(
+                style_transfer_settings.style_transfer_strength, 0.0, 1.0
+            )
             retexture_input = {
                 "width": 512,
                 "height": 512,
@@ -113,7 +126,7 @@ class ComfyDeployClient:
                 "mask_prompt_7": mask_settings7.mask_prompt,
                 "mask": self.mask,
                 "depth": self.depth,
-                "outline": self.outline
+                "outline": self.outline,
             }
 
             style_transfer_input = {
@@ -123,31 +136,39 @@ class ComfyDeployClient:
                 "beauty": self.beauty,
                 "depth": self.depth,
                 "outline": self.outline,
-                "style_transfer_image": self.style_transfer
+                "style_transfer_image": self.style_transfer,
             }
 
-            match general_settings.workflow:
+            match global_settings.workflow:
                 case 0:
                     #  SD Retexture
-                    render_result = requests.post(self.url + "/retexture", files=retexture_input)
+                    render_result = requests.post(
+                        self.url + "/retexture", files=retexture_input
+                    )
                     if render_result.status_code != 200:
                         return render_result.json()
 
                 case 1:
                     #  FLUX Retexture
-                    render_result = requests.post(self.url + "/flux-retexture", files=retexture_input)
+                    render_result = requests.post(
+                        self.url + "/flux-retexture", files=retexture_input
+                    )
                     if render_result.status_code != 200:
                         return render_result.json()
 
                 case 2:
                     #  SD Style Transfer
-                    render_result = requests.post(self.url + "/style-transfer", files=style_transfer_input)
+                    render_result = requests.post(
+                        self.url + "/style-transfer", files=style_transfer_input
+                    )
                     if render_result.status_code != 200:
                         return render_result.json()
 
                 case 3:
                     #  FLUX Style Transfer
-                    render_result = requests.post(self.url + "/flux-style-transfer", files=style_transfer_input)
+                    render_result = requests.post(
+                        self.url + "/flux-style-transfer", files=style_transfer_input
+                    )
                     if render_result.status_code != 200:
                         return render_result.json()
 

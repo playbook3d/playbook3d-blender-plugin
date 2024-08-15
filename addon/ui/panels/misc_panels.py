@@ -1,65 +1,96 @@
 import bpy
-from .panel_utils import PlaybookPanel, BOX_PADDING
+from .panel_utils import PlaybookPanel3D, PlaybookPanelRender, BOX_PADDING
+from .main_panels import MainPanel3D, MainPanelRender
 from ..icons import icons
 
 
-class ModificationPanel(PlaybookPanel, bpy.types.Panel):
-    bl_idname = "SCENE_PT_modification"
+########## MODIFICATION PANEL ##########
+def draw_modification_panel(context, layout):
+    scene = context.scene
+    flag_props = scene.flag_properties
+
+    flags = [
+        ("Retexture", flag_props.retexture_flag),
+        ("Style Transfer", flag_props.style_flag),
+        ("Relight", flag_props.relight_flag),
+        ("Upscale", flag_props.upscale_flag),
+    ]
+
+    # Filter the flags that are active
+    active_flags = [name for name, active in flags if active]
+
+    if active_flags:
+        row = layout.row()
+        row.alignment = "CENTER"
+        row.label(text="Applied:")
+
+        row = layout.row()
+        row.alignment = "CENTER"
+        row.label(text=", ".join(active_flags))
+
+
+#
+class ModificationPanel3D(PlaybookPanel3D, bpy.types.Panel):
+    bl_idname = "VIEW_3D_PT_modification"
     bl_label = ""
-    bl_parent_id = "SCENE_PT_playbook"
+    bl_parent_id = MainPanel3D.bl_idname
     bl_options = {"HIDE_HEADER"}
 
     def draw(self, context):
-        layout = self.layout
-        scene = context.scene
-        flag_props = scene.flag_properties
+        draw_modification_panel(context, self.layout)
 
-        flags = [
-            ("Retexture", flag_props.retexture_flag),
-            ("Style Transfer", flag_props.style_flag),
-            ("Relight", flag_props.relight_flag),
-            ("Upscale", flag_props.upscale_flag),
-        ]
 
-        # Filter the flags that are active
-        active_flags = [name for name, active in flags if active]
+#
+class ModificationPanelRender(PlaybookPanelRender, bpy.types.Panel):
+    bl_idname = "IMAGE_RENDER_PT_modification"
+    bl_label = ""
+    bl_parent_id = MainPanelRender.bl_idname
+    bl_options = {"HIDE_HEADER"}
 
-        if active_flags:
-            row = layout.row()
-            row.alignment = "CENTER"
-            row.label(text="Applied:")
+    def draw(self, context):
+        draw_modification_panel(context, self.layout)
 
-            row = layout.row()
-            row.alignment = "CENTER"
-            row.label(text=", ".join(active_flags))
+
+########## LINKS PANEL ##########
+def draw_links_panel(layout):
+    icon_row = layout.row()
+    icon_row.alignment = "CENTER"
+    icon_row.operator(
+        "op.send_to_playbook",
+        icon_value=icons["main"]["playbook_logo"].icon_id,
+        emboss=False,
+    )
+    icon_row.operator(
+        "op.send_to_discord",
+        icon_value=icons["main"]["discord_logo"].icon_id,
+        emboss=False,
+    )
+    icon_row.operator(
+        "op.send_to_twitter",
+        icon_value=icons["main"]["twitter_logo"].icon_id,
+        emboss=False,
+    )
+
+    layout.separator(factor=BOX_PADDING)
 
 
 # The panel that creates the Playbook links
-class LinksPanel(PlaybookPanel, bpy.types.Panel):
-    bl_idname = "SCENE_PT_linkspanel"
-    bl_parent_id = "SCENE_PT_playbook"
+class LinksPanel3D(PlaybookPanel3D, bpy.types.Panel):
+    bl_idname = "VIEW_3D_PT_linkspanel"
     bl_label = ""
+    bl_parent_id = MainPanel3D.bl_idname
     bl_options = {"HIDE_HEADER"}
 
     def draw(self, context):
-        layout = self.layout
+        draw_links_panel(self.layout)
 
-        icon_row = layout.row()
-        icon_row.alignment = "CENTER"
-        icon_row.operator(
-            "op.send_to_playbook",
-            icon_value=icons["main"]["playbook_logo"].icon_id,
-            emboss=False,
-        )
-        icon_row.operator(
-            "op.send_to_discord",
-            icon_value=icons["main"]["discord_logo"].icon_id,
-            emboss=False,
-        )
-        icon_row.operator(
-            "op.send_to_twitter",
-            icon_value=icons["main"]["twitter_logo"].icon_id,
-            emboss=False,
-        )
 
-        layout.separator(factor=BOX_PADDING)
+#
+class LinksPanelRender(PlaybookPanelRender, bpy.types.Panel):
+    bl_idname = "IMAGE_RENDER_PT_linkspanel"
+    bl_label = ""
+    bl_parent_id = MainPanelRender.bl_idname
+    bl_options = {"HIDE_HEADER"}
+
+    def draw(self, context):
+        draw_links_panel(self.layout)

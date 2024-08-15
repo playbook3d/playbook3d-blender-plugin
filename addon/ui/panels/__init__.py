@@ -1,19 +1,26 @@
 from bpy.utils import register_class, unregister_class
 from bpy.props import BoolProperty
 from bpy.types import Scene
-from .main_panels import MainPanel, CredentialsPanel
-from .settings_panels import RenderSettingsPanel, AdvancedSettingsPanel
-from .render_panels import RenderPanel
-from .misc_panels import ModificationPanel, LinksPanel
+from .main_panels import *
+from .settings_panels import *
+from .render_panels import *
+from .misc_panels import *
 
 classes = [
-    MainPanel,
-    CredentialsPanel,
-    ModificationPanel,
-    RenderSettingsPanel,
-    AdvancedSettingsPanel,
-    RenderPanel,
-    LinksPanel,
+    MainPanel3D,
+    MainPanelRender,
+    CredentialsPanel3D,
+    CredentialsPanelRender,
+    ModificationPanel3D,
+    ModificationPanelRender,
+    RenderSettingsPanel3D,
+    RenderSettingsPanelRender,
+    AdvancedSettingsPanel3D,
+    AdvancedSettingsPanelRender,
+    RenderPanel3D,
+    RenderPanelRender,
+    LinksPanel3D,
+    LinksPanelRender,
 ]
 
 

@@ -53,12 +53,9 @@ def get_duplicate_workspace():
 def set_render_area(workspace: bpy.types.WorkSpace):
     # Change one of the areas to an Image Editor and set the image to Render Result
     area = get_largest_area(workspace)
-    print("Before: " + area.type)
 
     if area.type != "IMAGE_EDITOR":
         area.type = "IMAGE_EDITOR"
-
-    print("After: " + area.type)
 
     for space in area.spaces:
         if space.type == "IMAGE_EDITOR":
