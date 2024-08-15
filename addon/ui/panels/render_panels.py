@@ -45,4 +45,14 @@ class RenderPanel(PlaybookPanel, bpy.types.Panel):
         row2.operator("op.render_image")
         row2.separator(factor=BOX_PADDING)
 
+        if context.scene.error_message:
+            error_row = box.row()
+            error_row.alert = True
+            error_row.alignment = "CENTER"
+            error_row.separator(factor=BOX_PADDING)
+            error_row.label(
+                text=context.scene.error_message,
+            )
+            error_row.separator(factor=BOX_PADDING)
+
         box.separator(factor=BOX_PADDING)
