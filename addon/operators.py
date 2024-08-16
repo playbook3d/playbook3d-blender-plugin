@@ -1,6 +1,6 @@
 import bpy
 import webbrowser
-from .objects import visible_objects
+from .objects import visible_objects, mask_objects
 from .render_image import render_image
 from bpy.props import StringProperty
 from bpy.types import Operator
@@ -158,19 +158,21 @@ def on_register():
         item.name = "Mask 1"
 
 
+previous_objects = {}
+
+
+#
 def update_object_dropdown():
     update_object_dropdown_handler(bpy.context.scene)
 
 
-# Set the currently selected object in the viewport as the object dropdown
-# option
+# Set the currently selected object in the viewport as the object
+# dropdown option
 @persistent
 def update_object_dropdown_handler(scene):
     # No mask has been created yet
     if scene.mask_list_index == -1:
         return
-
-    property = getattr(scene, f"mask_properties{scene.mask_list_index + 1}")
 
     selected_obj = bpy.context.view_layer.objects.active
 
@@ -180,12 +182,47 @@ def update_object_dropdown_handler(scene):
         scene.show_object_dropdown = True
 
 
+@persistent
+def check_for_deleted_objects_handler(scene):
+    global previous_objects
+
+    if not previous_objects:
+        previous_objects = set(scene.objects.keys())
+        return
+
+    current_objects = set(scene.objects.keys())
+    deleted_objects = previous_objects - current_objects
+
+    if deleted_objects:
+        for del_obj in deleted_objects:
+            for key, value in mask_objects.items():
+                # Object is part of the mask. Delete from mask
+                if del_obj in value:
+                    remove_object_from_list(scene, key, del_obj)
+
+    previous_objects = current_objects
+
+
+# Remove the given objects from the mask lists
+def remove_object_from_list(scene, mask: str, obj_name: str):
+    mask_index = mask[-1]
+    mask_props = getattr(scene, f"mask_properties{mask_index}")
+
+    obj_index = mask_objects[mask].index(obj_name)
+
+    mask_props.mask_objects.remove(obj_index)
+    mask_objects[mask].pop(obj_index)
+
+    mask_props.object_list_index = 0 if mask_props.mask_objects else -1
+
+
 def register():
     global classes
     for cls in classes:
         register_class(cls)
 
     bpy.app.handlers.depsgraph_update_post.append(update_object_dropdown_handler)
+    bpy.app.handlers.depsgraph_update_post.append(check_for_deleted_objects_handler)
     bpy.app.timers.register(update_object_dropdown, first_interval=1)
     bpy.app.timers.register(on_register, first_interval=0.1)
 
@@ -196,3 +233,4 @@ def unregister():
         unregister_class(cls)
 
     bpy.app.handlers.depsgraph_update_post.remove(update_object_dropdown_handler)
+    bpy.app.handlers.depsgraph_update_post.remove(check_for_deleted_objects_handler)
