@@ -10,10 +10,10 @@ from .workspace import open_render_window
 from .properties import set_visible_objects
 from .visible_objects import color_hex
 from .comfy_deploy_api.network import (
-    GlobalSettings,
-    RetextureSettings,
-    MaskSettings,
-    StyleTransferSettings,
+    GlobalRenderSettings,
+    RetextureRenderSettings,
+    MaskData,
+    StyleTransferRenderSettings,
     ComfyDeployClient,
     PlaybookWebsocket,
 )
@@ -21,13 +21,6 @@ from .comfy_deploy_api.network import (
 # VARIABLES
 
 api_url = os.getenv("API_URL")
-
-
-class MaskData:
-    def __init__(self, element_data, prompt, color):
-        self.element_data = element_data
-        self.prompt = prompt
-        self.color = color
 
 
 # Returns True if an error occurs while attempting to render the image.
@@ -100,10 +93,10 @@ def clean_up_files():
 
 
 #
-def get_global_settings() -> GlobalSettings:
+def get_global_settings() -> GlobalRenderSettings:
     global_props = bpy.context.scene.global_properties
 
-    return GlobalSettings(
+    return GlobalRenderSettings(
         global_props.global_style,
         global_props.global_prompt,
         global_props.global_structure_strength,
@@ -111,26 +104,31 @@ def get_global_settings() -> GlobalSettings:
 
 
 #
-def get_retexture_settings() -> RetextureSettings:
-    retexture_props = bpy.context.scene.retexture_properties
+def get_retexture_settings() -> RetextureRenderSettings:
+    scene = bpy.context.scene
 
-    return RetextureSettings(
-        retexture_props.retexture_prompt, retexture_props.retexture_structure_strength
+    retexture_props = scene.retexture_properties
+
+    mask_props = [
+        MaskData(
+            getattr(scene, f"mask_properties{index}").mask_prompt,
+            color_hex[f"MASK{index}"],
+        )
+        for index in range(7)
+    ]
+
+    return RetextureRenderSettings(
+        retexture_props.retexture_prompt,
+        retexture_props.retexture_structure_strength,
+        *mask_props,
     )
 
 
 #
-def get_mask_settings(index: int) -> MaskSettings:
-    mask_props = getattr(bpy.context.scene, f"mask_properties{index}")
-
-    return MaskSettings(mask_props.mask_prompt, color_hex[f"MASK{index}"])
-
-
-#
-def get_style_transfer_settings() -> StyleTransferSettings:
+def get_style_transfer_settings() -> StyleTransferRenderSettings:
     style_props = bpy.context.scene.style_properties
 
-    return StyleTransferSettings(style_props.style_strength)
+    return StyleTransferRenderSettings(style_props.style_strength)
 
 
 #
@@ -187,10 +185,6 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
 
     # global_settings = get_global_settings()
     retexture_settings = get_retexture_settings()
-    mask_settings1 = get_mask_settings(1)
-    mask_settings2 = get_mask_settings(2)
-    mask_settings3 = get_mask_settings(3)
-    mask_settings4 = get_mask_settings(4)
     # mask_settings5 = get_mask_settings(5)
     # mask_settings6 = get_mask_settings(6)
     # mask_settings7 = get_mask_settings(7)
@@ -214,13 +208,7 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
     #     flags.upscale_flag,
     # )
 
-    response = await comfy_deploy.run_retexture_workflow(
-        mask_settings1,
-        mask_settings2,
-        mask_settings3,
-        mask_settings4,
-        retexture_settings,
-    )
+    response = await comfy_deploy.run_retexture_workflow(retexture_settings)
 
     print("Is it here?")
     print(response)

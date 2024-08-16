@@ -166,11 +166,9 @@ def update_object_dropdown():
 # option
 @persistent
 def update_object_dropdown_handler(scene):
-    # No mask has been created yet
+    # No mask exists
     if scene.mask_list_index == -1:
         return
-
-    property = getattr(scene, f"mask_properties{scene.mask_list_index + 1}")
 
     selected_obj = bpy.context.view_layer.objects.active
 

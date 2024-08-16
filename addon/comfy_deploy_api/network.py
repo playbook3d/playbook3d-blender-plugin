@@ -16,27 +16,43 @@ def machine_id_status(machine_id: str):
     #  /run-workflow
 
 
-class GlobalSettings:
-    def __init__(self, workflow: int, model: int, style: int, render_mode: int):
+class GlobalRenderSettings:
+    def __init__(self, workflow: int, render_mode: int):
         self.workflow = workflow
-        self.model = model
-        self.style = style
         self.renderMode = render_mode
 
 
-class MaskSettings:
+class MaskData:
     def __init__(self, prompt: str, color: str):
         self.mask_prompt = prompt
         self.color = color
 
 
-class RetextureSettings:
-    def __init__(self, prompt: str, structure_strength: int):
+class RetextureRenderSettings:
+    def __init__(
+        self,
+        prompt: str,
+        structure_strength: int,
+        mask1: MaskData,
+        mask2: MaskData,
+        mask3: MaskData,
+        mask4: MaskData,
+        mask5: MaskData,
+        mask6: MaskData,
+        mask7: MaskData,
+    ):
         self.prompt = prompt
         self.structure_strength = structure_strength
+        self.mask1 = mask1
+        self.mask2 = mask2
+        self.mask3 = mask3
+        self.mask4 = mask4
+        self.mask5 = mask5
+        self.mask6 = mask6
+        self.mask7 = mask7
 
 
-class StyleTransferSettings:
+class StyleTransferRenderSettings:
     def __init__(self, strength: int):
         self.style_transfer_strength = strength
 
@@ -63,19 +79,15 @@ class ComfyDeployClient:
 
     async def run_retexture_workflow(
         self,
-        mask_settings1: MaskSettings,
-        mask_settings2: MaskSettings,
-        mask_settings3: MaskSettings,
-        mask_settings4: MaskSettings,
-        retexture_settings: RetextureSettings,
+        retexture_settings: RetextureRenderSettings,
     ) -> str:
         print(f"Prompt: {retexture_settings.prompt}")
         files = {
             "prompt": retexture_settings.prompt,
-            "prompt a": mask_settings1.mask_prompt,
-            "prompt b": mask_settings2.mask_prompt,
-            "prompt c": mask_settings3.mask_prompt,
-            "prompt d": mask_settings4.mask_prompt,
+            "prompt a": retexture_settings.mask1.mask_prompt,
+            "prompt b": retexture_settings.mask2.mask_prompt,
+            "prompt c": retexture_settings.mask3.mask_prompt,
+            "prompt d": retexture_settings.mask4.mask_prompt,
             "mask": self.mask,
             "depth": self.depth,
             "outline": self.outline,
@@ -87,16 +99,16 @@ class ComfyDeployClient:
 
     async def run_workflow(
         self,
-        global_settings: GlobalSettings,
-        mask_settings1: MaskSettings,
-        mask_settings2: MaskSettings,
-        mask_settings3: MaskSettings,
-        mask_settings4: MaskSettings,
-        mask_settings5: MaskSettings,
-        mask_settings6: MaskSettings,
-        mask_settings7: MaskSettings,
-        retexture_settings: RetextureSettings,
-        style_transfer_settings: StyleTransferSettings,
+        global_settings: GlobalRenderSettings,
+        mask_settings1: MaskData,
+        mask_settings2: MaskData,
+        mask_settings3: MaskData,
+        mask_settings4: MaskData,
+        mask_settings5: MaskData,
+        mask_settings6: MaskData,
+        mask_settings7: MaskData,
+        retexture_settings: RetextureRenderSettings,
+        style_transfer_settings: StyleTransferRenderSettings,
     ) -> str:
 
         if self.mask and self.depth and self.outline:

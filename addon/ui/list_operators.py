@@ -3,6 +3,8 @@ from bpy.utils import register_class, unregister_class
 from bpy.types import Operator
 from ..objects import mask_objects
 
+MAX_MASKS = 7
+
 
 # Add a mask to the mask list
 class MaskListAddItem(Operator):
@@ -13,7 +15,8 @@ class MaskListAddItem(Operator):
     def execute(self, context):
         mask_len = len(context.scene.mask_list)
 
-        if mask_len == 7:
+        # Reached max number of masks
+        if mask_len == MAX_MASKS:
             return {"CANCELLED"}
 
         item = context.scene.mask_list.add()
@@ -36,7 +39,7 @@ class MaskListRemoveItem(Operator):
 
     def execute(self, context):
         mask_list = context.scene.mask_list
-        index = len(context.scene.mask_list) - 1
+        index = len(mask_list) - 1
 
         mask_list.remove(index)
 
@@ -59,8 +62,7 @@ class MaskObjectListAddItem(Operator):
     def poll(cls, context):
         obj = context.active_object
 
-        # There is no currently selected object or the currently
-        # selected object is not a mesh
+        # There exists a selected object and it is a mesh
         if obj and obj.select_get() and obj.type == "MESH":
             return True
 
@@ -87,16 +89,14 @@ class MaskObjectListAddItem(Operator):
         mask_index = context.scene.mask_list_index
         mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
 
-        # No object selected in the object dropdown
-        if mask.object_dropdown == "NONE":
-            obj = context.active_object
-
-            # There is no currently selected object or the currently
-            # selected object is not a mesh
-            if not obj or obj.type != "MESH":
-                return {"CANCELLED"}
-
+        obj = context.active_object
+        # There exists a selected object and it is a mesh
+        if obj and obj.select_get() and obj.type == "MESH":
             obj_name = obj.name
+
+        # No object selected in the object dropdown
+        elif mask.object_dropdown == "NONE":
+            return {"CANCELLED"}
 
         elif mask.object_dropdown == "BACKGROUND":
             obj_name = "Background"
