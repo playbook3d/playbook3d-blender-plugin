@@ -33,7 +33,7 @@ workflows = [
 
 
 base_models = [
-    ("SD15", "SD 1.5", "Base model by Stability AI. Checkpoint by Juggernaut"),
+    # ("SD15", "SD 1.5", "Base model by Stability AI. Checkpoint by Juggernaut"),
     ("SDXL", "SDXL", "Base model by Stability AI. Checkpoint by Juggernaut"),
     ("Flux", "Flux", "SOTA model by Black Forest Labs. Best quality"),
 ]

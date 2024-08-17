@@ -93,14 +93,31 @@ def clean_up_files():
 
 
 #
+def get_workflow_id(global_props) -> int:
+    workflow = global_props.global_workflow
+    model = global_props.global_model
+    style = global_props.global_style
+
+    if style == "PHOTOREAL":
+        if workflow == "RETEXTURE":
+            if model == "SDXL":
+                return 0
+            elif model == "FLUX":
+                return 1
+        elif workflow == "STYLETRANSFER":
+            if model == "SDXL":
+                return 2
+            elif model == "FLUX":
+                return 3
+
+
+#
 def get_global_settings() -> GlobalRenderSettings:
     global_props = bpy.context.scene.global_properties
 
-    return GlobalRenderSettings(
-        global_props.global_style,
-        global_props.global_prompt,
-        global_props.global_structure_strength,
-    )
+    workflow_id = get_workflow_id(global_props)
+
+    return GlobalRenderSettings(workflow_id, 0)
 
 
 #
@@ -111,8 +128,8 @@ def get_retexture_settings() -> RetextureRenderSettings:
 
     mask_props = [
         MaskData(
-            getattr(scene, f"mask_properties{index}").mask_prompt,
-            color_hex[f"MASK{index}"],
+            getattr(scene, f"mask_properties{index + 1}").mask_prompt,
+            color_hex[f"MASK{index + 1}"],
         )
         for index in range(7)
     ]
@@ -183,12 +200,9 @@ def set_comfy_images(comfy_deploy: ComfyDeployClient):
 async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
     # flags = bpy.context.scene.flag_properties
 
-    # global_settings = get_global_settings()
+    global_settings = get_global_settings()
     retexture_settings = get_retexture_settings()
-    # mask_settings5 = get_mask_settings(5)
-    # mask_settings6 = get_mask_settings(6)
-    # mask_settings7 = get_mask_settings(7)
-    # style_settings = get_style_transfer_settings()
+    style_settings = get_style_transfer_settings()
 
     # response = await comfy_deploy.run_workflow(
     #     global_settings,
@@ -208,7 +222,9 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
     #     flags.upscale_flag,
     # )
 
-    response = await comfy_deploy.run_retexture_workflow(retexture_settings)
+    response = await comfy_deploy.run_workflow(
+        global_settings, retexture_settings, style_settings
+    )
 
     print("Is it here?")
     print(response)
