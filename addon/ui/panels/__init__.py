@@ -29,7 +29,6 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    Scene.show_retexture_panel = BoolProperty(default=True)
     Scene.show_style_panel = BoolProperty(default=False)
     Scene.show_relight_panel = BoolProperty(default=False)
     Scene.is_relight_image = BoolProperty(default=True)
@@ -41,7 +40,6 @@ def unregister():
     for cls in classes:
         unregister_class(cls)
 
-    del Scene.show_retexture_panel
     del Scene.show_style_panel
     del Scene.show_relight_panel
     del Scene.is_relight_image
