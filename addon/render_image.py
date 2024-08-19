@@ -115,9 +115,12 @@ def get_workflow_id(global_props) -> int:
 def get_global_settings() -> GlobalRenderSettings:
     global_props = bpy.context.scene.global_properties
 
-    workflow_id = get_workflow_id(global_props)
-
-    return GlobalRenderSettings(workflow_id, 0)
+    return GlobalRenderSettings(
+        global_props.global_workflow,
+        global_props.global_model,
+        global_props.global_style,
+        0,
+    )
 
 
 #
@@ -145,25 +148,7 @@ def get_retexture_settings() -> RetextureRenderSettings:
 def get_style_transfer_settings() -> StyleTransferRenderSettings:
     style_props = bpy.context.scene.style_properties
 
-    return StyleTransferRenderSettings(style_props.style_strength)
-
-
-#
-# def get_relight_settings() -> RelightSettings:
-#     relight_props = bpy.context.scene.relight_properties
-
-#     return RelightSettings(
-#         color_to_hex(relight_props.relight_color),
-#         relight_props.relight_prompt,
-#         relight_props.relight_angle,
-#     )
-
-
-#
-# def get_upscale_settings() -> UpscaleSettings:
-#     upscale_props = bpy.context.scene.upscale_properties
-
-#     return UpscaleSettings(upscale_props.upscale_scale)
+    return StyleTransferRenderSettings("", style_props.style_strength, 0)
 
 
 #
@@ -204,30 +189,11 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
     retexture_settings = get_retexture_settings()
     style_settings = get_style_transfer_settings()
 
-    # response = await comfy_deploy.run_workflow(
-    #     global_settings,
-    #     mask_settings1,
-    #     mask_settings2,
-    #     mask_settings3,
-    #     mask_settings4,
-    #     mask_settings5,
-    #     mask_settings6,
-    #     mask_settings7,
-    #     False,
-    #     style_settings,
-    #     0,
-    #     flags.retexture_flag,
-    #     flags.style_flag,
-    #     flags.relight_flag,
-    #     flags.upscale_flag,
-    # )
-
     response = await comfy_deploy.run_workflow(
         global_settings, retexture_settings, style_settings
     )
 
-    print("Is it here?")
-    print(response)
+    print(f"Response: {response}")
 
 
 # Render the image from the active camera

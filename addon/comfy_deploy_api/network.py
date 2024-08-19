@@ -7,6 +7,9 @@ from websockets.sync.client import connect
 from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
 
+workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
+style_dict = {""}
+
 
 def machine_id_status(machine_id: str):
     client = ComfyDeploy(bearer_auth="")
@@ -15,11 +18,11 @@ def machine_id_status(machine_id: str):
 
 
 class GlobalRenderSettings:
-    def __init__(self, workflow: int, base_model: int, style: int, render_mode: int):
+    def __init__(self, workflow: str, base_model: str, style: str, render_mode: int):
         self.workflow = workflow
         self.base_model = base_model
         self.style = style
-        self.renderMode = render_mode
+        self.render_mode = render_mode
 
 
 class MaskData:
@@ -54,10 +57,7 @@ class RetextureRenderSettings:
 
 class StyleTransferRenderSettings:
     def __init__(
-        self, 
-        prompt: str,
-        structure_strength: int,
-        style_transfer_strength: int
+        self, prompt: str, structure_strength: int, style_transfer_strength: int
     ):
         self.prompt = prompt
         self.structure_strength = structure_strength
@@ -84,23 +84,23 @@ class ComfyDeployClient:
 
         self.url = os.getenv("BASE_URL")
 
-    def get_workflow_id(w: int, b: int, s: int) -> int:
+    def get_workflow_id(self, w: int, b: int, s: int) -> int:
         # Format is '{workflow}_{baseModel}_{style}'
         ids = {
             # Generative Retexture
-            '0_0_0': 0,
-            '0_0_1': 1,
-            '0_0_2': 2,
-            '0_1_0': 3,
-            '0_1_1': 4,
-            '0_1_2': 5,
+            "0_0_0": 0,
+            "0_0_1": 1,
+            "0_0_2": 2,
+            "0_1_0": 3,
+            "0_1_1": 4,
+            "0_1_2": 5,
             # Style Transfer
-            '1_0_0': 6,
-            '1_0_1': 7,
-            '1_0_2': 8,
-            '1_1_0': 9,
-            '1_1_1': 10,
-            '1_1_2': 11
+            "1_0_0": 6,
+            "1_0_1": 7,
+            "1_0_2": 8,
+            "1_1_0": 9,
+            "1_1_1": 10,
+            "1_1_2": 11,
         }
         key = f"{w}_{b}_{s}"
         if ids.get(key) is not None:
@@ -118,8 +118,11 @@ class ComfyDeployClient:
         if self.mask and self.depth and self.outline:
             # These are determined by UI selection:
             logging.info(f"Current workflow selection: {global_settings.workflow}")
+            print(f"Current workflow selection: {global_settings.workflow}")
             logging.info(f"Current base model: {global_settings.base_model}")
+            print(f"Current base model: {global_settings.base_model}")
             logging.info(f"Current style: {global_settings.style}")
+            print(f"Current style: {global_settings.style}")
 
             clamped_retexture_depth = np_clamp(
                 retexture_settings.structure_strength, 0.6, 1.0
@@ -138,50 +141,55 @@ class ComfyDeployClient:
                 style_transfer_settings.style_transfer_strength, 0.0, 1.0
             )
 
-            workflow_id = self.get_workflow_id(global_settings.workflow, global_settings.base_model, global_settings.style)
+            workflow_id = self.get_workflow_id(
+                global_settings.workflow,
+                global_settings.base_model,
+                global_settings.style,
+            )
             logging.info(f"RUNNING WORKFLOW: {workflow_id}")
+            print(f"RUNNING WORKFLOW: {workflow_id}")
 
-            match global_settings.workflow:
+            temp = 0
+            match temp:
                 # Generative Retexture
                 case 0:
                     input = {
-                    "workflow_id": workflow_id,
-                    "width": 512,
-                    "height": 512,
-                    "scene_prompt": retexture_settings.prompt,
-                    "structure_strength_depth": clamped_retexture_depth,
-                    "structure_strength_outline": clamped_retexture_outline,
-                    "mask_prompt_1": retexture_settings.mask1.mask_prompt,
-                    "mask_prompt_2": retexture_settings.mask2.mask_prompt,
-                    "mask_prompt_3": retexture_settings.mask3.mask_prompt,
-                    "mask_prompt_4": retexture_settings.mask4.mask_prompt,
-                    "mask_prompt_5": retexture_settings.mask5.mask_prompt,
-                    "mask_prompt_6": retexture_settings.mask6.mask_prompt,
-                    "mask_prompt_7": retexture_settings.mask7.mask_prompt,
-                    "mask": self.mask,
-                    "depth": self.depth,
-                    "outline": self.outline,
+                        "workflow_id": 0,
+                        "width": 512,
+                        "height": 512,
+                        "scene_prompt": retexture_settings.prompt,
+                        "structure_strength_depth": clamped_retexture_depth,
+                        "structure_strength_outline": clamped_retexture_outline,
+                        "mask_prompt_1": retexture_settings.mask1.mask_prompt,
+                        "mask_prompt_2": retexture_settings.mask2.mask_prompt,
+                        "mask_prompt_3": retexture_settings.mask3.mask_prompt,
+                        "mask_prompt_4": retexture_settings.mask4.mask_prompt,
+                        "mask_prompt_5": retexture_settings.mask5.mask_prompt,
+                        "mask_prompt_6": retexture_settings.mask6.mask_prompt,
+                        "mask_prompt_7": retexture_settings.mask7.mask_prompt,
+                        "mask": self.mask,
+                        "depth": self.depth,
+                        "outline": self.outline,
                     }
                     render_result = requests.post(
-                        self.url + "/generative-retexture", files=input
+                        self.url + "/generative-retexture", data=input
                     )
-                    if render_result.status_code != 200:
-                        return render_result.json()
-                        
+                    return render_result.json()
+
                 # Style Transfer
                 case 1:
                     input = {
-                    "workflow_id": workflow_id,
-                    "width": 512,
-                    "height": 512,
-                    "style_transfer_strength": clamped_style_transfer_strength,
-                    "structure_strength_depth": clamped_style_transfer_depth,
-                    "structure_strength_outline": clamped_style_transfer_outline,
-                    "scene_prompt": style_transfer_settings.prompt,
-                    "beauty": self.beauty,
-                    "depth": self.depth,
-                    "outline": self.outline,
-                    "style_transfer_image": self.style_transfer,
+                        "workflow_id": workflow_id,
+                        "width": 512,
+                        "height": 512,
+                        "style_transfer_strength": clamped_style_transfer_strength,
+                        "structure_strength_depth": clamped_style_transfer_depth,
+                        "structure_strength_outline": clamped_style_transfer_outline,
+                        "scene_prompt": style_transfer_settings.prompt,
+                        "beauty": self.beauty,
+                        "depth": self.depth,
+                        "outline": self.outline,
+                        "style_transfer_image": self.style_transfer,
                     }
                     render_result = requests.post(
                         self.url + "/style-transfer", files=input
@@ -189,8 +197,7 @@ class ComfyDeployClient:
                     if render_result.status_code != 200:
                         return render_result.json()
                 case _:
-                    logging.error('Workflow input not valid')
-
+                    logging.error("Workflow input not valid")
 
     def save_image(self, image: bytes, pass_type: str):
         match pass_type:
