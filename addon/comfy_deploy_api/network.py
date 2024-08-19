@@ -13,12 +13,12 @@ def machine_id_status(machine_id: str):
 
     client.machines.get_v1_machines_machine_id_(machine_id=machine_id)
 
-    #  /run-workflow
-
 
 class GlobalRenderSettings:
-    def __init__(self, workflow: int, render_mode: int):
+    def __init__(self, workflow: int, base_model: int, style: int, render_mode: int):
         self.workflow = workflow
+        self.base_model = base_model
+        self.style = style
         self.renderMode = render_mode
 
 
@@ -53,8 +53,15 @@ class RetextureRenderSettings:
 
 
 class StyleTransferRenderSettings:
-    def __init__(self, strength: int):
-        self.style_transfer_strength = strength
+    def __init__(
+        self, 
+        prompt: str,
+        structure_strength: int,
+        style_transfer_strength: int
+    ):
+        self.prompt = prompt
+        self.structure_strength = structure_strength
+        self.style_transfer_strength = style_transfer_strength
 
 
 def np_clamp(n: int, smallest: float, largest: float) -> int:
@@ -77,26 +84,30 @@ class ComfyDeployClient:
 
         self.url = os.getenv("BASE_URL")
 
-    async def run_retexture_workflow(
-        self,
-        retexture_settings: RetextureRenderSettings,
-    ) -> str:
-        print(f"Prompt: {retexture_settings.prompt}")
-        files = {
-            "prompt": retexture_settings.prompt,
-            "prompt a": retexture_settings.mask1.mask_prompt,
-            "prompt b": retexture_settings.mask2.mask_prompt,
-            "prompt c": retexture_settings.mask3.mask_prompt,
-            "prompt d": retexture_settings.mask4.mask_prompt,
-            "mask": self.mask,
-            "depth": self.depth,
-            "outline": self.outline,
+    def get_workflow_id(w: int, b: int, s: int) -> int:
+        # Format is '{workflow}_{baseModel}_{style}'
+        ids = {
+            # Generative Retexture
+            '0_0_0': 0,
+            '0_0_1': 1,
+            '0_0_2': 2,
+            '0_1_0': 3,
+            '0_1_1': 4,
+            '0_1_2': 5,
+            # Style Transfer
+            '1_0_0': 6,
+            '1_0_1': 7,
+            '1_0_2': 8,
+            '1_1_0': 9,
+            '1_1_1': 10,
+            '1_1_2': 11
         }
+        key = f"{w}_{b}_{s}"
+        if ids.get(key) is not None:
+            return ids[key]
+        return 0
 
-        render_result = requests.post(self.url + "/upload-images", files=files)
-        if render_result.status_code != 200:
-            return render_result.json()
-
+    # Noting - in web repo, retexture and style transfer settings are combined into single RenderSettings. Should match
     async def run_workflow(
         self,
         global_settings: GlobalRenderSettings,
@@ -105,7 +116,10 @@ class ComfyDeployClient:
     ) -> str:
 
         if self.mask and self.depth and self.outline:
-            logging.info(f"Starting workflow for prompt: {retexture_settings.prompt}")
+            # These are determined by UI selection:
+            logging.info(f"Current workflow selection: {global_settings.workflow}")
+            logging.info(f"Current base model: {global_settings.base_model}")
+            logging.info(f"Current style: {global_settings.style}")
 
             clamped_retexture_depth = np_clamp(
                 retexture_settings.structure_strength, 0.6, 1.0
@@ -113,69 +127,70 @@ class ComfyDeployClient:
             clamped_retexture_outline = np_clamp(
                 retexture_settings.structure_strength, 0.1, 0.3
             )
+            clamped_style_transfer_depth = np_clamp(
+                style_transfer_settings.structure_strength, 0.6, 1.0
+            )
+            clamped_style_transfer_outline = np_clamp(
+                style_transfer_settings.structure_strength, 0.1, 0.3
+            )
+
             clamped_style_transfer_strength = np_clamp(
                 style_transfer_settings.style_transfer_strength, 0.0, 1.0
             )
-            retexture_input = {
-                "width": 512,
-                "height": 512,
-                "scene_prompt": retexture_settings.prompt,
-                "structure_strength_depth": clamped_retexture_depth,
-                "structure_strength_outline": clamped_retexture_outline,
-                "mask_prompt_1": retexture_settings.mask1.mask_prompt,
-                "mask_prompt_2": retexture_settings.mask2.mask_prompt,
-                "mask_prompt_3": retexture_settings.mask3.mask_prompt,
-                "mask_prompt_4": retexture_settings.mask4.mask_prompt,
-                "mask_prompt_5": retexture_settings.mask5.mask_prompt,
-                "mask_prompt_6": retexture_settings.mask6.mask_prompt,
-                "mask_prompt_7": retexture_settings.mask7.mask_prompt,
-                "mask": self.mask,
-                "depth": self.depth,
-                "outline": self.outline,
-            }
 
-            style_transfer_input = {
-                "strength": clamped_style_transfer_strength,
-                "width": 512,
-                "height": 512,
-                "beauty": self.beauty,
-                "depth": self.depth,
-                "outline": self.outline,
-                "style_transfer_image": self.style_transfer,
-            }
+            workflow_id = self.get_workflow_id(global_settings.workflow, global_settings.base_model, global_settings.style)
+            logging.info(f"RUNNING WORKFLOW: {workflow_id}")
 
             match global_settings.workflow:
+                # Generative Retexture
                 case 0:
-                    #  SD Retexture
+                    input = {
+                    "workflow_id": workflow_id,
+                    "width": 512,
+                    "height": 512,
+                    "scene_prompt": retexture_settings.prompt,
+                    "structure_strength_depth": clamped_retexture_depth,
+                    "structure_strength_outline": clamped_retexture_outline,
+                    "mask_prompt_1": retexture_settings.mask1.mask_prompt,
+                    "mask_prompt_2": retexture_settings.mask2.mask_prompt,
+                    "mask_prompt_3": retexture_settings.mask3.mask_prompt,
+                    "mask_prompt_4": retexture_settings.mask4.mask_prompt,
+                    "mask_prompt_5": retexture_settings.mask5.mask_prompt,
+                    "mask_prompt_6": retexture_settings.mask6.mask_prompt,
+                    "mask_prompt_7": retexture_settings.mask7.mask_prompt,
+                    "mask": self.mask,
+                    "depth": self.depth,
+                    "outline": self.outline,
+                    }
                     render_result = requests.post(
-                        self.url + "/retexture", files=retexture_input
+                        self.url + "/generative-retexture", files=input
                     )
                     if render_result.status_code != 200:
                         return render_result.json()
-
+                        
+                # Style Transfer
                 case 1:
-                    #  FLUX Retexture
+                    input = {
+                    "workflow_id": workflow_id,
+                    "width": 512,
+                    "height": 512,
+                    "style_transfer_strength": clamped_style_transfer_strength,
+                    "structure_strength_depth": clamped_style_transfer_depth,
+                    "structure_strength_outline": clamped_style_transfer_outline,
+                    "scene_prompt": style_transfer_settings.prompt,
+                    "beauty": self.beauty,
+                    "depth": self.depth,
+                    "outline": self.outline,
+                    "style_transfer_image": self.style_transfer,
+                    }
                     render_result = requests.post(
-                        self.url + "/flux-retexture", files=retexture_input
+                        self.url + "/style-transfer", files=input
                     )
                     if render_result.status_code != 200:
                         return render_result.json()
+                case _:
+                    logging.error('Workflow input not valid')
 
-                case 2:
-                    #  SD Style Transfer
-                    render_result = requests.post(
-                        self.url + "/style-transfer", files=style_transfer_input
-                    )
-                    if render_result.status_code != 200:
-                        return render_result.json()
-
-                case 3:
-                    #  FLUX Style Transfer
-                    render_result = requests.post(
-                        self.url + "/flux-style-transfer", files=style_transfer_input
-                    )
-                    if render_result.status_code != 200:
-                        return render_result.json()
 
     def save_image(self, image: bytes, pass_type: str):
         match pass_type:
