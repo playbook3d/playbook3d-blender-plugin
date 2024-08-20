@@ -26,7 +26,7 @@ workflows = [
     ),
     (
         "STYLETRANSFER",
-        "Style Tranfer",
+        "Style Transfer",
         "Transform your scene to match the style of an image reference via IPAdapter",
     ),
 ]

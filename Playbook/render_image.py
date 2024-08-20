@@ -196,13 +196,17 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
 def render_image():
     scene = bpy.context.scene
 
-    asyncio.run(PlaybookWebsocket().websocket_message())
+    # asyncio.run(PlaybookWebsocket().websocket_message())
 
     if error_exists_in_flow(scene):
         return
 
     scene.is_rendering = True
 
+    bpy.app.timers.register(continue_render, first_interval=0.1)
+
+
+def continue_render():
     set_visible_objects(bpy.context)
     clear_render_folder()
 
@@ -221,11 +225,11 @@ def render_image():
 
     clean_up_files()
 
-    comfy = ComfyDeployClient()
-    set_comfy_images(comfy)
-    asyncio.run(run_comfy_workflow(comfy))
+    # comfy = ComfyDeployClient()
+    # set_comfy_images(comfy)
+    # asyncio.run(run_comfy_workflow(comfy))
 
-    scene.is_rendering = False
+    bpy.context.scene.is_rendering = False
 
 
 def render_all_passes():

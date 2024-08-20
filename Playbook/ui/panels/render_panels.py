@@ -21,14 +21,19 @@ def draw_render_panel(context, layout):
     column2 = split.column(align=True)
     column2.alignment = "RIGHT"
     column2.label(text="512 x 512")
-    column2.label(text="5s")
-    column2.label(text="2 credits")
+    column2.label(text="5 seconds")
+    column2.label(text="5 credits")
 
     row1 = box.row()
     row1.scale_y = 1.75
     row1.separator(factor=BOX_PADDING)
     row1.operator("op.queue")
     row1.separator(factor=BOX_PADDING)
+
+    if context.scene.is_rendering:
+        row_label = box.row()
+        row_label.alignment = "CENTER"
+        row_label.label(text="Rendering...")
 
     row2 = box.row()
     row2.scale_y = 1.75
