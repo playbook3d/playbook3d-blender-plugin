@@ -8,7 +8,8 @@ from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
 
 workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
-style_dict = {""}
+base_model_dict = {"SDXL": 0, "FLUX": 1}
+style_dict = {"PHOTOREAL": 0, "3DCARTOON": 1, "ANIME": 2}
 
 
 def machine_id_status(machine_id: str):
@@ -84,7 +85,7 @@ class ComfyDeployClient:
 
         self.url = os.getenv("BASE_URL")
 
-    def get_workflow_id(self, w: int, b: int, s: int) -> int:
+    def get_workflow_id(self, workflow: int, base_model: int, style: int) -> int:
         # Format is '{workflow}_{baseModel}_{style}'
         ids = {
             # Generative Retexture
@@ -102,7 +103,7 @@ class ComfyDeployClient:
             "1_1_1": 10,
             "1_1_2": 11,
         }
-        key = f"{w}_{b}_{s}"
+        key = f"{workflow}_{base_model}_{style}"
         if ids.get(key) is not None:
             return ids[key]
         return 0
@@ -142,9 +143,9 @@ class ComfyDeployClient:
             )
 
             workflow_id = self.get_workflow_id(
-                global_settings.workflow,
-                global_settings.base_model,
-                global_settings.style,
+                workflow_dict[global_settings.workflow],
+                base_model_dict[global_settings.base_model],
+                style_dict[global_settings.style],
             )
             logging.info(f"RUNNING WORKFLOW: {workflow_id}")
             print(f"RUNNING WORKFLOW: {workflow_id}")

@@ -8,7 +8,12 @@ from .depth_render import render_depth_pass
 from .outline_render import render_outline_pass
 from .workspace import open_render_window
 from .properties import set_visible_objects
-from .visible_objects import color_hex
+from .visible_objects import (
+    save_object_materials,
+    set_object_materials_opaque,
+    reset_object_materials,
+    color_hex,
+)
 from .comfy_deploy_api.network import (
     GlobalRenderSettings,
     RetextureRenderSettings,
@@ -71,8 +76,8 @@ def clean_up_files():
     if os.path.exists(folder_path):
         render_mist = os.path.join(folder_path, "render_mist.png")
         render_edge = os.path.join(folder_path, "render_edge.png")
-        render_depth = os.path.join(folder_path, "depth0001.png")
-        render_outline = os.path.join(folder_path, "outline0001.png")
+        render_depth = os.path.join(folder_path, "depth0000.png")
+        render_outline = os.path.join(folder_path, "outline0000.png")
         render_depth_new = os.path.join(folder_path, "depth.png")
         render_outline_new = os.path.join(folder_path, "outline.png")
 
@@ -212,17 +217,16 @@ def render_image():
     set_visible_objects(bpy.context)
     clear_render_folder()
 
-    # Render unmodified image
-    render_beauty_pass()
+    save_object_materials()
 
-    # Render mask image
-    render_mask_pass()
+    # Set materials opaque for beauty and depth passes
+    set_object_materials_opaque()
 
-    # Render depth image
-    render_depth_pass()
+    # Render all required passes
+    render_passes()
 
-    # Render outline image
-    render_outline_pass()
+    #
+    reset_object_materials()
 
     # Open the render workspace
     open_render_window()
@@ -234,3 +238,14 @@ def render_image():
     asyncio.run(run_comfy_workflow(comfy))
 
     scene.is_rendering = False
+
+
+def render_passes():
+    # Render unmodified image
+    render_beauty_pass()
+    # Render depth image
+    render_depth_pass()
+    # Render mask image
+    render_mask_pass()
+    # Render outline image
+    render_outline_pass()

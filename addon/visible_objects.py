@@ -44,8 +44,19 @@ def save_object_materials():
     )
 
 
+#
+def set_object_materials_opaque():
+    for obj in visible_objects:
+        copied_materials = [slot.material.copy() for slot in obj.material_slots]
+        obj.data.materials.clear()
+
+        for mat in copied_materials:
+            mat.blend_method = "OPAQUE"
+            obj.data.materials.append(mat)
+
+
 # Set the current object materials to a given preset
-def set_object_materials():
+def set_object_materials_for_mask_pass():
     background_mask = None
     visible_objects_dict = {obj.name: obj for obj in visible_objects}
 

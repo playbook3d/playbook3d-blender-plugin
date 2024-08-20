@@ -1,10 +1,6 @@
 import bpy
 import os
-from .visible_objects import (
-    save_object_materials,
-    set_object_materials,
-    reset_object_materials,
-)
+from .visible_objects import set_object_materials_for_mask_pass
 
 original_settings = {}
 
@@ -82,10 +78,8 @@ def render_mask_to_file():
 
 #
 def render_mask_pass():
-    save_object_materials()
     save_mask_settings()
-    set_object_materials()
+    set_object_materials_for_mask_pass()
     set_mask_settings()
     render_mask_to_file()
-    reset_object_materials()
     reset_mask_settings()
