@@ -5,6 +5,7 @@ import requests
 import datetime
 import numpy as np
 
+from browser_login.oauth_client import RbxOAuth2Client
 
 class GeneralSettings:
     def __init__(self, model: int, bias: int, prompt: str, strength: int):

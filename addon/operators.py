@@ -6,7 +6,7 @@ from bpy.props import StringProperty
 from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
 from bpy.app.handlers import persistent
-
+from browser_login.oauth_client import RbxOAuth2Client
 
 #
 class LoginOperator(Operator):
@@ -72,6 +72,7 @@ class PlaybookWebsiteOperator(Operator):
 
     def execute(self, context):
         webbrowser.open(self.url)
+        # client = RbxOAuth2Client()
         return {"FINISHED"}
 
 
