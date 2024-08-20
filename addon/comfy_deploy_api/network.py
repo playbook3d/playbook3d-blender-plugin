@@ -6,6 +6,7 @@ import numpy as np
 from websockets.sync.client import connect
 from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
+from ..properties import prompt_placeholders
 
 workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
 base_model_dict = {"SDXL": 0, "FLUX": 1}
@@ -86,7 +87,7 @@ class ComfyDeployClient:
         self.url = os.getenv("BASE_URL")
 
     def get_workflow_id(self, workflow: int, base_model: int, style: int) -> int:
-        # Format is '{workflow}_{baseModel}_{style}'
+        # Format is '{workflow}_{base_model}_{style}'
         ids = {
             # Generative Retexture
             "0_0_0": 0,
@@ -150,30 +151,67 @@ class ComfyDeployClient:
             logging.info(f"RUNNING WORKFLOW: {workflow_id}")
             print(f"RUNNING WORKFLOW: {workflow_id}")
 
-            temp = 0
-            match temp:
+            mask_prompt_1 = retexture_settings.mask1.mask_prompt
+            mask_prompt_2 = retexture_settings.mask2.mask_prompt
+            mask_prompt_3 = retexture_settings.mask3.mask_prompt
+            mask_prompt_4 = retexture_settings.mask4.mask_prompt
+            mask_prompt_5 = retexture_settings.mask5.mask_prompt
+            mask_prompt_6 = retexture_settings.mask6.mask_prompt
+            mask_prompt_7 = retexture_settings.mask7.mask_prompt
+
+            match workflow_dict[global_settings.workflow]:
                 # Generative Retexture
                 case 0:
-                    input = {
-                        "workflow_id": 0,
+                    data = {
+                        "workflow_id": workflow_id,
                         "width": 512,
                         "height": 512,
                         "scene_prompt": retexture_settings.prompt,
                         "structure_strength_depth": clamped_retexture_depth,
                         "structure_strength_outline": clamped_retexture_outline,
-                        "mask_prompt_1": retexture_settings.mask1.mask_prompt,
-                        "mask_prompt_2": retexture_settings.mask2.mask_prompt,
-                        "mask_prompt_3": retexture_settings.mask3.mask_prompt,
-                        "mask_prompt_4": retexture_settings.mask4.mask_prompt,
-                        "mask_prompt_5": retexture_settings.mask5.mask_prompt,
-                        "mask_prompt_6": retexture_settings.mask6.mask_prompt,
-                        "mask_prompt_7": retexture_settings.mask7.mask_prompt,
+                        "mask_prompt_1": (
+                            mask_prompt_1
+                            if mask_prompt_1 != prompt_placeholders["Mask"]
+                            else ""
+                        ),
+                        "mask_prompt_2": (
+                            mask_prompt_2
+                            if mask_prompt_2 != prompt_placeholders["Mask"]
+                            else ""
+                        ),
+                        "mask_prompt_3": (
+                            mask_prompt_3
+                            if mask_prompt_3 != prompt_placeholders["Mask"]
+                            else ""
+                        ),
+                        "mask_prompt_4": (
+                            mask_prompt_4
+                            if mask_prompt_4 != prompt_placeholders["Mask"]
+                            else ""
+                        ),
+                        "mask_prompt_5": (
+                            mask_prompt_5
+                            if mask_prompt_5 != prompt_placeholders["Mask"]
+                            else ""
+                        ),
+                        "mask_prompt_6": (
+                            mask_prompt_6
+                            if mask_prompt_6 != prompt_placeholders["Mask"]
+                            else ""
+                        ),
+                        "mask_prompt_7": (
+                            mask_prompt_7
+                            if mask_prompt_7 != prompt_placeholders["Mask"]
+                            else ""
+                        ),
+                    }
+                    files = {
                         "mask": self.mask,
                         "depth": self.depth,
                         "outline": self.outline,
                     }
                     render_result = requests.post(
-                        self.url + "/generative-retexture", data=input
+                        self.url + "/generative-retexture", data=data, files=files
                     )
                     return render_result.json()
 
@@ -193,10 +231,11 @@ class ComfyDeployClient:
                         "style_transfer_image": self.style_transfer,
                     }
                     render_result = requests.post(
-                        self.url + "/style-transfer", files=input
+                        self.url + "/style-transfer", data=input
                     )
-                    if render_result.status_code != 200:
-                        return render_result.json()
+                    return render_result.json()
+
+                # Workflow does not exist
                 case _:
                     logging.error("Workflow input not valid")
 

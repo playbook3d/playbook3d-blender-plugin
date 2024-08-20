@@ -74,10 +74,15 @@ def clean_up_files():
     folder_path = os.path.join(dir, "renders")
 
     if os.path.exists(folder_path):
+
         render_mist = os.path.join(folder_path, "render_mist.png")
         render_edge = os.path.join(folder_path, "render_edge.png")
         render_depth = os.path.join(folder_path, "depth0000.png")
+        render_depth1 = os.path.join(folder_path, "depth0001.png")
+
         render_outline = os.path.join(folder_path, "outline0000.png")
+        render_outline1 = os.path.join(folder_path, "outline0001.png")
+
         render_depth_new = os.path.join(folder_path, "depth.png")
         render_outline_new = os.path.join(folder_path, "outline.png")
 
@@ -86,34 +91,22 @@ def clean_up_files():
         if os.path.exists(render_edge):
             os.remove(render_edge)
 
+        # Depth alternates between 0000 and 0001 and I don't know why
         if os.path.exists(render_depth):
             os.rename(render_depth, render_depth_new)
+        elif os.path.exists(render_depth1):
+            os.rename(render_depth1, render_depth_new)
+
+        # Outline alternates between 0000 and 0001 and I don't know why
         if os.path.exists(render_outline):
             os.rename(render_outline, render_outline_new)
+        elif os.path.exists(render_outline1):
+            os.rename(render_outline1, render_outline_new)
 
 
 # -------------------------------------------
 # RENDER TO API
 # -------------------------------------------
-
-
-#
-def get_workflow_id(global_props) -> int:
-    workflow = global_props.global_workflow
-    model = global_props.global_model
-    style = global_props.global_style
-
-    if style == "PHOTOREAL":
-        if workflow == "RETEXTURE":
-            if model == "SDXL":
-                return 0
-            elif model == "FLUX":
-                return 1
-        elif workflow == "STYLETRANSFER":
-            if model == "SDXL":
-                return 2
-            elif model == "FLUX":
-                return 3
 
 
 #
@@ -170,7 +163,7 @@ def set_comfy_images(comfy_deploy: ComfyDeployClient):
     print(f"Render path: {depth_path}")
     print(f"Render path: {outline_path}")
 
-    # Open the PNG file in binary mode
+    # Open the PNG files in binary mode
     with open(beauty_path, "rb") as beauty_file:
         beauty_blob = base64.b64encode(beauty_file.read())
     with open(mask_path, "rb") as mask_file:
@@ -188,8 +181,6 @@ def set_comfy_images(comfy_deploy: ComfyDeployClient):
 
 #
 async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
-    # flags = bpy.context.scene.flag_properties
-
     global_settings = get_global_settings()
     retexture_settings = get_retexture_settings()
     style_settings = get_style_transfer_settings()
@@ -204,8 +195,6 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
 # Render the image from the active camera
 def render_image():
     scene = bpy.context.scene
-
-    print("----------------------------------------------")
 
     asyncio.run(PlaybookWebsocket().websocket_message())
 
@@ -223,9 +212,8 @@ def render_image():
     set_object_materials_opaque()
 
     # Render all required passes
-    render_passes()
+    render_all_passes()
 
-    #
     reset_object_materials()
 
     # Open the render workspace
@@ -240,7 +228,7 @@ def render_image():
     scene.is_rendering = False
 
 
-def render_passes():
+def render_all_passes():
     # Render unmodified image
     render_beauty_pass()
     # Render depth image

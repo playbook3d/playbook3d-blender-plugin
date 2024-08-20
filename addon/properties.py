@@ -56,6 +56,11 @@ prompt_styles = [
     ("ANIME", "Anime", "2D anime style with drawn outlines", "anime_style_icon"),
 ]
 
+prompt_placeholders = {
+    "Retexture": "Describe the scene...",
+    "Mask": "Describe masked objects...",
+}
+
 angle_options = [
     ("TOPLEFT", "Top left", ""),
     ("TOPRIGHT", "Top right", ""),
@@ -106,15 +111,15 @@ class GlobalProperties(PropertyGroup):
 #
 class RetextureProperties(PropertyGroup):
     def on_update_prompt(self, context):
-        if not self.global_prompt:
-            self.global_prompt = "Describe the scene..."
+        if not self.retexture_prompt:
+            self.retexture_prompt = prompt_placeholders["Retexture"]
             context.scene.flag_properties.retexture_flag = False
         else:
             context.scene.flag_properties.retexture_flag = True
 
     retexture_prompt: StringProperty(
         name="",
-        default="Describe the scene...",
+        default=prompt_placeholders["Retexture"],
         update=lambda self, context: self.on_update_prompt(context),
     )
     retexture_structure_strength: FloatProperty(name="", default=50, min=0, max=100)
@@ -153,7 +158,7 @@ class MaskProperties(PropertyGroup):
 
     mask_objects: CollectionProperty(type=MaskObjectListItem, name="")
     object_list_index: IntProperty(name="", default=-1)
-    mask_prompt: StringProperty(name="", default="Describe masked objects...")
+    mask_prompt: StringProperty(name="", default=prompt_placeholders["Mask"])
     mask_isolate: FloatProperty(name="", default=50, min=0, max=100)
     mask_style: EnumProperty(
         name="",
@@ -230,13 +235,11 @@ class UpscaleProperties(PropertyGroup):
         context.scene.flag_properties.upscale_flag = self.upscale_value != "1"
 
     def get_prompt_styles(self, context):
-        enum_items = []
-        for i, style in enumerate(prompt_styles):
-            id, name, desc, icon = style
-            if icon:
-                enum_items.append((id, name, desc, get_style_icon(icon), i))
-            else:
-                enum_items.append((id, name, desc))
+        # Enum items should have an icon if provided
+        enum_items = [
+            (id, name, desc, get_style_icon(icon), i) if icon else (id, name, desc)
+            for i, (id, name, desc, icon) in enumerate(prompt_styles)
+        ]
 
         return enum_items
 
