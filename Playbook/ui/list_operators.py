@@ -1,6 +1,7 @@
 import bpy
 from bpy.utils import register_class, unregister_class
 from bpy.types import Operator
+from ..visible_objects import visible_objects
 from ..objects import mask_objects
 
 MAX_MASKS = 7
@@ -11,6 +12,10 @@ class MaskListAddItem(Operator):
     bl_idname = "list.add_mask_item"
     bl_label = ""
     bl_description = "Add mask"
+
+    @classmethod
+    def poll(cls, context):
+        return len(context.scene.mask_list) < 7
 
     def execute(self, context):
         mask_len = len(context.scene.mask_list)
@@ -35,13 +40,15 @@ class MaskListRemoveItem(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.scene.mask_list
+        if context.scene.mask_list_index == -1:
+            return False
+        else:
+            return context.scene.mask_list
 
     def execute(self, context):
         mask_list = context.scene.mask_list
-        index = len(mask_list) - 1
 
-        mask_list.remove(index)
+        mask_list.remove(context.scene.mask_list_index)
 
         if len(mask_list) > 0:
             context.scene.mask_list_index = 0
@@ -62,36 +69,31 @@ class MaskObjectListAddItem(Operator):
     def poll(cls, context):
         obj = context.active_object
 
-        # There exists a selected object and it is a mesh
-        if obj and obj.select_get() and obj.type == "MESH":
-            return True
+        if obj:
+            # Object is already part of a mask
+            if any(obj.name in obj_list for obj_list in mask_objects.values()):
+                return False
+
+            if obj.select_get() and (obj.type == "MESH" or obj.type == "FONT"):
+                return True
 
         mask_index = context.scene.mask_list_index
         mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
 
         # No object selected in the object dropdown
-        if mask.object_dropdown == "NONE":
-            return False
-
-        elif mask.object_dropdown == "BACKGROUND":
-            obj_name = "Background"
-
-        else:
-            obj_name = mask.object_dropdown
-
-        # The currently selected item is already part of the list
-        if any(item.name == obj_name for item in mask.mask_objects):
-            return False
-
-        return True
+        return mask.object_dropdown != "NONE"
 
     def execute(self, context):
         mask_index = context.scene.mask_list_index
         mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
 
         obj = context.active_object
-        # There exists a selected object and it is a mesh
-        if obj and obj.select_get() and obj.type == "MESH":
+        # There exists a selected object
+        if (
+            obj
+            and obj.select_get()
+            and (obj.type == "MESH" or obj.type == "FONT" or obj.type == "GPENCIL")
+        ):
             obj_name = obj.name
 
         # No object selected in the object dropdown
@@ -100,6 +102,10 @@ class MaskObjectListAddItem(Operator):
 
         elif mask.object_dropdown == "BACKGROUND":
             obj_name = "Background"
+
+        elif mask.object_dropdown == "ADDALL":
+            self.add_all_objects(mask, mask_index)
+            return {"FINISHED"}
 
         else:
             obj_name = mask.object_dropdown
@@ -113,7 +119,17 @@ class MaskObjectListAddItem(Operator):
 
         mask_objects[f"MASK{mask_index + 1}"].append(item.name)
 
+        mask.object_dropdown = "NONE"
+
         return {"FINISHED"}
+
+    # All all available objects in the scene
+    def add_all_objects(self, mask, mask_index):
+        for obj in visible_objects:
+            if not any(item.name == obj.name for item in mask.mask_objects):
+                added = mask.mask_objects.add()
+                added.name = obj.name
+                mask_objects[f"MASK{mask_index + 1}"].append(added.name)
 
 
 # Remove the currently selected index in the list from the
@@ -169,6 +185,7 @@ class MaskObjectListClearItems(Operator):
         mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
 
         mask.mask_objects.clear()
+        mask_objects[f"MASK{mask_index + 1}"].clear()
 
         mask.object_list_index = -1
 

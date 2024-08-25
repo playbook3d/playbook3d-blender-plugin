@@ -12,7 +12,8 @@ from bpy.props import (
 )
 from bpy.types import Scene, PropertyGroup
 from bpy.utils import register_class, unregister_class
-from .objects import visible_objects
+from .visible_objects import set_visible_objects
+from .objects import visible_objects, mask_objects
 from .ui.lists import MaskObjectListItem
 from .ui.icons import get_style_icon
 
@@ -34,9 +35,15 @@ workflows = [
 
 base_models = [
     # ("SD15", "SD 1.5", "Base model by Stability AI. Checkpoint by Juggernaut"),
-    ("SDXL", "SDXL", "Base model by Stability AI. Checkpoint by Juggernaut"),
-    ("Flux", "Flux", "SOTA model by Black Forest Labs. Best quality"),
+    (
+        "STABLE",
+        "Stable Diffusion",
+        "Base model by Stability AI. Checkpoint by Juggernaut",
+    ),
+    ("FLUX", "Flux", "SOTA model by Black Forest Labs. Best quality"),
 ]
+
+styles_in_model = {"STABLE": ["PHOTOREAL", "3DCARTOON", "ANIME"], "FLUX": ["PHOTOREAL"]}
 
 
 # Available global model options
@@ -72,20 +79,15 @@ angle_options = [
 upscale_options = [("1", "1x", ""), ("2", "2x", ""), ("4", "4x", "")]
 
 
-# Get all visible mesh objects in the scene
-def set_visible_objects(context):
-    visible_objects.clear()
-    for obj in context.scene.objects:
-        if obj.type == "MESH" and obj.visible_get():
-            visible_objects.append(obj)
-
-
 #
 class GlobalProperties(PropertyGroup):
     def get_prompt_styles(self, context):
         enum_items = []
-        for i, style in enumerate(prompt_styles):
-            id, name, desc, icon = style
+        model = self.global_model
+        for i, (id, name, desc, icon) in enumerate(prompt_styles):
+            if id not in styles_in_model[model]:
+                continue
+
             if icon:
                 enum_items.append((id, name, desc, get_style_icon(icon), i))
             else:
@@ -94,7 +96,7 @@ class GlobalProperties(PropertyGroup):
         return enum_items
 
     def on_update_workflow(self, context):
-        context.scene.show_retexture_panel = self.retexture_workflow == "RETEXTURE"
+        context.scene.show_retexture_panel = self.global_workflow == "RETEXTURE"
 
     global_workflow: EnumProperty(
         name="",
@@ -127,21 +129,35 @@ class RetextureProperties(PropertyGroup):
 
 #
 class MaskProperties(PropertyGroup):
-    # Including a "None" option, return a list of the visible objects in the scene
-    def update_enum_items(self, context):
+    #
+    def update_mask_name(self, context):
+        masks = context.scene.mask_list
+        mask_index = context.scene.mask_list_index
+
+        masks[mask_index].name = self.mask_name
+
+    # Return a list of the available objects in the scene
+    def update_object_dropdown(self, context):
         set_visible_objects(context)
         items = [(obj.name, obj.name, "") for obj in visible_objects]
+
+        # None option
         items.insert(0, ("NONE", "Select an object from the scene", ""))
 
-        # Background is not already part of the object list
-        if not any(col_item.name == "BACKGROUND" for col_item in self.mask_objects):
-            items.insert(1, ("BACKGROUND", "Background", ""))
+        # Objects currently in masks
+        object_names = [tup for obj_list in mask_objects.values() for tup in obj_list]
 
-        items = [
-            item
-            for item in items
-            if not any(col_item.name == item[0] for col_item in self.mask_objects)
-        ]
+        items = [item for item in items if item[0] not in object_names]
+
+        # More than one option available
+        if len(items) > 1:
+            # Add all option
+            items.insert(1, ("ADDALL", "Add All", ""))
+
+        # Background not part of any mask
+        if "Background" not in object_names:
+            # Background option
+            items.insert(2, ("BACKGROUND", "Background", ""))
 
         return items
 
@@ -156,6 +172,9 @@ class MaskProperties(PropertyGroup):
 
         return enum_items
 
+    mask_name: StringProperty(
+        name="", update=lambda self, context: self.update_mask_name(context)
+    )
     mask_objects: CollectionProperty(type=MaskObjectListItem, name="")
     object_list_index: IntProperty(name="", default=-1)
     mask_prompt: StringProperty(name="", default=prompt_placeholders["Mask"])
@@ -166,7 +185,7 @@ class MaskProperties(PropertyGroup):
     )
     object_dropdown: EnumProperty(
         name="",
-        items=update_enum_items,
+        items=update_object_dropdown,
     )
 
 

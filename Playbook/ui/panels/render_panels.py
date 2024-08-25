@@ -20,9 +20,9 @@ def draw_render_panel(context, layout):
 
     column2 = split.column(align=True)
     column2.alignment = "RIGHT"
-    column2.label(text="512 x 512")
-    column2.label(text="5 seconds")
-    column2.label(text="5 credits")
+    column2.label(text="960 x 960")
+    column2.label(text="30s -50s")
+    column2.label(text="10 credits")
 
     row1 = box.row()
     row1.scale_y = 1.75

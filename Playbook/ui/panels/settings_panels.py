@@ -319,6 +319,8 @@ def draw_advanced_settings_panel(context, layout):
 
 #
 def draw_mask_layout(scene, box):
+    property = getattr(scene, f"mask_properties{scene.mask_list_index + 1}")
+
     # Masks list
     create_label_row(box, "Masks")
 
@@ -326,7 +328,7 @@ def draw_mask_layout(scene, box):
     list_row.separator(factor=BOX_PADDING)
     list_row.template_list(
         "PB_UL_CustomList",
-        "",
+        "Mask List",
         scene,
         "mask_list",
         scene,
@@ -334,6 +336,12 @@ def draw_mask_layout(scene, box):
         sort_lock=True,
     )
     list_row.separator(factor=BOX_PADDING)
+
+    rename_row = box.row()
+    rename_row.separator(factor=BOX_PADDING)
+    rename_row.label(text="Rename Mask")
+    rename_row.prop(property, "mask_name")
+    rename_row.separator(factor=BOX_PADDING)
 
     list_row = box.row()
     list_row.scale_y = 1.25
@@ -348,13 +356,11 @@ def draw_mask_layout(scene, box):
 
         create_label_row(box, "Objects in Mask")
 
-        property = getattr(scene, f"mask_properties{scene.mask_list_index + 1}")
-
         list_row = box.row()
         list_row.separator(factor=BOX_PADDING)
         list_row.template_list(
             "PB_UL_CustomList",
-            "",
+            "Object List",
             property,
             "mask_objects",
             property,

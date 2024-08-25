@@ -190,15 +190,26 @@ def check_for_deleted_objects_handler(scene):
         previous_objects = set(scene.objects.keys())
         return
 
+    # Compare current objects to previous objects. If current objects has objects
+    # missing from previous objects, they were deleted
     current_objects = set(scene.objects.keys())
     deleted_objects = previous_objects - current_objects
 
+    # An object(s) was deleted
     if deleted_objects:
         for del_obj in deleted_objects:
             for key, value in mask_objects.items():
                 # Object is part of the mask. Delete from mask
                 if del_obj in value:
                     remove_object_from_list(scene, key, del_obj)
+
+        # Update mask dropdown
+        obj = bpy.context.active_object
+        # There is no selected object. Reset dropdown to None
+        if not obj or not obj.select_get():
+            mask_index = scene.mask_list_index
+            mask = getattr(scene, f"mask_properties{mask_index + 1}")
+            mask.object_dropdown = "NONE"
 
     previous_objects = current_objects
 

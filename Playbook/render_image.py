@@ -7,8 +7,8 @@ from .mask_render import render_mask_pass
 from .depth_render import render_depth_pass
 from .outline_render import render_outline_pass
 from .workspace import open_render_window
-from .properties import set_visible_objects
 from .visible_objects import (
+    set_visible_objects,
     save_object_materials,
     set_object_materials_opaque,
     reset_object_materials,

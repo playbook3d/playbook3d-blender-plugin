@@ -26,6 +26,16 @@ color_hex: dict[str, str] = {
 }
 
 
+# Get all visible mesh objects in the scene
+def set_visible_objects(context):
+    visible_objects.clear()
+    for obj in context.scene.objects:
+        if obj.visible_get() and (
+            obj.type == "MESH" or obj.type == "FONT" or obj.type == "GPENCIL"
+        ):
+            visible_objects.append(obj)
+
+
 # Set the given materials to the object
 def set_materials(obj: bpy.types.Object, materials: list[bpy.types.Material]):
     obj.data.materials.clear()

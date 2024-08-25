@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from ..properties import prompt_placeholders
 
 workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
-base_model_dict = {"SDXL": 0, "FLUX": 1}
+base_model_dict = {"STABLE": 0, "FLUX": 1}
 style_dict = {"PHOTOREAL": 0, "3DCARTOON": 1, "ANIME": 2}
 
 

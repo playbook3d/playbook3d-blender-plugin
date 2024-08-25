@@ -6,7 +6,7 @@ bl_info = {
     "version": (1, 0),
     "blender": (4, 0, 0),
     "category": "Render",
-    "doc_url": "https://www.playbookengine.com",
+    "doc_url": "https://www.playbook3d.com",
 }
 
 import sys
