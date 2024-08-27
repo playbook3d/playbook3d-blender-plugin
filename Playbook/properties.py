@@ -1,5 +1,3 @@
-# pylint: disable=fixme, import-error
-import bpy
 from bpy.props import (
     PointerProperty,
     IntProperty,
@@ -10,7 +8,7 @@ from bpy.props import (
     FloatVectorProperty,
     BoolProperty,
 )
-from bpy.types import Scene, PropertyGroup
+from bpy.types import Scene, PropertyGroup, Image
 from bpy.utils import register_class, unregister_class
 from .visible_objects import set_visible_objects
 from .objects import visible_objects, mask_objects
@@ -192,12 +190,12 @@ class MaskProperties(PropertyGroup):
 # Properties under the 'Style Transfer' panel
 class StyleProperties(PropertyGroup):
     def on_update_image(self, context):
-        context.scene.flag_properties.style_flag = self.style_image
+        context.scene.flag_properties.style_flag = self.style_image != None
+        print(self.style_image)
 
-    style_image: StringProperty(
+    style_image: PointerProperty(
         name="",
-        subtype="FILE_PATH",
-        maxlen=1024,
+        type=Image,
         update=lambda self, context: self.on_update_image(context),
     )
     style_strength: FloatProperty(name="", default=50, min=0, max=100)

@@ -1,6 +1,6 @@
 import bpy
 import webbrowser
-from .objects import visible_objects, mask_objects
+from .objects import mask_objects
 from .render_image import render_image
 from .properties import prompt_placeholders
 from bpy.props import StringProperty
@@ -145,17 +145,6 @@ class PlaybookTwitterOperator(Operator):
 
 
 #
-class ClearStyleImageOperator(Operator):
-    bl_idname = "op.clear_style_image"
-    bl_label = ""
-    bl_description = "Choose an image from local files"
-
-    def execute(self, context):
-        bpy.context.scene.style_properties.style_image = ""
-        return {"FINISHED"}
-
-
-#
 class ClearRelightImageOperator(Operator):
     bl_idname = "op.clear_relight_image"
     bl_label = ""
@@ -176,7 +165,6 @@ classes = [
     PlaybookWebsiteOperator,
     PlaybookDiscordOperator,
     PlaybookTwitterOperator,
-    ClearStyleImageOperator,
     ClearRelightImageOperator,
     ResetAddonOperator,
 ]
@@ -207,9 +195,9 @@ def update_object_dropdown_handler(scene):
     if scene.mask_list_index == -1:
         return
 
-    selected_obj = bpy.context.view_layer.objects.active
+    selected_objects = [obj.name for obj in bpy.context.selected_objects]
 
-    if selected_obj and selected_obj.select_get():
+    if selected_objects:
         scene.show_object_dropdown = False
     else:
         scene.show_object_dropdown = True

@@ -67,15 +67,23 @@ class MaskObjectListAddItem(Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = context.active_object
+        selected_objects = [obj for obj in context.selected_objects]
 
-        if obj:
-            # Object is already part of a mask
-            if any(obj.name in obj_list for obj_list in mask_objects.values()):
-                return False
+        if selected_objects:
+            for obj in selected_objects:
 
-            if obj.select_get() and (obj.type == "MESH" or obj.type == "FONT"):
+                if obj.type not in {"MESH", "FONT"}:
+                    continue
+
+                # Object is already part of a mask
+                if any(obj.name in obj_list for obj_list in mask_objects.values()):
+                    continue
+
+                # At least one object can be added
                 return True
+
+            # No object can be added
+            return False
 
         mask_index = context.scene.mask_list_index
         mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
@@ -87,43 +95,57 @@ class MaskObjectListAddItem(Operator):
         mask_index = context.scene.mask_list_index
         mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
 
-        obj = context.active_object
-        # There exists a selected object
-        if (
-            obj
-            and obj.select_get()
-            and (obj.type == "MESH" or obj.type == "FONT" or obj.type == "GPENCIL")
-        ):
-            obj_name = obj.name
+        selected_objects = [obj for obj in context.selected_objects]
+        # There exists at least one selected object
+        if selected_objects:
+            # At least one selected object was added to the mask
+            if self.add_selected_objects(mask, mask_index, selected_objects):
+                return {"FINISHED"}
 
         # No object selected in the object dropdown
-        elif mask.object_dropdown == "NONE":
+        if mask.object_dropdown == "NONE":
             return {"CANCELLED"}
-
-        elif mask.object_dropdown == "BACKGROUND":
-            obj_name = "Background"
 
         elif mask.object_dropdown == "ADDALL":
             self.add_all_objects(mask, mask_index)
             return {"FINISHED"}
 
+        elif mask.object_dropdown == "BACKGROUND":
+            obj_name = "Background"
+
         else:
             obj_name = mask.object_dropdown
 
-        # The currently selected item is already part of the list
-        if any(item.name == obj_name for item in mask.mask_objects):
-            return {"CANCELLED"}
-
+        # Add object from dropdown
         item = mask.mask_objects.add()
         item.name = obj_name
-
         mask_objects[f"MASK{mask_index + 1}"].append(item.name)
 
         mask.object_dropdown = "NONE"
 
         return {"FINISHED"}
 
-    # All all available objects in the scene
+    # Add all addable selected objects in the scene
+    def add_selected_objects(mask, mask_index, selected_objects) -> False:
+        addable_object = []
+
+        for obj in selected_objects:
+            if obj.type == "MESH" or obj.type == "FONT":
+                # The currently selected item is not part of any list
+                if not any(item.name == obj.name for item in mask.mask_objects):
+                    addable_object.append(obj.name)
+
+        if not addable_object:
+            return False
+
+        for addable in addable_object:
+            added = mask.mask_objects.add()
+            added.name = addable.name
+            mask_objects[f"MASK{mask_index + 1}"].append(added.name)
+
+        return True
+
+    # Add all available objects in the scene
     def add_all_objects(self, mask, mask_index):
         for obj in visible_objects:
             if not any(item.name == obj.name for item in mask.mask_objects):

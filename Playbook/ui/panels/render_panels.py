@@ -33,7 +33,7 @@ def draw_render_panel(context, layout):
     if context.scene.is_rendering:
         row_label = box.row()
         row_label.alignment = "CENTER"
-        row_label.label(text="Rendering...")
+        row_label.label(text="Generating...")
 
     row2 = box.row()
     row2.scale_y = 1.75
