@@ -14,5 +14,6 @@ def render_beauty_pass():
 
     if scene.camera:
         bpy.ops.render.render(write_still=True)
+
     else:
         print("No active camera found in the scene")

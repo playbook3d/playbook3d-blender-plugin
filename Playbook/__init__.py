@@ -37,18 +37,30 @@ def install_packages():
 # Call the install_packages function
 install_packages()
 
+import bpy
 from . import ui
-from .properties import *
-from .operators import *
+from . import properties
+from . import operators
+
+
+class AddonPreference(bpy.types.AddonPreferences):
+    bl_idname = __name__
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("op.reset_addon_settings", text="Reset Addon")
 
 
 def register():
     ui.register()
     properties.register()
     operators.register()
+    bpy.utils.register_class(AddonPreference)
 
 
 def unregister():
     ui.unregister()
     properties.unregister()
     operators.unregister()
+    bpy.utils.unregister_class(AddonPreference)

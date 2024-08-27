@@ -2,10 +2,42 @@ import bpy
 import webbrowser
 from .objects import visible_objects, mask_objects
 from .render_image import render_image
+from .properties import prompt_placeholders
 from bpy.props import StringProperty
 from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
 from bpy.app.handlers import persistent
+
+
+class ResetAddonOperator(Operator):
+    bl_idname = "op.reset_addon_settings"
+    bl_label = "Reset Addon"
+
+    def execute(self, context):
+        print("Resetting")
+
+        scene = context.scene
+
+        # Global Properties
+        scene.global_properties.global_workflow = "RETEXTURE"
+        scene.global_properties.global_model = "STABLE"
+        scene.global_properties.global_style = "PHOTOREAL"
+
+        # Retexture Properties
+        scene.retexture_properties.retexture_prompt = prompt_placeholders["Retexture"]
+        scene.retexture_properties.retexture_structure_strength = 50
+
+        # Style Transfer Properties
+        scene.style_properties.style_image = ""
+        scene.style_properties.style_strength = 50
+
+        # Mask Properties
+        scene.mask_list.clear()
+        mask = scene.mask_list.add()
+        mask.name = "Mask 1"
+        scene.mask_list_index = 0
+
+        return {"FINISHED"}
 
 
 #
@@ -146,6 +178,7 @@ classes = [
     PlaybookTwitterOperator,
     ClearStyleImageOperator,
     ClearRelightImageOperator,
+    ResetAddonOperator,
 ]
 
 
