@@ -162,10 +162,11 @@ class ComfyDeployClient:
             match workflow_dict[global_settings.workflow]:
                 # Generative Retexture
                 case 0:
-                    data = {
+                    render_input = {
+                        "is_blender_plugin": 1,
                         "workflow_id": workflow_id,
-                        "width": 512,
-                        "height": 512,
+                        "width": 768,
+                        "height": 768,
                         "scene_prompt": retexture_settings.prompt,
                         "structure_strength_depth": clamped_retexture_depth,
                         "structure_strength_outline": clamped_retexture_outline,
@@ -206,21 +207,22 @@ class ComfyDeployClient:
                         ),
                     }
                     files = {
-                        "mask": self.mask,
-                        "depth": self.depth,
-                        "outline": self.outline,
+                        "mask": self.mask.decode('utf-8'),
+                        "depth": self.depth.decode('utf-8'),
+                        "outline": self.outline.decode('utf-8'),
                     }
                     render_result = requests.post(
-                        self.url + "/generative-retexture", data=data, files=files
+                        self.url + "/generative-retexture", data=render_input, files=files
                     )
                     return render_result.json()
 
                 # Style Transfer
                 case 1:
-                    input = {
+                    render_input = {
+                        "is_blender_plugin": 1,
                         "workflow_id": workflow_id,
-                        "width": 512,
-                        "height": 512,
+                        "width": 768,
+                        "height": 768,
                         "style_transfer_strength": clamped_style_transfer_strength,
                         "structure_strength_depth": clamped_style_transfer_depth,
                         "structure_strength_outline": clamped_style_transfer_outline,
@@ -230,8 +232,15 @@ class ComfyDeployClient:
                         "outline": self.outline,
                         "style_transfer_image": self.style_transfer,
                     }
+                    files = {
+                        "beauty": self.beauty.decode('utf-8'),
+                        "depth": self.depth.decode('utf-8'),
+                        "outline": self.outline.decode('utf-8'),
+                        "style_transfer_image": self.style_transfer.decode('utf-8')
+                    }
+
                     render_result = requests.post(
-                        self.url + "/style-transfer", data=input
+                        self.url + "/style-transfer", data=render_input, files=files
                     )
                     return render_result.json()
 
