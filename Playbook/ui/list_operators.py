@@ -126,7 +126,7 @@ class MaskObjectListAddItem(Operator):
         return {"FINISHED"}
 
     # Add all addable selected objects in the scene
-    def add_selected_objects(mask, mask_index, selected_objects) -> False:
+    def add_selected_objects(self, mask, mask_index, selected_objects) -> False:
         addable_object = []
 
         for obj in selected_objects:
@@ -140,8 +140,8 @@ class MaskObjectListAddItem(Operator):
 
         for addable in addable_object:
             added = mask.mask_objects.add()
-            added.name = addable.name
-            mask_objects[f"MASK{mask_index + 1}"].append(added.name)
+            added.name = addable
+            mask_objects[f"MASK{mask_index + 1}"].append(addable)
 
         return True
 
