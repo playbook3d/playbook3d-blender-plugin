@@ -225,9 +225,9 @@ def continue_render():
 
     clean_up_files()
 
-    # comfy = ComfyDeployClient()
-    # set_comfy_images(comfy)
-    # asyncio.run(run_comfy_workflow(comfy))
+    comfy = ComfyDeployClient()
+    set_comfy_images(comfy)
+    asyncio.run(run_comfy_workflow(comfy))
 
     bpy.context.scene.is_rendering = False
 
