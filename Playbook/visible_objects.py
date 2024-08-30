@@ -1,8 +1,9 @@
 import bpy
 from .utilities import create_rgb_material
-from .objects import visible_objects, mask_objects
+from .objects import visible_objects, mask_objects, hidden_objects
 
 original_materials: dict[str, bpy.types.Material] = {}
+background_color = None
 
 material_props: dict[str, tuple[str, tuple]] = {
     "MASK1": ("YELLOW", (1, 0.8148, 0.0018, 1)),
@@ -30,9 +31,17 @@ color_hex: dict[str, str] = {
 def set_visible_objects(context):
     visible_objects.clear()
     for obj in context.scene.objects:
-        if obj.visible_get() and (
-            obj.type == "MESH" or obj.type == "FONT" or obj.type == "GPENCIL"
-        ):
+
+        if obj.hide_render:
+            continue
+
+        # Object is not visible. Ignore
+        if obj.hide_get():
+            obj.hide_render = True
+            hidden_objects.append(obj)
+            continue
+
+        if obj.type in {"MESH", "FONT"}:
             visible_objects.append(obj)
 
 
@@ -49,7 +58,8 @@ def save_object_materials():
         original_materials[obj.name] = [slot.material for slot in obj.material_slots]
 
     # Save background color
-    original_materials["background"] = (
+    global background_color
+    background_color = tuple(
         bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value
     )
 
@@ -114,6 +124,10 @@ def reset_object_materials():
     for obj in visible_objects:
         set_materials(obj, original_materials[obj.name])
 
-    bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (
-        original_materials["background"]
-    )
+    for obj in hidden_objects:
+        obj.hide_render = False
+
+    global background_color
+    bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[
+        0
+    ].default_value = background_color

@@ -3,7 +3,7 @@ bl_info = {
     "description": "Playbook is a diffusion based engine for 3D scenes.",
     "author": "Playbook",
     "location": "Properties > Render > Playbook",
-    "version": (1, 0),
+    "version": (0, 0, 0),
     "blender": (4, 0, 0),
     "category": "Render",
     "doc_url": "https://www.playbook3d.com",

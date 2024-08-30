@@ -1,5 +1,6 @@
 import bpy
 from .main_panels import MainPanel3D, MainPanelRender
+from ...properties import render_stats
 from .panel_utils import PlaybookPanel3D, BOX_PADDING, PlaybookPanelRender
 
 
@@ -7,6 +8,8 @@ from .panel_utils import PlaybookPanel3D, BOX_PADDING, PlaybookPanelRender
 def draw_render_panel(context, layout):
     box = layout.box()
     box.separator(factor=BOX_PADDING)
+
+    model = context.scene.global_properties.global_model
 
     row = box.row()
     row.separator(factor=BOX_PADDING)
@@ -20,9 +23,9 @@ def draw_render_panel(context, layout):
 
     column2 = split.column(align=True)
     column2.alignment = "RIGHT"
-    column2.label(text="960 x 960")
-    column2.label(text="30s -50s")
-    column2.label(text="10 credits")
+    column2.label(text=render_stats[model]["Resolution"])
+    column2.label(text=render_stats[model]["Time"])
+    column2.label(text=render_stats[model]["Cost"])
 
     row1 = box.row()
     row1.scale_y = 1.75
@@ -30,17 +33,17 @@ def draw_render_panel(context, layout):
     row1.operator("op.queue")
     row1.separator(factor=BOX_PADDING)
 
-    if context.scene.is_rendering:
-        row_label = box.row()
-        row_label.alignment = "CENTER"
-        row_label.label(text="Generating...")
-
     row2 = box.row()
     row2.scale_y = 1.75
     row2.active_default = True
     row2.separator(factor=BOX_PADDING)
     row2.operator("op.render_image")
     row2.separator(factor=BOX_PADDING)
+
+    if context.scene.is_rendering:
+        row_label = box.row()
+        row_label.alignment = "CENTER"
+        row_label.label(text="Generating...")
 
     if context.scene.error_message:
         error_row = box.row()

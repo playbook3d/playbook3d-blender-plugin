@@ -28,7 +28,7 @@ class ResetAddonOperator(Operator):
         scene.retexture_properties.retexture_structure_strength = 50
 
         # Style Transfer Properties
-        scene.style_properties.style_image = ""
+        scene.style_properties.style_image = None
         scene.style_properties.style_strength = 50
 
         # Mask Properties

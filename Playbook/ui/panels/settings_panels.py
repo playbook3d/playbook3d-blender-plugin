@@ -98,11 +98,11 @@ class RenderSettingsPanelRender(PlaybookPanelRender, bpy.types.Panel):
 def draw_advanced_settings_panel(context, layout):
     scene = context.scene
 
-    if scene.show_retexture_panel:
-        box = layout.box()
-        box.separator(factor=BOX_PADDING)
+    box = layout.box()
+    box.separator(factor=BOX_PADDING)
 
-        # Structure Strength
+    # Structure Strength
+    if scene.show_retexture_panel:
         create_label_row(box, "Structure Strength")
         strength_row = box.row()
         strength_row.scale_y = 1.25
@@ -114,12 +114,11 @@ def draw_advanced_settings_panel(context, layout):
 
         box.separator(factor=BOX_PADDING)
 
-        draw_mask_layout(scene, box)
-    else:
-        box = layout.box()
-        box.separator(factor=BOX_PADDING)
+        if scene.global_properties.global_model != "FLUX":
+            draw_mask_layout(scene, box)
 
-        # Structure Strength
+    # Structure Strength
+    else:
         create_label_row(box, "Style Transfer Strength")
         strength_row = box.row()
         strength_row.scale_y = 1.25

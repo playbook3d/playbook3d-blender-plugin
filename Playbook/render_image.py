@@ -1,12 +1,14 @@
 import asyncio
 import bpy
 import os
+from io import BytesIO
 import base64
 from .beauty_render import render_beauty_pass
 from .mask_render import render_mask_pass
 from .depth_render import render_depth_pass
 from .outline_render import render_outline_pass
 from .workspace import open_render_window
+from .objects import visible_objects
 from .visible_objects import (
     set_visible_objects,
     save_object_materials,
@@ -41,10 +43,14 @@ def error_exists_in_flow(scene) -> bool:
     messages = {
         "RETEXTURE": "Scene prompt is missing.",
         "STYLETRANSFER": "Style transfer image is missing.",
+        "VISIBLEOBJECT": "No object(s) to render.",
     }
 
     if workflow_checks.get(scene.global_properties.global_workflow):
         scene.error_message = messages[scene.global_properties.global_workflow]
+        return True
+    elif not visible_objects:
+        scene.error_message = messages["VISIBLEOBJECT"]
         return True
 
     scene.error_message = ""
@@ -157,11 +163,7 @@ def set_comfy_images(comfy_deploy: ComfyDeployClient):
     mask_path = os.path.join(dir, "renders", "mask.png")
     depth_path = os.path.join(dir, "renders", "depth.png")
     outline_path = os.path.join(dir, "renders", "outline.png")
-
-    print(f"Render path: {beauty_path}")
-    print(f"Render path: {mask_path}")
-    print(f"Render path: {depth_path}")
-    print(f"Render path: {outline_path}")
+    style_path = os.path.join(dir, "renders", "style.png")
 
     # Open the PNG files in binary mode
     with open(beauty_path, "rb") as beauty_file:
@@ -177,6 +179,17 @@ def set_comfy_images(comfy_deploy: ComfyDeployClient):
     comfy_deploy.save_image(mask_blob, "mask")
     comfy_deploy.save_image(depth_blob, "depth")
     comfy_deploy.save_image(outline_blob, "outline")
+
+    # style_image = bpy.context.scene.style_properties.style_image
+    # if style_image:
+    #     if not style_image.packed_file:
+    #         style_image.pack()
+
+    #     buffered = BytesIO()
+    #     style_image.save_render(filepath=style_path, scene=None)
+
+    #     img_base64 = base64.b64encode(buffered.getvalue())
+    #     comfy_deploy.save_image(img_base64, "style_transfer")
 
 
 #
@@ -196,9 +209,12 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
 def render_image():
     scene = bpy.context.scene
 
-    # asyncio.run(PlaybookWebsocket().websocket_message())
+    asyncio.run(PlaybookWebsocket().websocket_message())
+
+    set_visible_objects(bpy.context)
 
     if error_exists_in_flow(scene):
+        visible_objects.clear()
         return
 
     scene.is_rendering = True
@@ -207,7 +223,7 @@ def render_image():
 
 
 def continue_render():
-    set_visible_objects(bpy.context)
+
     clear_render_folder()
 
     save_object_materials()
@@ -225,9 +241,9 @@ def continue_render():
 
     clean_up_files()
 
-    comfy = ComfyDeployClient()
-    set_comfy_images(comfy)
-    asyncio.run(run_comfy_workflow(comfy))
+    # comfy = ComfyDeployClient()
+    # set_comfy_images(comfy)
+    # asyncio.run(run_comfy_workflow(comfy))
 
     bpy.context.scene.is_rendering = False
 

@@ -76,6 +76,11 @@ angle_options = [
 # Available upscale options
 upscale_options = [("1", "1x", ""), ("2", "2x", ""), ("4", "4x", "")]
 
+render_stats = {
+    "FLUX": {"Resolution": "1024 x 1024", "Time": "15s - 30s", "Cost": "10"},
+    "STABLE": {"Resolution": "960 x 960", "Time": "45s - 1m", "Cost": "30"},
+}
+
 
 #
 class GlobalProperties(PropertyGroup):
