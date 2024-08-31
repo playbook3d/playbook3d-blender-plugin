@@ -58,11 +58,8 @@ class RetextureRenderSettings:
 
 
 class StyleTransferRenderSettings:
-    def __init__(
-        self, prompt: str, structure_strength: int, style_transfer_strength: int
-    ):
+    def __init__(self, prompt: str, style_transfer_strength: int):
         self.prompt = prompt
-        self.structure_strength = structure_strength
         self.style_transfer_strength = style_transfer_strength
 
 
@@ -133,10 +130,10 @@ class ComfyDeployClient:
                 retexture_settings.structure_strength, 0.1, 0.3
             )
             clamped_style_transfer_depth = np_clamp(
-                style_transfer_settings.structure_strength, 0.6, 1.0
+                style_transfer_settings.style_transfer_strength, 0.6, 1.0
             )
             clamped_style_transfer_outline = np_clamp(
-                style_transfer_settings.structure_strength, 0.1, 0.3
+                style_transfer_settings.style_transfer_strength, 0.1, 0.3
             )
 
             clamped_style_transfer_strength = np_clamp(
@@ -207,12 +204,14 @@ class ComfyDeployClient:
                         ),
                     }
                     files = {
-                        "mask": self.mask.decode('utf-8'),
-                        "depth": self.depth.decode('utf-8'),
-                        "outline": self.outline.decode('utf-8'),
+                        "mask": self.mask.decode("utf-8"),
+                        "depth": self.depth.decode("utf-8"),
+                        "outline": self.outline.decode("utf-8"),
                     }
                     render_result = requests.post(
-                        self.url + "/generative-retexture", data=render_input, files=files
+                        self.url + "/generative-retexture",
+                        data=render_input,
+                        files=files,
                     )
                     return render_result.json()
 
@@ -233,10 +232,10 @@ class ComfyDeployClient:
                         "style_transfer_image": self.style_transfer,
                     }
                     files = {
-                        "beauty": self.beauty.decode('utf-8'),
-                        "depth": self.depth.decode('utf-8'),
-                        "outline": self.outline.decode('utf-8'),
-                        "style_transfer_image": self.style_transfer.decode('utf-8')
+                        "beauty": self.beauty.decode("utf-8"),
+                        "depth": self.depth.decode("utf-8"),
+                        "outline": self.outline.decode("utf-8"),
+                        "style_transfer_image": self.style_transfer.decode("utf-8"),
                     }
 
                     render_result = requests.post(

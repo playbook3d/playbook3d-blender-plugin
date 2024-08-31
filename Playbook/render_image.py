@@ -1,12 +1,12 @@
 import asyncio
 import bpy
 import os
-from io import BytesIO
 import base64
 from .beauty_render import render_beauty_pass
 from .mask_render import render_mask_pass
 from .depth_render import render_depth_pass
 from .outline_render import render_outline_pass
+from .style_transfer_render import render_style_transfer_pass
 from .workspace import open_render_window
 from .objects import visible_objects
 from .visible_objects import (
@@ -26,7 +26,6 @@ from .comfy_deploy_api.network import (
 )
 
 # VARIABLES
-
 api_url = os.getenv("API_URL")
 
 
@@ -152,7 +151,7 @@ def get_retexture_settings() -> RetextureRenderSettings:
 def get_style_transfer_settings() -> StyleTransferRenderSettings:
     style_props = bpy.context.scene.style_properties
 
-    return StyleTransferRenderSettings("", style_props.style_strength, 0)
+    return StyleTransferRenderSettings("", style_props.style_strength)
 
 
 #
@@ -163,7 +162,6 @@ def set_comfy_images(comfy_deploy: ComfyDeployClient):
     mask_path = os.path.join(dir, "renders", "mask.png")
     depth_path = os.path.join(dir, "renders", "depth.png")
     outline_path = os.path.join(dir, "renders", "outline.png")
-    style_path = os.path.join(dir, "renders", "style.png")
 
     # Open the PNG files in binary mode
     with open(beauty_path, "rb") as beauty_file:
@@ -180,16 +178,14 @@ def set_comfy_images(comfy_deploy: ComfyDeployClient):
     comfy_deploy.save_image(depth_blob, "depth")
     comfy_deploy.save_image(outline_blob, "outline")
 
-    # style_image = bpy.context.scene.style_properties.style_image
-    # if style_image:
-    #     if not style_image.packed_file:
-    #         style_image.pack()
+    image = bpy.context.scene.style_properties.style_image
+    # Ensure the image is saved in a file or it's packed into the blend file
+    if image.has_data:
+        style_blob = render_style_transfer_pass(
+            image, os.path.join(dir, "renders", "style.png")
+        )
 
-    #     buffered = BytesIO()
-    #     style_image.save_render(filepath=style_path, scene=None)
-
-    #     img_base64 = base64.b64encode(buffered.getvalue())
-    #     comfy_deploy.save_image(img_base64, "style_transfer")
+        comfy_deploy.save_image(style_blob, "style_transfer")
 
 
 #
@@ -241,9 +237,9 @@ def continue_render():
 
     clean_up_files()
 
-    # comfy = ComfyDeployClient()
-    # set_comfy_images(comfy)
-    # asyncio.run(run_comfy_workflow(comfy))
+    comfy = ComfyDeployClient()
+    set_comfy_images(comfy)
+    asyncio.run(run_comfy_workflow(comfy))
 
     bpy.context.scene.is_rendering = False
 
