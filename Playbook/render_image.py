@@ -20,7 +20,6 @@ from .comfy_deploy_api.network import (
     MaskData,
     StyleTransferRenderSettings,
     ComfyDeployClient,
-    PlaybookWebsocket,
 )
 
 # VARIABLES
@@ -190,6 +189,8 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
     )
 
     print(f"Response: {response}")
+
+    bpy.ops.op.websocket_operator()
 
 
 # Render the image from the active camera

@@ -1,12 +1,15 @@
 import json
 import logging
 import os
+
+import bpy
 import requests
 import numpy as np
-from websockets.sync.client import connect
 from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
 from ..properties import prompt_placeholders
+import asyncio
+import websockets
 
 workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
 base_model_dict = {"STABLE": 0, "FLUX": 1}
@@ -261,29 +264,27 @@ class ComfyDeployClient:
             case "style_transfer":
                 self.style_transfer = image
 
+    # def __init__(self):
+    #    self.base_url = os.getenv("BASE_URL")
+    #   self.websocket = None
 
-class PlaybookWebsocket:
-    def __init__(self):
-        self.base_url = os.getenv("BASE_URL")
-        self.websocket = None
+    # async def websocket_message(self) -> str:
+    #     try:
+    #         async with connect(self.base_url) as websocket:
+    #             self.websocket = websocket
+    #
+    #            while True:
+    #               message = await websocket.recv()
+    #               try:
+    #                   data = json.loads(message)
+    #
+    #                    if data.get("status") == "success":
+    #                       extracted_data = data.get["data"]
+    #                       image_url = extracted_data.outputs[0].data.images[0].url
+    #                        return image_url
 
-    async def websocket_message(self) -> str:
-        try:
-            async with connect(self.base_url) as websocket:
-                self.websocket = websocket
+    #                except json.JSONDecodeError:
+    #                   print("Error while parsing response from server", message)
 
-                while True:
-                    message = await websocket.recv()
-                    try:
-                        data = json.loads(message)
-
-                        if data.get("status") == "success":
-                            extracted_data = data.get["data"]
-                            image_url = extracted_data.outputs[0].data.images[0].url
-                            return image_url
-
-                    except json.JSONDecodeError:
-                        print("Error while parsing response from server", message)
-
-        except Exception as exception:
-            print(f"Error while parsing response from server: {exception}")
+    #   except Exception as exception:
+    #       print(f"Error while parsing response from server: {exception}")

@@ -7,6 +7,9 @@ from bpy.props import StringProperty
 from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
 from bpy.app.handlers import persistent
+import asyncio
+import websockets
+import os
 
 
 class ResetAddonOperator(Operator):
@@ -155,6 +158,54 @@ class ClearRelightImageOperator(Operator):
         return {"FINISHED"}
 
 
+class PlaybookWebsocketOperator(Operator):
+    bl_idname = "op.websocket_operator"
+    bl_label = "Playbook Websocket"
+
+    _task = None
+    websocket = None
+
+    def modal(self, context, event):
+        return {'PASS_THROUGH'}
+
+    def execute(self, context):
+        self._task = asyncio.create_task(self.handle_websocket())
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+    def cancel(self, context):
+        if self._task:
+            self._task.cancel()
+        asyncio.run(self.disconnect_websocket())
+
+    async def handle_websocket(self):
+        uri = os.getenv("API_URL")
+        try:
+            async with websockets.connect(uri) as websocket:
+                self.websocket = websocket
+                print("Websocket connected")
+        except Exception as e:
+            print(f"Websocket error {e}")
+
+    async def disconnect_websocket(self):
+        if self.websocket:
+            await self.websocket.close()
+            print("Websocket connection closed")
+
+    async def check_websocket_messages(self):
+        uri = os.getenv("API_URL")
+        try:
+            async with websockets.connect(uri) as websocket:
+                self.websocket = websocket
+                print("Websocket connected!")
+
+                while True:
+                    message = await websocket.recv()
+                    print(f"Received message: {message}")
+        except Exception as e:
+            print(f"Error receiving message: {e}")
+
+
 classes = [
     LoginOperator,
     UpgradeOperator,
@@ -167,6 +218,7 @@ classes = [
     PlaybookTwitterOperator,
     ClearRelightImageOperator,
     ResetAddonOperator,
+    PlaybookWebsocketOperator
 ]
 
 
