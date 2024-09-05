@@ -26,7 +26,7 @@ color_hex: dict[str, str] = {
     "MASK7": "#ee9e3e",
 }
 
-allowed_obj_types = ["MESH", "FONT", "META", "SURFACE", "CURVE"]
+allowed_obj_types = ["MESH", "FONT", "META", "SURFACE"]
 
 
 # Get all visible objects in the scene
