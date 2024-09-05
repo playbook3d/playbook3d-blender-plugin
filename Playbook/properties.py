@@ -77,8 +77,8 @@ angle_options = [
 upscale_options = [("1", "1x", ""), ("2", "2x", ""), ("4", "4x", "")]
 
 render_stats = {
-    "FLUX": {"Resolution": "1024 x 1024", "Time": "15s - 30s", "Cost": "10"},
-    "STABLE": {"Resolution": "960 x 960", "Time": "45s - 1m", "Cost": "30"},
+    "STABLE": {"Resolution": "1024 x 1024", "Time": "15s - 30s", "Cost": "10"},
+    "FLUX": {"Resolution": "960 x 960", "Time": "45s - 1m", "Cost": "30"},
 }
 
 
@@ -196,11 +196,10 @@ class MaskProperties(PropertyGroup):
 class StyleProperties(PropertyGroup):
     def on_update_image(self, context):
         context.scene.flag_properties.style_flag = self.style_image != None
-        print(self.style_image)
 
-    style_image: PointerProperty(
+    style_image: StringProperty(
         name="",
-        type=Image,
+        subtype="FILE_PATH",
         update=lambda self, context: self.on_update_image(context),
     )
     style_strength: FloatProperty(name="", default=50, min=0, max=100)

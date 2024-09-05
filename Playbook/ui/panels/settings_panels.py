@@ -1,5 +1,6 @@
 import bpy
 from .main_panels import MainPanel3D, MainPanelRender
+from ...utilities import is_valid_image_file
 from .panel_utils import (
     PlaybookPanel3D,
     PlaybookPanelRender,
@@ -32,11 +33,24 @@ def draw_render_settings_panel(context, layout):
 
     # Style transfer workflow
     else:
+        style_props = scene.style_properties
+
         # Style transfer image
         create_label_row(box, "Style Transfer Image")
         image_row = box.row()
         image_row.separator(factor=BOX_PADDING)
-        image_row.prop(scene.style_properties, "style_image")
+        row = image_row.split(factor=0.9)
+        row.prop(style_props, "style_image")
+        row.operator("op.clear_style_transfer_image", icon="PANEL_CLOSE")
+
+        # Invalid file type
+        if style_props.style_image and not is_valid_image_file(style_props.style_image):
+            label_row = box.row()
+            label_row.alert = True
+            label_row.separator(factor=BOX_PADDING)
+            label_row.label(text="Invalid file type. Please select an image.")
+            label_row.separator(factor=BOX_PADDING)
+
         image_row.separator(factor=BOX_PADDING)
 
     box.separator(factor=BOX_PADDING)

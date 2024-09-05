@@ -1,6 +1,13 @@
 import bpy
 
 
+def is_valid_image_file(filepath: str) -> bool:
+    valid_extensions = {".png", ".jpg", ".jpeg"}
+
+    ext = filepath.lower().rsplit(".", 1)[-1]
+    return f".{ext}" in valid_extensions
+
+
 def get_filepath_in_package(path, filename=""):
     # Convert a relative path in the add-on package to an absolute path
     addon_path = os.path.dirname(os.path.realpath(__file__))

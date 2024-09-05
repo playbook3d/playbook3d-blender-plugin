@@ -1,6 +1,10 @@
 import asyncio
+import io
+import pstats
 import bpy
 import os
+import threading
+import cProfile
 import base64
 from .beauty_render import render_beauty_pass
 from .mask_render import render_mask_pass
@@ -178,12 +182,11 @@ def set_comfy_images(comfy_deploy: ComfyDeployClient):
     comfy_deploy.save_image(depth_blob, "depth")
     comfy_deploy.save_image(outline_blob, "outline")
 
-    image = bpy.context.scene.style_properties.style_image
+    style_path = bpy.context.scene.style_properties.style_image
     # Ensure the image is saved in a file or it's packed into the blend file
-    if image.has_data:
-        style_blob = render_style_transfer_pass(
-            image, os.path.join(dir, "renders", "style.png")
-        )
+    if style_path:
+        with open(style_path, "rb") as style_file:
+            style_blob = base64.b64encode(style_file.read())
 
         comfy_deploy.save_image(style_blob, "style_transfer")
 
@@ -201,11 +204,18 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
     print(f"Response: {response}")
 
 
+#
+def start_render_thread():
+    render_thread = threading.Thread(target=render_image)
+    render_thread.start()
+    render_thread.join()
+
+
 # Render the image from the active camera
 def render_image():
     scene = bpy.context.scene
 
-    asyncio.run(PlaybookWebsocket().websocket_message())
+    # asyncio.run(PlaybookWebsocket().websocket_message())
 
     set_visible_objects(bpy.context)
 
@@ -242,6 +252,8 @@ def continue_render():
     asyncio.run(run_comfy_workflow(comfy))
 
     bpy.context.scene.is_rendering = False
+
+    return None
 
 
 def render_all_passes():

@@ -53,7 +53,7 @@ class LoginOperator(Operator):
 #
 class UpgradeOperator(Operator):
     bl_idname = "op.upgrade"
-    bl_label = "Upgrade"
+    bl_label = "Get Credits"
     bl_description = "Upgrade"
 
     def execute(self, context):
@@ -145,13 +145,28 @@ class PlaybookTwitterOperator(Operator):
 
 
 #
+class ClearStyleTransferImageOperator(Operator):
+    bl_idname = "op.clear_style_transfer_image"
+    bl_label = ""
+    bl_description = "Clear the file"
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.style_properties.style_image
+
+    def execute(self, context):
+        context.scene.style_properties.style_image = ""
+        return {"FINISHED"}
+
+
+#
 class ClearRelightImageOperator(Operator):
     bl_idname = "op.clear_relight_image"
     bl_label = ""
     bl_description = "Choose an image from local files"
 
     def execute(self, context):
-        bpy.context.scene.relight_properties.relight_image = ""
+        context.scene.relight_properties.relight_image = ""
         return {"FINISHED"}
 
 
@@ -165,6 +180,7 @@ classes = [
     PlaybookWebsiteOperator,
     PlaybookDiscordOperator,
     PlaybookTwitterOperator,
+    ClearStyleTransferImageOperator,
     ClearRelightImageOperator,
     ResetAddonOperator,
 ]
