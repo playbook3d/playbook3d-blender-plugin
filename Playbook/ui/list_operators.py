@@ -1,7 +1,7 @@
 import bpy
 from bpy.utils import register_class, unregister_class
 from bpy.types import Operator
-from ..visible_objects import visible_objects
+from ..visible_objects import visible_objects, allowed_obj_types
 from ..objects import mask_objects
 
 MAX_MASKS = 7
@@ -72,7 +72,7 @@ class MaskObjectListAddItem(Operator):
         if selected_objects:
             for obj in selected_objects:
 
-                if obj.type not in {"MESH", "FONT"}:
+                if obj.type not in allowed_obj_types:
                     continue
 
                 # Object is already part of a mask
@@ -130,7 +130,7 @@ class MaskObjectListAddItem(Operator):
         addable_object = []
 
         for obj in selected_objects:
-            if obj.type == "MESH" or obj.type == "FONT":
+            if obj.type in allowed_obj_types:
                 # The currently selected item is not part of any list
                 if not any(item.name == obj.name for item in mask.mask_objects):
                     addable_object.append(obj.name)

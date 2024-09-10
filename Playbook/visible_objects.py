@@ -26,8 +26,10 @@ color_hex: dict[str, str] = {
     "MASK7": "#ee9e3e",
 }
 
+allowed_obj_types = ["MESH", "FONT", "META", "SURFACE"]
 
-# Get all visible mesh objects in the scene
+
+# Get all visible objects in the scene
 def set_visible_objects(context):
     visible_objects.clear()
     for obj in context.scene.objects:
@@ -41,7 +43,7 @@ def set_visible_objects(context):
             hidden_objects.append(obj)
             continue
 
-        if obj.type in {"MESH", "FONT"}:
+        if obj.type in allowed_obj_types:
             visible_objects.append(obj)
 
 
