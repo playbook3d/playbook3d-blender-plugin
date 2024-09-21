@@ -86,7 +86,10 @@ class QueueOperator(Operator):
     bl_label = "Open Queue"
     bl_description = "Open queue"
 
+    url: StringProperty(name="", default="https://www.beta.playbook3d.com/")
+
     def execute(self, context):
+        webbrowser.open(self.url)
         return {"FINISHED"}
 
 

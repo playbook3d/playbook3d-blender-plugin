@@ -62,6 +62,8 @@ prompt_styles = [
 ]
 
 prompt_placeholders = {
+    "Email": "Email",
+    "API_Key": "API key",
     "Retexture": "Describe the scene...",
     "Mask": "Describe masked objects...",
 }
@@ -80,6 +82,28 @@ render_stats = {
     "STABLE": {"Resolution": "1024 x 1024", "Time": "15s - 30s", "Cost": "10"},
     "FLUX": {"Resolution": "960 x 960", "Time": "45s - 1m", "Cost": "30"},
 }
+
+
+#
+class AuthProperties(PropertyGroup):
+    def on_update_user_email(self, context):
+        if not self.user_email:
+            self.user_email = prompt_placeholders["Email"]
+
+    def on_update_api_key(self, context):
+        if not self.api_key:
+            self.api_key = prompt_placeholders["API_Key"]
+
+    user_email: StringProperty(
+        name="",
+        default="Email",
+        update=lambda self, context: self.on_update_user_email(context),
+    )
+    api_key: StringProperty(
+        name="",
+        default="API key",
+        update=lambda self, context: self.on_update_api_key(context),
+    )
 
 
 #
@@ -283,6 +307,7 @@ class FlagProperties(PropertyGroup):
 
 
 classes = [
+    AuthProperties,
     GlobalProperties,
     RetextureProperties,
     MaskProperties,
@@ -298,6 +323,7 @@ def register():
     for cls in classes:
         register_class(cls)
 
+    Scene.auth_properties = PointerProperty(type=AuthProperties)
     Scene.global_properties = PointerProperty(type=GlobalProperties)
     Scene.retexture_properties = PointerProperty(type=RetextureProperties)
     Scene.style_properties = PointerProperty(type=StyleProperties)
@@ -322,6 +348,7 @@ def unregister():
     for cls in classes:
         unregister_class(cls)
 
+    del Scene.auth_properties
     del Scene.global_properties
     del Scene.retexture_properties
     del Scene.style_properties
