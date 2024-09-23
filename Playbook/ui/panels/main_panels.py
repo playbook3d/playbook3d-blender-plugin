@@ -66,12 +66,18 @@ def draw_credentials_panel(context, layout):
     row3.scale_y = 1.8
     row3.active_default = True
     row3.separator(factor=BOX_PADDING)
-    row3.operator("op.upgrade")
+    row3.operator("op.login")
     row3.separator(factor=BOX_PADDING)
 
     row4 = box.row()
-    row4.alignment = "CENTER"
-    row4.label(text="100 credits remaining")
+    row4.scale_y = 1.8
+    row4.separator(factor=BOX_PADDING)
+    row4.operator("op.upgrade")
+    row4.separator(factor=BOX_PADDING)
+
+    row5 = box.row()
+    row5.alignment = "CENTER"
+    row5.label(text="100 credits remaining")
 
     box.separator(factor=BOX_PADDING)
 
