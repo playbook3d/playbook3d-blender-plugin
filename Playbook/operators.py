@@ -43,8 +43,8 @@ class ResetAddonOperator(Operator):
 #
 class LoginOperator(Operator):
     bl_idname = "op.login"
-    bl_label = "skylar@playbookxr.com"
-    bl_description = "Logout of Playbook"
+    bl_label = "Login"
+    bl_description = "Login to Playbook"
 
     def execute(self, context):
         return {"FINISHED"}
@@ -86,7 +86,10 @@ class QueueOperator(Operator):
     bl_label = "Open Queue"
     bl_description = "Open queue"
 
+    url: StringProperty(name="", default="https://www.beta.playbook3d.com/")
+
     def execute(self, context):
+        webbrowser.open(self.url)
         return {"FINISHED"}
 
 

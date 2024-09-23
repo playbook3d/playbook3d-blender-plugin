@@ -37,24 +37,31 @@ api_url = os.getenv("API_URL")
 def error_exists_in_flow(scene) -> bool:
     # [workflow, condition for error message]
     workflow_checks = {
-        "RETEXTURE": scene.retexture_properties.retexture_prompt
-        == "Describe the scene...",
-        "STYLETRANSFER": not scene.style_properties.style_image,
+        "EMAIL": scene.auth_properties.user_email == "Email",
+        "APIKEY": scene.auth_properties.api_key == "API key",
+        "VISIBLEOBJECT": not visible_objects,
     }
 
     # [workflow, error message]
     messages = {
+        "EMAIL": "Please login to render.",
+        "APIKEY": "Copy your API key from the Playbook web editor.",
         "RETEXTURE": "Scene prompt is missing.",
         "STYLETRANSFER": "Style transfer image is missing.",
         "VISIBLEOBJECT": "No object(s) to render.",
     }
 
-    if workflow_checks.get(scene.global_properties.global_workflow):
-        scene.error_message = messages[scene.global_properties.global_workflow]
-        return True
-    elif not visible_objects:
-        scene.error_message = messages["VISIBLEOBJECT"]
-        return True
+    if scene.global_properties.global_workflow == "RETEXTURE":
+        workflow_checks["RETEXTURE"] = (
+            scene.retexture_properties.retexture_prompt == "Describe the scene..."
+        )
+    elif scene.global_properties.global_workflow == "STYLETRANSFER":
+        workflow_checks["STYLETRANSFER"] = not scene.style_properties.style_image
+
+    for key, val in workflow_checks.items():
+        if val:
+            scene.error_message = messages[key]
+            return True
 
     scene.error_message = ""
     return False

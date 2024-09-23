@@ -43,26 +43,41 @@ class MainPanelRender(PlaybookPanelRender, bpy.types.Panel):
 
 
 ########## CREDENTIALS PANEL ##########
-def draw_credentials_panel(layout):
+def draw_credentials_panel(context, layout):
+    scene = context.scene
+    auth_props = scene.auth_properties
+
     box = layout.box()
     box.separator(factor=BOX_PADDING)
 
     row1 = box.row()
-    row1.scale_y = 1.8
+    row1.scale_y = 1.25
     row1.separator(factor=BOX_PADDING)
-    row1.operator("op.login", text="✓ skylar@playbookxr.com")
+    row1.prop(auth_props, "user_email")
     row1.separator(factor=BOX_PADDING)
 
     row2 = box.row()
-    row2.scale_y = 1.8
-    row2.active_default = True
+    row2.scale_y = 1.25
     row2.separator(factor=BOX_PADDING)
-    row2.operator("op.upgrade")
+    row2.prop(auth_props, "api_key")
     row2.separator(factor=BOX_PADDING)
 
     row3 = box.row()
-    row3.alignment = "CENTER"
-    row3.label(text="100 credits remaining")
+    row3.scale_y = 1.8
+    row3.active_default = True
+    row3.separator(factor=BOX_PADDING)
+    row3.operator("op.login")
+    row3.separator(factor=BOX_PADDING)
+
+    row4 = box.row()
+    row4.scale_y = 1.8
+    row4.separator(factor=BOX_PADDING)
+    row4.operator("op.upgrade")
+    row4.separator(factor=BOX_PADDING)
+
+    row5 = box.row()
+    row5.alignment = "CENTER"
+    row5.label(text="100 credits remaining")
 
     box.separator(factor=BOX_PADDING)
 
@@ -75,7 +90,7 @@ class CredentialsPanel3D(PlaybookPanel3D, bpy.types.Panel):
     bl_options = {"HIDE_HEADER"}
 
     def draw(self, context):
-        draw_credentials_panel(self.layout)
+        draw_credentials_panel(context, self.layout)
 
 
 #
@@ -86,4 +101,4 @@ class CredentialsPanelRender(PlaybookPanelRender, bpy.types.Panel):
     bl_options = {"HIDE_HEADER"}
 
     def draw(self, context):
-        draw_credentials_panel(self.layout)
+        draw_credentials_panel(context, self.layout)
