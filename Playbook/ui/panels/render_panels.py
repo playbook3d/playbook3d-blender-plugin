@@ -1,15 +1,18 @@
 import bpy
 from .main_panels import MainPanel3D, MainPanelRender
-from ...properties import render_stats
+from ...properties import image_render_stats, video_render_stats
 from .panel_utils import PlaybookPanel3D, BOX_PADDING, PlaybookPanelRender
 
 
 ########## RENDER PANEL ##########
 def draw_render_panel(context, layout):
+    scene = context.scene
+
     box = layout.box()
     box.separator(factor=BOX_PADDING)
 
-    model = context.scene.global_properties.global_model
+    model = scene.global_properties.global_model
+    properties = scene.render_properties
 
     row = box.row()
     row.separator(factor=BOX_PADDING)
@@ -17,15 +20,31 @@ def draw_render_panel(context, layout):
     column1 = split.column(align=True)
     column1.alignment = "LEFT"
     column1.label(text="Final resolution:")
+
+    if properties.render_type == "VIDEO":
+        column1.label(text="Video duration:")
+
     column1.label(text="Estimated time:")
     column1.label(text="Credit cost:")
     row.separator(factor=BOX_PADDING)
 
     column2 = split.column(align=True)
     column2.alignment = "RIGHT"
-    column2.label(text=render_stats[model]["Resolution"])
-    column2.label(text=render_stats[model]["Time"])
-    column2.label(text=render_stats[model]["Cost"])
+    if properties.render_type == "VIDEO":
+        column2.label(text=video_render_stats[model]["Resolution"])
+        column2.label(text=video_render_stats[model]["Duration"])
+        column2.label(text=video_render_stats[model]["Time"])
+        column2.label(text=video_render_stats[model]["Cost"])
+    else:
+        column2.label(text=image_render_stats[model]["Resolution"])
+        column2.label(text=image_render_stats[model]["Time"])
+        column2.label(text=image_render_stats[model]["Cost"])
+
+    row3 = box.row()
+    row3.scale_y = 1.25
+    row3.separator(factor=BOX_PADDING)
+    row3.prop(properties, "render_type", expand=False)
+    row3.separator(factor=BOX_PADDING)
 
     row1 = box.row()
     row1.scale_y = 1.75

@@ -1,3 +1,4 @@
+import bpy
 from bpy.props import (
     PointerProperty,
     IntProperty,
@@ -14,8 +15,7 @@ from .visible_objects import set_visible_objects
 from .objects import visible_objects, mask_objects
 from .ui.lists import MaskObjectListItem
 from .ui.icons import get_style_icon
-
-NUM_MASKS_ALLOWED = 7
+from .constants import MAX_IMAGE_MASKS, MAX_VIDEO_MASKS
 
 workflows = [
     (
@@ -38,7 +38,7 @@ base_models = [
         "Stable Diffusion",
         "Base model by Stability AI. Checkpoint by Juggernaut",
     ),
-    ("FLUX", "Flux", "SOTA model by Black Forest Labs. Best quality"),
+    # ("FLUX", "Flux", "SOTA model by Black Forest Labs. Best quality"),
 ]
 
 styles_in_model = {"STABLE": ["PHOTOREAL", "3DCARTOON", "ANIME"], "FLUX": ["PHOTOREAL"]}
@@ -75,12 +75,23 @@ angle_options = [
     ("BOTTOMRIGHT", "Bottom right", ""),
 ]
 
+render_types = [("IMAGE", "Image", "Image"), ("VIDEO", "Video", "Video")]
+
 # Available upscale options
 upscale_options = [("1", "1x", ""), ("2", "2x", ""), ("4", "4x", "")]
 
-render_stats = {
-    "STABLE": {"Resolution": "1024 x 1024", "Time": "15s - 30s", "Cost": "10"},
-    "FLUX": {"Resolution": "960 x 960", "Time": "45s - 1m", "Cost": "30"},
+image_render_stats = {
+    "STABLE": {"Resolution": "1024 x 1024", "Time": "15s - 30s", "Cost": "10 credits"},
+    "FLUX": {"Resolution": "960 x 960", "Time": "45s - 1m", "Cost": "30 credits"},
+}
+
+video_render_stats = {
+    "STABLE": {
+        "Resolution": "1024 x 1024",
+        "Duration": "3s",
+        "Time": "3m - 4m",
+        "Cost": "50 credits",
+    },
 }
 
 
@@ -158,7 +169,8 @@ class RetextureProperties(PropertyGroup):
 class MaskProperties(PropertyGroup):
     #
     def update_mask_name(self, context):
-        masks = context.scene.mask_list
+        render_type = get_render_type()
+        masks = getattr(context.scene, f"{render_type}_mask_list")
         mask_index = context.scene.mask_list_index
 
         masks[mask_index].name = self.mask_name
@@ -298,12 +310,30 @@ class UpscaleProperties(PropertyGroup):
     upscale_prompt: StringProperty(name="", default="Describe the prompt...")
 
 
+#
+class RenderProperties(PropertyGroup):
+    def on_update_render_type(self, context):
+        scene = context.scene
+        scene.mask_list_index = 0
+
+    render_type: EnumProperty(
+        name="",
+        items=[("IMAGE", "Image", "Image"), ("VIDEO", "Video", "Video")],
+        default="IMAGE",
+        update=lambda self, context: self.on_update_render_type(context),
+    )
+
+
 # Flags to keep track if the properties were modified
 class FlagProperties(PropertyGroup):
     retexture_flag: BoolProperty(name="", default=False)
     style_flag: BoolProperty(name="", default=False)
     relight_flag: BoolProperty(name="", default=False)
     upscale_flag: BoolProperty(name="", default=False)
+
+
+def get_render_type():
+    return bpy.context.scene.render_properties.render_type
 
 
 classes = [
@@ -314,6 +344,7 @@ classes = [
     StyleProperties,
     RelightProperties,
     UpscaleProperties,
+    RenderProperties,
     FlagProperties,
 ]
 
@@ -329,16 +360,24 @@ def register():
     Scene.style_properties = PointerProperty(type=StyleProperties)
     Scene.relight_properties = PointerProperty(type=RelightProperties)
     Scene.upscale_properties = PointerProperty(type=UpscaleProperties)
+    Scene.render_properties = PointerProperty(type=RenderProperties)
     Scene.flag_properties = PointerProperty(type=FlagProperties)
     Scene.error_message = StringProperty(default="")
     Scene.show_retexture_panel = BoolProperty(default=True)
     Scene.show_object_dropdown = BoolProperty(default=False)
     Scene.is_rendering = BoolProperty(default=False)
 
-    for i in range(NUM_MASKS_ALLOWED):
+    for i in range(MAX_IMAGE_MASKS):
         setattr(
             Scene,
-            f"mask_properties{i + 1}",
+            f"IMAGE_mask_properties{i + 1}",
+            PointerProperty(type=MaskProperties),
+        )
+
+    for i in range(MAX_VIDEO_MASKS):
+        setattr(
+            Scene,
+            f"VIDEO_mask_properties{i + 1}",
             PointerProperty(type=MaskProperties),
         )
 
@@ -360,5 +399,8 @@ def unregister():
     del Scene.show_object_dropdown
     del Scene.is_rendering
 
-    for i in range(NUM_MASKS_ALLOWED):
-        delattr(Scene, f"mask_properties{i + 1}")
+    for i in range(MAX_IMAGE_MASKS):
+        delattr(Scene, f"IMAGE_mask_properties{i + 1}")
+
+    for i in range(MAX_VIDEO_MASKS):
+        delattr(Scene, f"VIDEO_mask_properties{i + 1}")

@@ -1,10 +1,10 @@
 import bpy
 from bpy.utils import register_class, unregister_class
 from bpy.types import Operator
+from ..properties import get_render_type
 from ..visible_objects import visible_objects, allowed_obj_types
 from ..objects import mask_objects
-
-MAX_MASKS = 7
+from ..constants import MAX_IMAGE_MASKS, MAX_VIDEO_MASKS
 
 
 # Add a mask to the mask list
@@ -15,19 +15,33 @@ class MaskListAddItem(Operator):
 
     @classmethod
     def poll(cls, context):
-        return len(context.scene.mask_list) < 7
+        render_type = get_render_type()
+        if render_type == "IMAGE":
+            max_num_masks = MAX_IMAGE_MASKS
+        elif render_type == "VIDEO":
+            max_num_masks = MAX_VIDEO_MASKS
+
+        return len(getattr(context.scene, f"{render_type}_mask_list")) < max_num_masks
 
     def execute(self, context):
-        mask_len = len(context.scene.mask_list)
+        render_type = get_render_type()
+        mask_len = len(getattr(context.scene, f"{render_type}_mask_list"))
+
+        if context.scene.render_properties.render_type == "IMAGE":
+            max_num_masks = MAX_IMAGE_MASKS
+        elif context.scene.render_properties.render_type == "VIDEO":
+            max_num_masks = MAX_VIDEO_MASKS
 
         # Reached max number of masks
-        if mask_len == MAX_MASKS:
+        if mask_len == max_num_masks:
             return {"CANCELLED"}
 
-        item = context.scene.mask_list.add()
+        render_type = get_render_type()
+        mask_list = getattr(context.scene, f"{render_type}_mask_list")
+        item = mask_list.add()
         item.name = f"Mask {mask_len + 1}"
 
-        context.scene.mask_list_index = len(context.scene.mask_list) - 1
+        context.scene.mask_list_index = len(mask_list) - 1
 
         return {"FINISHED"}
 
@@ -40,20 +54,17 @@ class MaskListRemoveItem(Operator):
 
     @classmethod
     def poll(cls, context):
-        if context.scene.mask_list_index == -1:
-            return False
-        else:
-            return context.scene.mask_list
+        render_type = get_render_type()
+        mask_len = len(getattr(context.scene, f"{render_type}_mask_list"))
+
+        return mask_len > 1
 
     def execute(self, context):
-        mask_list = context.scene.mask_list
-
+        render_type = get_render_type()
+        mask_list = getattr(context.scene, f"{render_type}_mask_list")
         mask_list.remove(context.scene.mask_list_index)
 
-        if len(mask_list) > 0:
-            context.scene.mask_list_index = 0
-        else:
-            context.scene.mask_list_index = -1
+        context.scene.mask_list_index = 0
 
         return {"FINISHED"}
 
@@ -86,14 +97,18 @@ class MaskObjectListAddItem(Operator):
             return False
 
         mask_index = context.scene.mask_list_index
-        mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
+
+        render_type = get_render_type()
+        mask = getattr(context.scene, f"{render_type}_mask_properties{mask_index + 1}")
 
         # No object selected in the object dropdown
         return mask.object_dropdown != "NONE"
 
     def execute(self, context):
         mask_index = context.scene.mask_list_index
-        mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
+
+        render_type = get_render_type()
+        mask = getattr(context.scene, f"{render_type}_mask_properties{mask_index + 1}")
 
         selected_objects = [obj for obj in context.selected_objects]
         # There exists at least one selected object
@@ -164,12 +179,18 @@ class MaskObjectListRemoveItem(Operator):
     @classmethod
     def poll(cls, context):
         mask_index = context.scene.mask_list_index
-        mask_props = getattr(context.scene, f"mask_properties{mask_index + 1}")
+
+        render_type = get_render_type()
+        mask_props = getattr(
+            context.scene, f"{render_type}_mask_properties{mask_index + 1}"
+        )
         return mask_props.mask_objects
 
     def execute(self, context):
         mask_index = context.scene.mask_list_index
-        mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
+
+        render_type = get_render_type()
+        mask = getattr(context.scene, f"{render_type}_mask_properties{mask_index + 1}")
 
         if not mask.mask_objects:
             return {"CANCELLED"}
@@ -199,12 +220,19 @@ class MaskObjectListClearItems(Operator):
     @classmethod
     def poll(cls, context):
         mask_index = context.scene.mask_list_index
-        mask_props = getattr(context.scene, f"mask_properties{mask_index + 1}")
+
+        render_type = get_render_type()
+        mask_props = getattr(
+            context.scene, f"{render_type}_mask_properties{mask_index + 1}"
+        )
+
         return mask_props.mask_objects
 
     def execute(self, context):
         mask_index = context.scene.mask_list_index
-        mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
+
+        render_type = get_render_type()
+        mask = getattr(context.scene, f"{render_type}_mask_properties{mask_index + 1}")
 
         mask.mask_objects.clear()
         mask_objects[f"MASK{mask_index + 1}"].clear()

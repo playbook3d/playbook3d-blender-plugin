@@ -33,7 +33,8 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    Scene.mask_list = CollectionProperty(type=MaskListItem)
+    Scene.IMAGE_mask_list = CollectionProperty(type=MaskListItem)
+    Scene.VIDEO_mask_list = CollectionProperty(type=MaskListItem)
     Scene.mask_list_index = IntProperty(name="", default=0)
 
 
@@ -42,5 +43,6 @@ def unregister():
     for cls in classes:
         unregister_class(cls)
 
-    del Scene.mask_list
+    del Scene.IMAGE_mask_list
+    del Scene.VIDEO_mask_list
     del Scene.mask_list_index

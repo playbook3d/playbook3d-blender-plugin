@@ -1,5 +1,6 @@
 import bpy
 from .main_panels import MainPanel3D, MainPanelRender
+from ...properties import get_render_type
 from ...utilities import is_valid_image_file
 from .panel_utils import (
     PlaybookPanel3D,
@@ -145,7 +146,10 @@ def draw_advanced_settings_panel(context, layout):
 
 #
 def draw_mask_layout(scene, box):
-    property = getattr(scene, f"mask_properties{scene.mask_list_index + 1}")
+    render_type = get_render_type()
+    property = getattr(
+        scene, f"{render_type}_mask_properties{scene.mask_list_index + 1}"
+    )
 
     # Masks list
     create_label_row(box, "Masks")
@@ -156,7 +160,7 @@ def draw_mask_layout(scene, box):
         "PB_UL_CustomList",
         "Mask List",
         scene,
-        "mask_list",
+        f"{render_type}_mask_list",
         scene,
         "mask_list_index",
         sort_lock=True,

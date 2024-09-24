@@ -13,6 +13,7 @@ from .outline_render import render_outline_pass
 from .style_transfer_render import render_style_transfer_pass
 from .workspace import open_render_window
 from .objects import visible_objects
+from .properties import get_render_type
 from .visible_objects import (
     set_visible_objects,
     save_object_materials,
@@ -143,9 +144,11 @@ def get_retexture_settings() -> RetextureRenderSettings:
 
     retexture_props = scene.retexture_properties
 
+    render_type = get_render_type()
+
     mask_props = [
         MaskData(
-            getattr(scene, f"mask_properties{index + 1}").mask_prompt,
+            getattr(scene, f"{render_type}_mask_properties{index + 1}").mask_prompt,
             color_hex[f"MASK{index + 1}"],
         )
         for index in range(7)
