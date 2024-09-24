@@ -236,6 +236,7 @@ def render_image():
 
 
 def continue_render():
+    context = bpy.context
 
     clear_render_folder()
 

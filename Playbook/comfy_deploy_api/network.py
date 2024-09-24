@@ -7,6 +7,7 @@ from websockets.sync.client import connect
 from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
 from ..properties import prompt_placeholders
+import bpy
 
 workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
 base_model_dict = {"STABLE": 0, "FLUX": 1}
@@ -35,16 +36,16 @@ class MaskData:
 
 class RetextureRenderSettings:
     def __init__(
-        self,
-        prompt: str,
-        structure_strength: int,
-        mask1: MaskData,
-        mask2: MaskData,
-        mask3: MaskData,
-        mask4: MaskData,
-        mask5: MaskData,
-        mask6: MaskData,
-        mask7: MaskData,
+            self,
+            prompt: str,
+            structure_strength: int,
+            mask1: MaskData,
+            mask2: MaskData,
+            mask3: MaskData,
+            mask4: MaskData,
+            mask5: MaskData,
+            mask6: MaskData,
+            mask7: MaskData,
     ):
         self.prompt = prompt
         self.structure_strength = structure_strength
@@ -74,6 +75,7 @@ class ComfyDeployClient:
         self.outline: bytes = b""
         self.beauty: bytes = b""
         self.style_transfer: bytes = b""
+        self.user_alias: str = ""
 
         # Determine the path to the .env file
         env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
@@ -82,6 +84,33 @@ class ComfyDeployClient:
         load_dotenv(dotenv_path=env_path)
 
         self.url = os.getenv("BASE_URL")
+
+    def set_external_token(self, token: str):
+        self.user_alias = token
+
+    def send_authorized_request(self, endpoint: str, data: any, files: any) -> requests.Response:
+        alias_url = os.getenv("ALIAS_URL")
+        addon_prefs = bpy.context.preferences.addons["Playbook"].preferences
+        self.user_alias = addon_prefs.api_key
+        jwt_request = requests.get(alias_url + self.user_alias)
+
+        try:
+            if jwt_request is not None:
+                user_token = jwt_request.json()["access_token"]
+                render_result = requests.post(
+                    self.url + endpoint,
+                    data=data,
+                    files=files,
+                    headers={"Authorization": f"Bearer {user_token}"}
+                )
+
+                return render_result
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Alias request failed {e}")
+        except KeyError:
+            logging.error("Access token not found in response")
+        except json.decoder.JSONDecodeError as e:
+            logging.error(f"Invalid JSON response {e}")
 
     def get_workflow_id(self, workflow: int, base_model: int, style: int) -> int:
         # Format is '{workflow}_{base_model}_{style}'
@@ -108,10 +137,10 @@ class ComfyDeployClient:
 
     # Noting - in web repo, retexture and style transfer settings are combined into single RenderSettings. Should match
     async def run_workflow(
-        self,
-        global_settings: GlobalRenderSettings,
-        retexture_settings: RetextureRenderSettings,
-        style_transfer_settings: StyleTransferRenderSettings,
+            self,
+            global_settings: GlobalRenderSettings,
+            retexture_settings: RetextureRenderSettings,
+            style_transfer_settings: StyleTransferRenderSettings,
     ) -> str:
 
         if self.mask and self.depth and self.outline:
@@ -208,10 +237,9 @@ class ComfyDeployClient:
                         "depth": self.depth.decode("utf-8"),
                         "outline": self.outline.decode("utf-8"),
                     }
-                    render_result = requests.post(
-                        self.url + "/generative-retexture",
-                        data=render_input,
-                        files=files,
+                    render_result = self.send_authorized_request(
+                        "/generative-retexture",
+                        render_input, files
                     )
                     return render_result.json()
 
@@ -238,8 +266,9 @@ class ComfyDeployClient:
                         "style_transfer_image": self.style_transfer.decode("utf-8"),
                     }
 
-                    render_result = requests.post(
-                        self.url + "/style-transfer", data=render_input, files=files
+                    render_result = self.send_authorized_request(
+                        "/style-transfer",
+                        render_input, files
                     )
                     return render_result.json()
 

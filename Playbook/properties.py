@@ -93,6 +93,9 @@ class AuthProperties(PropertyGroup):
     def on_update_api_key(self, context):
         if not self.api_key:
             self.api_key = prompt_placeholders["API_Key"]
+            addon_prefs = context.preferences.addons[__name__].preferences
+            addon_prefs.api_key = self.api_key
+
 
     user_email: StringProperty(
         name="",

@@ -41,15 +41,23 @@ import bpy
 from . import ui
 from . import properties
 from . import operators
+from bpy.types import Operator, AddonPreferences
+from bpy.props import StringProperty
 
 
-class AddonPreference(bpy.types.AddonPreferences):
+class AddonPreference(AddonPreferences):
     bl_idname = __name__
+
+    api_key : StringProperty(
+        name="api key",
+        subtype="PASSWORD",
+        description="Your Playbook API Key"
+    )
 
     def draw(self, context):
         layout = self.layout
-
         layout.operator("op.reset_addon_settings", text="Reset Addon")
+        layout.prop(self, "api_key")
 
 
 def register():
