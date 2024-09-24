@@ -85,9 +85,6 @@ class ComfyDeployClient:
 
         self.url = os.getenv("BASE_URL")
 
-    def set_external_token(self, token: str):
-        self.user_alias = token
-
     def send_authorized_request(self, endpoint: str, data: any, files: any) -> requests.Response:
         alias_url = os.getenv("ALIAS_URL")
         addon_prefs = bpy.context.preferences.addons["Playbook"].preferences
