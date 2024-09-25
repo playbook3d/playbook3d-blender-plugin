@@ -335,7 +335,7 @@ class ComfyDeployClient:
             rendered_image = result.text
             print(f"Image found!: {rendered_image}")
         print(result)
-        if counter == 5 or result:
+        if counter == 30 or result:
             return None
         return 5.0
 
