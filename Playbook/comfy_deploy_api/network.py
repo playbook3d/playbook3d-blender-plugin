@@ -315,7 +315,7 @@ class ComfyDeployClient:
     def get_render_result(self):
         try:
             if self.run_id is not None:
-                run_uri = "http://127.0.0.1:5001" + "/render-result?run_id=" + self.run_id
+                run_uri = "https://dev-api.playbookengine.com" + "/render-result?run_id=" + self.run_id
                 print(f"Current run is {run_uri}")
                 rendered_img = requests.get(run_uri)
                 return rendered_img
