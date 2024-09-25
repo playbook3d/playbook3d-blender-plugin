@@ -263,7 +263,6 @@ def continue_render():
 
     return None
 
-
 def render_all_passes():
     # Render unmodified image
     render_beauty_pass()

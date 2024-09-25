@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -8,11 +9,15 @@ from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
 from ..properties import prompt_placeholders
 import bpy
+import socketio
+import _thread as thread
+import threading
 
 workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
 base_model_dict = {"STABLE": 0, "FLUX": 1}
 style_dict = {"PHOTOREAL": 0, "3DCARTOON": 1, "ANIME": 2}
 
+counter = 0
 
 def machine_id_status(machine_id: str):
     client = ComfyDeploy(bearer_auth="")
@@ -76,6 +81,8 @@ class ComfyDeployClient:
         self.beauty: bytes = b""
         self.style_transfer: bytes = b""
         self.user_alias: str = ""
+        self.user_token: str = ""
+        self.run_id: str = ""
 
         # Determine the path to the .env file
         env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
@@ -94,6 +101,7 @@ class ComfyDeployClient:
         try:
             if jwt_request is not None:
                 user_token = jwt_request.json()["access_token"]
+                self.user_token = user_token
                 render_result = requests.post(
                     self.url + endpoint,
                     data=data,
@@ -238,6 +246,15 @@ class ComfyDeployClient:
                         "/generative-retexture",
                         render_input, files
                     )
+                    self.run_id = render_result.json()["run_id"]
+                    playbook_ws = PlaybookWebsocket(self.user_token)
+                    retexture_result_thread = threading.Thread(target=playbook_ws.run)
+                    retexture_result_thread.start()
+                    retexture_result_thread.join()
+                    print(f"Current run id is {self.run_id}")
+
+                    bpy.app.timers.register(self.call_for_render_result, first_interval=5.0)
+
                     return render_result.json()
 
                 # Style Transfer
@@ -267,6 +284,15 @@ class ComfyDeployClient:
                         "/style-transfer",
                         render_input, files
                     )
+                    self.run_id = render_result.json()["run_id"]
+                    playbook_style_ws = PlaybookWebsocket(self.user_token)
+                    style_result_thread = threading.Thread(target=playbook_style_ws.run)
+                    style_result_thread.start()
+                    style_result_thread.join()
+                    print(f"Current run id is {self.run_id}")
+
+                    bpy.app.timers.register(self.call_for_render_result, first_interval=5.0)
+
                     return render_result.json()
 
                 # Workflow does not exist
@@ -286,11 +312,50 @@ class ComfyDeployClient:
             case "style_transfer":
                 self.style_transfer = image
 
+    def get_render_result(self):
+        try:
+            if self.run_id is not None:
+                run_uri = "http://127.0.0.1:5001" + "/render-result?run_id=" + self.run_id
+                print(f"Current run is {run_uri}")
+                rendered_img = requests.get(run_uri)
+                return rendered_img
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Result request failed {e}")
+        except KeyError:
+            logging.error("run_id not found in response")
+        except json.decoder.JSONDecodeError as e:
+            logging.error(f"Invalid JSON response {e}")
+
+    def call_for_render_result(self):
+        print("starting to get render result")
+        global counter
+        counter += 1
+        result = self.get_render_result()
+        if result:
+            rendered_image = result.text
+            print(f"Image found!: {rendered_image}")
+        print(result)
+        if counter == 5 or result:
+            return None
+        return 5.0
+
 
 class PlaybookWebsocket:
-    def __init__(self):
-        self.base_url = os.getenv("BASE_URL")
+    def __init__(self, jwt):
+        self.base_url = os.getenv("API_URL")
+        self.jwt = jwt
         self.websocket = None
+
+    def run(self):
+
+        playbook_ws = socketio.SimpleClient()
+        ws_uri = f"{self.base_url}&auth_token={self.jwt}"
+        playbook_ws.connect(ws_uri)
+        if playbook_ws.connected:
+            print("connected!")
+        event = playbook_ws.receive()
+        print(f"received {event[0]} {event[1]} from websocket")
+        self.websocket = playbook_ws
 
     async def websocket_message(self) -> str:
         try:

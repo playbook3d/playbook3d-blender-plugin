@@ -2,6 +2,7 @@ import bpy
 import webbrowser
 from .objects import mask_objects
 from .render_image import render_image
+from .comfy_deploy_api.network import ComfyDeployClient
 from .properties import prompt_placeholders
 from bpy.props import StringProperty
 from bpy.types import Operator
