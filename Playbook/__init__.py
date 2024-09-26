@@ -41,17 +41,18 @@ import bpy
 from . import ui
 from . import properties
 from . import operators
-from bpy.types import Operator, AddonPreferences
+from bpy.types import AddonPreferences
 from bpy.props import StringProperty
 
 
 class AddonPreference(AddonPreferences):
     bl_idname = __name__
 
-    api_key : StringProperty(
-        name="api key",
+    api_key: StringProperty(
+        name="API Key",
         subtype="PASSWORD",
-        description="Your Playbook API Key"
+        default="",
+        description="Your Playbook API Key",
     )
 
     def draw(self, context):

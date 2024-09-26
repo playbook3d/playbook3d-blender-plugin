@@ -1,5 +1,6 @@
 import bpy
 import os
+from .utilities import get_filepath
 
 original_settings = {}
 
@@ -36,7 +37,6 @@ def render_depth_to_file():
     render = scene.render
 
     dir = os.path.dirname(__file__)
-
     output_path = os.path.join(dir, "renders", "render_mist.png")
     render.filepath = output_path
 

@@ -44,8 +44,8 @@ class ResetAddonOperator(Operator):
 #
 class LoginOperator(Operator):
     bl_idname = "op.login"
-    bl_label = "Login"
-    bl_description = "Login to Playbook"
+    bl_label = "Logged in as Skylar"
+    bl_description = "Logged in"
 
     def execute(self, context):
         return {"FINISHED"}

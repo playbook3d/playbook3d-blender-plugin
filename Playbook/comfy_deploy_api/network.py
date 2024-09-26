@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 import os
@@ -8,6 +7,8 @@ from websockets.sync.client import connect
 from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
 from ..properties import prompt_placeholders
+from ..utilities import get_scaled_resolution_height
+from ..workspace import open_render_window
 import bpy
 import socketio
 import _thread as thread
@@ -18,6 +19,7 @@ base_model_dict = {"STABLE": 0, "FLUX": 1}
 style_dict = {"PHOTOREAL": 0, "3DCARTOON": 1, "ANIME": 2}
 
 counter = 0
+
 
 def machine_id_status(machine_id: str):
     client = ComfyDeploy(bearer_auth="")
@@ -41,16 +43,16 @@ class MaskData:
 
 class RetextureRenderSettings:
     def __init__(
-            self,
-            prompt: str,
-            structure_strength: int,
-            mask1: MaskData,
-            mask2: MaskData,
-            mask3: MaskData,
-            mask4: MaskData,
-            mask5: MaskData,
-            mask6: MaskData,
-            mask7: MaskData,
+        self,
+        prompt: str,
+        structure_strength: int,
+        mask1: MaskData,
+        mask2: MaskData,
+        mask3: MaskData,
+        mask4: MaskData,
+        mask5: MaskData,
+        mask6: MaskData,
+        mask7: MaskData,
     ):
         self.prompt = prompt
         self.structure_strength = structure_strength
@@ -92,7 +94,9 @@ class ComfyDeployClient:
 
         self.url = os.getenv("BASE_URL")
 
-    def send_authorized_request(self, endpoint: str, data: any, files: any) -> requests.Response:
+    def send_authorized_request(
+        self, endpoint: str, data: any, files: any
+    ) -> requests.Response:
         alias_url = os.getenv("ALIAS_URL")
         addon_prefs = bpy.context.preferences.addons["Playbook"].preferences
         self.user_alias = addon_prefs.api_key
@@ -106,7 +110,7 @@ class ComfyDeployClient:
                     self.url + endpoint,
                     data=data,
                     files=files,
-                    headers={"Authorization": f"Bearer {user_token}"}
+                    headers={"Authorization": f"Bearer {user_token}"},
                 )
 
                 return render_result
@@ -142,10 +146,10 @@ class ComfyDeployClient:
 
     # Noting - in web repo, retexture and style transfer settings are combined into single RenderSettings. Should match
     async def run_workflow(
-            self,
-            global_settings: GlobalRenderSettings,
-            retexture_settings: RetextureRenderSettings,
-            style_transfer_settings: StyleTransferRenderSettings,
+        self,
+        global_settings: GlobalRenderSettings,
+        retexture_settings: RetextureRenderSettings,
+        style_transfer_settings: StyleTransferRenderSettings,
     ) -> str:
 
         if self.mask and self.depth and self.outline:
@@ -196,8 +200,8 @@ class ComfyDeployClient:
                     render_input = {
                         "is_blender_plugin": 1,
                         "workflow_id": workflow_id,
-                        "width": 768,
-                        "height": 768,
+                        "width": 512,
+                        "height": get_scaled_resolution_height(512),
                         "scene_prompt": retexture_settings.prompt,
                         "structure_strength_depth": clamped_retexture_depth,
                         "structure_strength_outline": clamped_retexture_outline,
@@ -243,8 +247,7 @@ class ComfyDeployClient:
                         "outline": self.outline.decode("utf-8"),
                     }
                     render_result = self.send_authorized_request(
-                        "/generative-retexture",
-                        render_input, files
+                        "/generative-retexture", render_input, files
                     )
                     self.run_id = render_result.json()["run_id"]
                     playbook_ws = PlaybookWebsocket(self.user_token)
@@ -253,7 +256,9 @@ class ComfyDeployClient:
                     retexture_result_thread.join()
                     print(f"Current run id is {self.run_id}")
 
-                    bpy.app.timers.register(self.call_for_render_result, first_interval=5.0)
+                    bpy.app.timers.register(
+                        self.call_for_render_result, first_interval=5.0
+                    )
 
                     return render_result.json()
 
@@ -262,8 +267,8 @@ class ComfyDeployClient:
                     render_input = {
                         "is_blender_plugin": 1,
                         "workflow_id": workflow_id,
-                        "width": 768,
-                        "height": 768,
+                        "width": 512,
+                        "height": get_scaled_resolution_height(512),
                         "style_transfer_strength": clamped_style_transfer_strength,
                         "structure_strength_depth": clamped_style_transfer_depth,
                         "structure_strength_outline": clamped_style_transfer_outline,
@@ -281,8 +286,7 @@ class ComfyDeployClient:
                     }
 
                     render_result = self.send_authorized_request(
-                        "/style-transfer",
-                        render_input, files
+                        "/style-transfer", render_input, files
                     )
                     self.run_id = render_result.json()["run_id"]
                     playbook_style_ws = PlaybookWebsocket(self.user_token)
@@ -291,7 +295,9 @@ class ComfyDeployClient:
                     style_result_thread.join()
                     print(f"Current run id is {self.run_id}")
 
-                    bpy.app.timers.register(self.call_for_render_result, first_interval=5.0)
+                    bpy.app.timers.register(
+                        self.call_for_render_result, first_interval=5.0
+                    )
 
                     return render_result.json()
 
@@ -299,6 +305,7 @@ class ComfyDeployClient:
                 case _:
                     logging.error("Workflow input not valid")
 
+    #
     def save_image(self, image: bytes, pass_type: str):
         match pass_type:
             case "mask":
@@ -312,10 +319,15 @@ class ComfyDeployClient:
             case "style_transfer":
                 self.style_transfer = image
 
+    #
     def get_render_result(self):
         try:
             if self.run_id is not None:
-                run_uri = "https://dev-api.playbookengine.com" + "/render-result?run_id=" + self.run_id
+                run_uri = (
+                    "https://dev-api.playbookengine.com"
+                    + "/render-result?run_id="
+                    + self.run_id
+                )
                 print(f"Current run is {run_uri}")
                 rendered_img = requests.get(run_uri)
                 return rendered_img
@@ -326,6 +338,7 @@ class ComfyDeployClient:
         except json.decoder.JSONDecodeError as e:
             logging.error(f"Invalid JSON response {e}")
 
+    #
     def call_for_render_result(self):
         print("starting to get render result")
         global counter
@@ -333,6 +346,9 @@ class ComfyDeployClient:
         result = self.get_render_result()
         if result:
             rendered_image = result.text
+
+            open_render_window(rendered_image)
+
             print(f"Image found!: {rendered_image}")
         print(result)
         if counter == 30 or result:
