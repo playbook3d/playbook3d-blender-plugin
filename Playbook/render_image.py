@@ -201,21 +201,21 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
         global_settings, retexture_settings, style_settings
     )
 
+    if response == "Error":
+        return False
+
     print(f"Response: {response}")
+    return True
 
 
-#
 def start_render_thread():
     render_thread = threading.Thread(target=render_image)
     render_thread.start()
-    render_thread.join()
 
 
 # Render the image from the active camera
 def render_image():
     scene = bpy.context.scene
-
-    # asyncio.run(PlaybookWebsocket().websocket_message())
 
     set_visible_objects(bpy.context)
 
@@ -229,6 +229,7 @@ def render_image():
 
 
 def continue_render():
+
     clear_render_folder()
 
     save_object_materials()
@@ -245,7 +246,12 @@ def continue_render():
 
     comfy = ComfyDeployClient()
     set_comfy_images(comfy)
-    asyncio.run(run_comfy_workflow(comfy))
+    was_successful = asyncio.run(run_comfy_workflow(comfy))
+
+    if not was_successful:
+        scene = bpy.context.scene
+        scene.error_message = "The API key could not be found."
+        scene.is_rendering = False
 
     return None
 

@@ -79,8 +79,8 @@ angle_options = [
 upscale_options = [("1", "1x", ""), ("2", "2x", ""), ("4", "4x", "")]
 
 render_stats = {
-    "STABLE": {"Resolution": "1024 x 1024", "Time": "15s - 30s", "Cost": "10"},
-    "FLUX": {"Resolution": "960 x 960", "Time": "45s - 1m", "Cost": "30"},
+    "STABLE": {"Resolution": "960 x 960", "Time": "15s - 30s", "Cost": "10"},
+    "FLUX": {"Resolution": "1024 x 1024", "Time": "45s - 1m", "Cost": "30"},
 }
 
 
@@ -95,7 +95,6 @@ class AuthProperties(PropertyGroup):
             self.api_key = prompt_placeholders["API_Key"]
             addon_prefs = context.preferences.addons[__name__].preferences
             addon_prefs.api_key = self.api_key
-
 
     user_email: StringProperty(
         name="",
@@ -128,12 +127,19 @@ class GlobalProperties(PropertyGroup):
     def on_update_workflow(self, context):
         context.scene.show_retexture_panel = self.global_workflow == "RETEXTURE"
 
+    def on_update_model(self, context):
+        self.global_style = styles_in_model[self.global_model][0]
+
     global_workflow: EnumProperty(
         name="",
         items=workflows,
         update=lambda self, context: self.on_update_workflow(context),
     )
-    global_model: EnumProperty(name="", items=base_models)
+    global_model: EnumProperty(
+        name="",
+        items=base_models,
+        update=lambda self, context: self.on_update_model(context),
+    )
     global_style: EnumProperty(
         name="",
         items=get_prompt_styles,

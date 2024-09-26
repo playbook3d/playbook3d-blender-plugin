@@ -7,7 +7,7 @@ from websockets.sync.client import connect
 from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
 from ..properties import prompt_placeholders
-from ..utilities import get_scaled_resolution_height
+from ..utilities import get_scale_resolution_width
 from ..workspace import open_render_window
 import bpy
 import socketio
@@ -18,7 +18,12 @@ workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
 base_model_dict = {"STABLE": 0, "FLUX": 1}
 style_dict = {"PHOTOREAL": 0, "3DCARTOON": 1, "ANIME": 2}
 
+model_resolution_heights = {"STABLE": 768, "FLUX": 1024}
+
 counter = 0
+
+RENDER_RESULT_CHECK_INTERVAL = 10
+RENDER_RESULT_ATTEMPT_LIMIT = 15
 
 
 def machine_id_status(machine_id: str):
@@ -151,15 +156,17 @@ class ComfyDeployClient:
         retexture_settings: RetextureRenderSettings,
         style_transfer_settings: StyleTransferRenderSettings,
     ) -> str:
+        if not self.mask or not self.depth or not self.outline:
+            return "Error"
 
-        if self.mask and self.depth and self.outline:
+        try:
+            global counter
+            counter = 0
+
             # These are determined by UI selection:
             logging.info(f"Current workflow selection: {global_settings.workflow}")
-            print(f"Current workflow selection: {global_settings.workflow}")
             logging.info(f"Current base model: {global_settings.base_model}")
-            print(f"Current base model: {global_settings.base_model}")
             logging.info(f"Current style: {global_settings.style}")
-            print(f"Current style: {global_settings.style}")
 
             clamped_retexture_depth = np_clamp(
                 retexture_settings.structure_strength, 0.6, 1.0
@@ -184,7 +191,6 @@ class ComfyDeployClient:
                 style_dict[global_settings.style],
             )
             logging.info(f"RUNNING WORKFLOW: {workflow_id}")
-            print(f"RUNNING WORKFLOW: {workflow_id}")
 
             mask_prompt_1 = retexture_settings.mask1.mask_prompt
             mask_prompt_2 = retexture_settings.mask2.mask_prompt
@@ -200,8 +206,10 @@ class ComfyDeployClient:
                     render_input = {
                         "is_blender_plugin": 1,
                         "workflow_id": workflow_id,
-                        "width": 512,
-                        "height": get_scaled_resolution_height(512),
+                        "width": get_scale_resolution_width(
+                            model_resolution_heights[global_settings.base_model]
+                        ),
+                        "height": model_resolution_heights[global_settings.base_model],
                         "scene_prompt": retexture_settings.prompt,
                         "structure_strength_depth": clamped_retexture_depth,
                         "structure_strength_outline": clamped_retexture_outline,
@@ -254,10 +262,10 @@ class ComfyDeployClient:
                     retexture_result_thread = threading.Thread(target=playbook_ws.run)
                     retexture_result_thread.start()
                     retexture_result_thread.join()
-                    print(f"Current run id is {self.run_id}")
 
                     bpy.app.timers.register(
-                        self.call_for_render_result, first_interval=5.0
+                        self.call_for_render_result,
+                        first_interval=RENDER_RESULT_CHECK_INTERVAL,
                     )
 
                     return render_result.json()
@@ -267,8 +275,10 @@ class ComfyDeployClient:
                     render_input = {
                         "is_blender_plugin": 1,
                         "workflow_id": workflow_id,
-                        "width": 512,
-                        "height": get_scaled_resolution_height(512),
+                        "width": get_scale_resolution_width(
+                            model_resolution_heights[global_settings.base_model]
+                        ),
+                        "height": model_resolution_heights[global_settings.base_model],
                         "style_transfer_strength": clamped_style_transfer_strength,
                         "structure_strength_depth": clamped_style_transfer_depth,
                         "structure_strength_outline": clamped_style_transfer_outline,
@@ -293,10 +303,10 @@ class ComfyDeployClient:
                     style_result_thread = threading.Thread(target=playbook_style_ws.run)
                     style_result_thread.start()
                     style_result_thread.join()
-                    print(f"Current run id is {self.run_id}")
 
                     bpy.app.timers.register(
-                        self.call_for_render_result, first_interval=5.0
+                        self.call_for_render_result,
+                        first_interval=RENDER_RESULT_CHECK_INTERVAL,
                     )
 
                     return render_result.json()
@@ -304,6 +314,9 @@ class ComfyDeployClient:
                 # Workflow does not exist
                 case _:
                     logging.error("Workflow input not valid")
+        except Exception as e:
+            print(f"Error occurred while running workflow: {e}")
+            return "Error"
 
     #
     def save_image(self, image: bytes, pass_type: str):
@@ -340,7 +353,6 @@ class ComfyDeployClient:
 
     #
     def call_for_render_result(self):
-        print("starting to get render result")
         global counter
         counter += 1
         result = self.get_render_result()
@@ -350,10 +362,9 @@ class ComfyDeployClient:
             open_render_window(rendered_image)
 
             print(f"Image found!: {rendered_image}")
-        print(result)
-        if counter == 30 or result:
+        if counter == RENDER_RESULT_ATTEMPT_LIMIT or result:
             return None
-        return 5.0
+        return RENDER_RESULT_CHECK_INTERVAL
 
 
 class PlaybookWebsocket:

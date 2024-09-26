@@ -24,6 +24,22 @@ def get_filepath(filename, folder=""):
 
 #
 def get_scaled_resolution_height(width: int):
+    final_resolutions = get_final_resolutions()
+
+    resolution_scale = width / final_resolutions["x"]
+    return math.ceil(final_resolutions["y"] * resolution_scale)
+
+
+#
+def get_scale_resolution_width(height: int):
+    final_resolutions = get_final_resolutions()
+
+    resolution_scale = height / final_resolutions["y"]
+    return math.ceil(final_resolutions["x"] * resolution_scale)
+
+
+#
+def get_final_resolutions():
     render = bpy.context.scene.render
     resolution_x = render.resolution_x
     resolution_y = render.resolution_y
@@ -32,8 +48,7 @@ def get_scaled_resolution_height(width: int):
     final_resolution_x = resolution_x * (resolution_percentage / 100)
     final_resolution_y = resolution_y * (resolution_percentage / 100)
 
-    resolution_scale = width / final_resolution_x
-    return math.ceil(final_resolution_y * resolution_scale)
+    return {"x": final_resolution_x, "y": final_resolution_y}
 
 
 # Create a new simple RGB material

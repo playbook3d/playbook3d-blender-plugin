@@ -49,7 +49,6 @@ class AddonPreference(AddonPreferences):
 
     api_key: StringProperty(
         name="API Key",
-        subtype="PASSWORD",
         default="",
         description="Your Playbook API Key",
     )
