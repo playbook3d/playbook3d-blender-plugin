@@ -2,11 +2,27 @@ import bpy
 import webbrowser
 from .objects import mask_objects
 from .render_image import render_image
+from .comfy_deploy_api.network import ComfyDeployClient
 from .properties import prompt_placeholders
 from bpy.props import StringProperty
 from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
 from bpy.app.handlers import persistent
+
+
+class AddonDocumentationOperator(Operator):
+    bl_idname = "op.addon_documentation"
+    bl_label = "Documentation"
+    bl_description = "Open Playbook's documentation in the web browser."
+
+    url: StringProperty(
+        name="",
+        default="https://www.notion.so/playbook3d/Playbook-Docs-7685fd10b604486c81616f43976be5e6?pvs=4",
+    )
+
+    def execute(self, context):
+        webbrowser.open(self.url)
+        return {"FINISHED"}
 
 
 class ResetAddonOperator(Operator):
@@ -28,7 +44,7 @@ class ResetAddonOperator(Operator):
         scene.retexture_properties.retexture_structure_strength = 50
 
         # Style Transfer Properties
-        scene.style_properties.style_image = None
+        scene.style_properties.style_image = ""
         scene.style_properties.style_strength = 50
 
         # Mask Properties
@@ -43,8 +59,8 @@ class ResetAddonOperator(Operator):
 #
 class LoginOperator(Operator):
     bl_idname = "op.login"
-    bl_label = "Login"
-    bl_description = "Login to Playbook"
+    bl_label = "Logged in as Skylar"
+    bl_description = "Logged in"
 
     def execute(self, context):
         return {"FINISHED"}
@@ -174,6 +190,7 @@ class ClearRelightImageOperator(Operator):
 
 
 classes = [
+    AddonDocumentationOperator,
     LoginOperator,
     UpgradeOperator,
     RandomizePromptOperator,

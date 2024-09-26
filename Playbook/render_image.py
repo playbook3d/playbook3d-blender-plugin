@@ -1,17 +1,12 @@
 import asyncio
-import io
-import pstats
 import bpy
 import os
 import threading
-import cProfile
 import base64
 from .beauty_render import render_beauty_pass
 from .mask_render import render_mask_pass
 from .depth_render import render_depth_pass
 from .outline_render import render_outline_pass
-from .style_transfer_render import render_style_transfer_pass
-from .workspace import open_render_window
 from .objects import visible_objects
 from .visible_objects import (
     set_visible_objects,
@@ -26,7 +21,6 @@ from .comfy_deploy_api.network import (
     MaskData,
     StyleTransferRenderSettings,
     ComfyDeployClient,
-    PlaybookWebsocket,
 )
 
 # VARIABLES
@@ -37,8 +31,9 @@ api_url = os.getenv("API_URL")
 def error_exists_in_flow(scene) -> bool:
     # [workflow, condition for error message]
     workflow_checks = {
-        "EMAIL": scene.auth_properties.user_email == "Email",
-        "APIKEY": scene.auth_properties.api_key == "API key",
+        # "EMAIL": scene.auth_properties.user_email == "Email",
+        "APIKEY": bpy.context.preferences.addons.get("Playbook").preferences.api_key
+        == "",
         "VISIBLEOBJECT": not visible_objects,
     }
 
@@ -70,7 +65,6 @@ def error_exists_in_flow(scene) -> bool:
 #
 def clear_render_folder():
     dir = os.path.dirname(__file__)
-
     folder_path = os.path.join(dir, "renders")
 
     if os.path.exists(folder_path):
@@ -86,7 +80,6 @@ def clear_render_folder():
 #
 def clean_up_files():
     dir = os.path.dirname(__file__)
-
     folder_path = os.path.join(dir, "renders")
 
     if os.path.exists(folder_path):
@@ -236,7 +229,6 @@ def render_image():
 
 
 def continue_render():
-
     clear_render_folder()
 
     save_object_materials()
@@ -249,16 +241,11 @@ def continue_render():
 
     reset_object_materials()
 
-    # Open the render workspace
-    open_render_window()
-
     clean_up_files()
 
     comfy = ComfyDeployClient()
     set_comfy_images(comfy)
     asyncio.run(run_comfy_workflow(comfy))
-
-    bpy.context.scene.is_rendering = False
 
     return None
 

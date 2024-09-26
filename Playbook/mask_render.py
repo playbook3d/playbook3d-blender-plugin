@@ -1,6 +1,7 @@
 import bpy
 import os
 from .visible_objects import set_object_materials_for_mask_pass
+from .utilities import get_filepath
 
 original_settings = {}
 
@@ -64,9 +65,7 @@ def render_mask_to_file():
     scene = bpy.context.scene
     render = scene.render
 
-    dir = os.path.dirname(__file__)
-
-    output_path = os.path.join(dir, "renders", "mask.png")
+    output_path = get_filepath("mask.png", "renders")
     render.filepath = output_path
 
     if scene.camera:

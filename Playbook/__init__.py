@@ -6,7 +6,6 @@ bl_info = {
     "version": (0, 0, 0),
     "blender": (4, 0, 0),
     "category": "Render",
-    "doc_url": "https://www.playbook3d.com",
 }
 
 import sys
@@ -41,15 +40,25 @@ import bpy
 from . import ui
 from . import properties
 from . import operators
+from bpy.types import AddonPreferences
+from bpy.props import StringProperty
 
 
-class AddonPreference(bpy.types.AddonPreferences):
+class AddonPreference(AddonPreferences):
     bl_idname = __name__
+
+    api_key: StringProperty(
+        name="API Key",
+        subtype="PASSWORD",
+        default="",
+        description="Your Playbook API Key",
+    )
 
     def draw(self, context):
         layout = self.layout
-
-        layout.operator("op.reset_addon_settings", text="Reset Addon")
+        layout.operator("op.addon_documentation")
+        layout.operator("op.reset_addon_settings")
+        layout.prop(self, "api_key")
 
 
 def register():
