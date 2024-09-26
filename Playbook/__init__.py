@@ -6,7 +6,6 @@ bl_info = {
     "version": (0, 0, 0),
     "blender": (4, 0, 0),
     "category": "Render",
-    "doc_url": "https://www.playbook3d.com",
 }
 
 import sys
@@ -57,7 +56,8 @@ class AddonPreference(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("op.reset_addon_settings", text="Reset Addon")
+        layout.operator("op.addon_documentation")
+        layout.operator("op.reset_addon_settings")
         layout.prop(self, "api_key")
 
 

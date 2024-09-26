@@ -10,6 +10,21 @@ from bpy.utils import register_class, unregister_class
 from bpy.app.handlers import persistent
 
 
+class AddonDocumentationOperator(Operator):
+    bl_idname = "op.addon_documentation"
+    bl_label = "Documentation"
+    bl_description = "Open Playbook's documentation in the web browser."
+
+    url: StringProperty(
+        name="",
+        default="https://www.notion.so/playbook3d/Playbook-Docs-7685fd10b604486c81616f43976be5e6?pvs=4",
+    )
+
+    def execute(self, context):
+        webbrowser.open(self.url)
+        return {"FINISHED"}
+
+
 class ResetAddonOperator(Operator):
     bl_idname = "op.reset_addon_settings"
     bl_label = "Reset Addon"
@@ -29,7 +44,7 @@ class ResetAddonOperator(Operator):
         scene.retexture_properties.retexture_structure_strength = 50
 
         # Style Transfer Properties
-        scene.style_properties.style_image = None
+        scene.style_properties.style_image = ""
         scene.style_properties.style_strength = 50
 
         # Mask Properties
@@ -175,6 +190,7 @@ class ClearRelightImageOperator(Operator):
 
 
 classes = [
+    AddonDocumentationOperator,
     LoginOperator,
     UpgradeOperator,
     RandomizePromptOperator,
