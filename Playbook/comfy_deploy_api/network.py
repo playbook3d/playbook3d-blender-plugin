@@ -251,14 +251,14 @@ class ComfyDeployClient:
                         "/generative-retexture", render_input, files
                     )
                     self.run_id = render_result.json()["run_id"]
-                    playbook_ws = PlaybookWebsocket(self.user_token)
-                    retexture_result_thread = threading.Thread(target=playbook_ws.run)
-                    retexture_result_thread.start()
-                    retexture_result_thread.join()
                     print(f"Current run id is {self.run_id}")
 
                     bpy.app.timers.register(
                         self.call_for_render_result, first_interval=5.0
+                    )
+
+                    bpy.app.timers.register(
+                        self.call_for_render_status(), first_interval=5.0
                     )
 
                     return render_result.json()
@@ -290,14 +290,14 @@ class ComfyDeployClient:
                         "/style-transfer", render_input, files
                     )
                     self.run_id = render_result.json()["run_id"]
-                    playbook_style_ws = PlaybookWebsocket(self.user_token)
-                    style_result_thread = threading.Thread(target=playbook_style_ws.run)
-                    style_result_thread.start()
-                    style_result_thread.join()
                     print(f"Current run id is {self.run_id}")
 
                     bpy.app.timers.register(
                         self.call_for_render_result, first_interval=5.0
+                    )
+
+                    bpy.app.timers.register(
+                        self.call_for_render_status(), first_interval=5.0
                     )
 
                     return render_result.json()
