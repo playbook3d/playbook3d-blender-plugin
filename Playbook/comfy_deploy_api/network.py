@@ -18,7 +18,8 @@ workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
 base_model_dict = {"STABLE": 0, "FLUX": 1}
 style_dict = {"PHOTOREAL": 0, "3DCARTOON": 1, "ANIME": 2}
 
-counter = 0
+status_counter = 0
+result_counter = 0
 
 
 def machine_id_status(machine_id: str):
@@ -341,8 +342,8 @@ class ComfyDeployClient:
     #
     def call_for_render_result(self):
         print("starting to get render result")
-        global counter
-        counter += 1
+        global result_counter
+        result_counter += 1
         result = self.get_render_result()
         if result:
             rendered_image = result.text
@@ -351,9 +352,38 @@ class ComfyDeployClient:
 
             print(f"Image found!: {rendered_image}")
         print(result)
-        if counter == 30 or result:
+        if result_counter == 30 or result:
             return None
         return 5.0
+
+    def get_render_status(self):
+        try:
+            if self.run_id is not None:
+                run_uri = (
+                    "https://dev-api.playbookengine.com"
+                    + "/render-status?run_id="
+                    + self.run_id
+                )
+                render_result = requests.get(run_uri)
+                return render_result
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Result request failed {e}")
+        except KeyError:
+            logging.error("run_id not found in response")
+        except json.decoder.JSONDecodeError as e:
+            logging.error(f"Invalid JSON response {e}")
+
+    def call_for_render_status(self):
+        print("starting to get render status")
+        global status_counter
+        status_counter += 1
+        status = self.get_render_status()
+        if status:
+        #TODO: Add logic to display status
+            print(f"Run found with status: {status}")
+        if status_counter == 50 or status is "success":
+            return None
+        return 2.0
 
 
 class PlaybookWebsocket:
