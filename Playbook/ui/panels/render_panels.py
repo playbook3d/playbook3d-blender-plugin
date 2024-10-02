@@ -27,11 +27,11 @@ def draw_render_panel(context, layout):
     column2.label(text=render_stats[model]["Time"])
     column2.label(text=render_stats[model]["Cost"])
 
-    row1 = box.row()
-    row1.scale_y = 1.75
-    row1.separator(factor=BOX_PADDING)
-    row1.operator("op.queue")
-    row1.separator(factor=BOX_PADDING)
+    # row1 = box.row()
+    # row1.scale_y = 1.75
+    # row1.separator(factor=BOX_PADDING)
+    # row1.operator("op.queue")
+    # row1.separator(factor=BOX_PADDING)
 
     row2 = box.row()
     row2.scale_y = 1.75

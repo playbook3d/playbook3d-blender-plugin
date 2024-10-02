@@ -45,7 +45,7 @@ class MainPanelRender(PlaybookPanelRender, bpy.types.Panel):
 ########## CREDENTIALS PANEL ##########
 def draw_credentials_panel(context, layout):
     scene = context.scene
-    auth_props = scene.auth_properties
+    user_props = scene.user_properties
 
     box = layout.box()
     box.separator(factor=BOX_PADDING)
@@ -54,7 +54,7 @@ def draw_credentials_panel(context, layout):
     row3.scale_y = 1.8
     row3.active_default = True
     row3.separator(factor=BOX_PADDING)
-    row3.operator("op.login")
+    row3.operator("op.login", text=f"Logged in as {user_props.user_email}")
     row3.separator(factor=BOX_PADDING)
 
     row4 = box.row()
@@ -65,7 +65,9 @@ def draw_credentials_panel(context, layout):
 
     row5 = box.row()
     row5.alignment = "CENTER"
-    row5.label(text="100 credits remaining")
+    row5.label(
+        text=f"{'Unlimited' if user_props.user_credits <= -1 else user_props.user_credits} credits remaining"
+    )
 
     box.separator(factor=BOX_PADDING)
 

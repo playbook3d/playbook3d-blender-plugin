@@ -11,6 +11,7 @@ bl_info = {
 import sys
 import subprocess
 import os
+import asyncio
 
 
 def install_packages():
@@ -40,6 +41,7 @@ import bpy
 from . import ui
 from . import properties
 from . import operators
+from .network_utilities import get_user_info
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty
 
@@ -47,10 +49,19 @@ from bpy.props import StringProperty
 class AddonPreference(AddonPreferences):
     bl_idname = __name__
 
+    def on_api_key_updated(self, context):
+        if not self.api_key:
+            return
+
+        user_info = get_user_info(self.api_key)
+        context.scene.user_properties.user_email = user_info["email"]
+        context.scene.user_properties.user_credits = user_info["credits"]
+
     api_key: StringProperty(
         name="API Key",
         default="",
         description="Your Playbook API Key",
+        update=lambda self, context: self.on_api_key_updated(context),
     )
 
     def draw(self, context):

@@ -1,3 +1,4 @@
+import bpy
 from bpy.props import (
     PointerProperty,
     IntProperty,
@@ -85,27 +86,13 @@ render_stats = {
 
 
 #
-class AuthProperties(PropertyGroup):
-    def on_update_user_email(self, context):
-        if not self.user_email:
-            self.user_email = prompt_placeholders["Email"]
-
-    def on_update_api_key(self, context):
-        if not self.api_key:
-            self.api_key = prompt_placeholders["API_Key"]
-            addon_prefs = context.preferences.addons[__name__].preferences
-            addon_prefs.api_key = self.api_key
-
+class UserProperties(PropertyGroup):
     user_email: StringProperty(
         name="",
-        default="Email",
-        update=lambda self, context: self.on_update_user_email(context),
+        default="User",
     )
-    api_key: StringProperty(
-        name="",
-        default="API key",
-        update=lambda self, context: self.on_update_api_key(context),
-    )
+
+    user_credits: IntProperty(name="")
 
 
 #
@@ -315,8 +302,25 @@ class FlagProperties(PropertyGroup):
     upscale_flag: BoolProperty(name="", default=False)
 
 
+def get_user_credits() -> int:
+    user_props = bpy.context.scene.user_properties
+
+    if user_props:
+        return user_props.user_credits
+
+    # -1 is reserved for unlimited credits
+    return -2
+
+
+def set_user_credits(credits: int) -> None:
+    user_props = bpy.context.scene.user_properties
+
+    if user_props:
+        user_props.user_credits = credits
+
+
 classes = [
-    AuthProperties,
+    UserProperties,
     GlobalProperties,
     RetextureProperties,
     MaskProperties,
@@ -332,7 +336,7 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    Scene.auth_properties = PointerProperty(type=AuthProperties)
+    Scene.user_properties = PointerProperty(type=UserProperties)
     Scene.global_properties = PointerProperty(type=GlobalProperties)
     Scene.retexture_properties = PointerProperty(type=RetextureProperties)
     Scene.style_properties = PointerProperty(type=StyleProperties)
@@ -357,7 +361,7 @@ def unregister():
     for cls in classes:
         unregister_class(cls)
 
-    del Scene.auth_properties
+    del Scene.user_properties
     del Scene.global_properties
     del Scene.retexture_properties
     del Scene.style_properties

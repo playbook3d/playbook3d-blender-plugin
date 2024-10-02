@@ -59,7 +59,7 @@ class ResetAddonOperator(Operator):
 #
 class LoginOperator(Operator):
     bl_idname = "op.login"
-    bl_label = "Logged in as Skylar"
+    bl_label = "Logged in as"
     bl_description = "Logged in"
 
     def execute(self, context):

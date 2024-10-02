@@ -1,14 +1,17 @@
 import json
 import logging
 import os
+import base64
 import requests
+import urllib.parse
 import numpy as np
 from websockets.sync.client import connect
 from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
-from ..properties import prompt_placeholders
-from ..utilities import get_scale_resolution_width
+from ..properties import get_user_credits, set_user_credits, prompt_placeholders
+from ..utilities import get_scale_resolution_width, get_api_key
 from ..workspace import open_render_window
+from ..network_utilities import get_user_info
 import bpy
 import socketio
 import _thread as thread
@@ -20,7 +23,9 @@ style_dict = {"PHOTOREAL": 0, "3DCARTOON": 1, "ANIME": 2}
 
 model_resolution_heights = {"STABLE": 768, "FLUX": 1024}
 
+check_for_credits = False
 counter = 0
+num_credits = 0
 
 RENDER_RESULT_CHECK_INTERVAL = 10
 RENDER_RESULT_ATTEMPT_LIMIT = 15
@@ -103,8 +108,7 @@ class ComfyDeployClient:
         self, endpoint: str, data: any, files: any
     ) -> requests.Response:
         alias_url = os.getenv("ALIAS_URL")
-        addon_prefs = bpy.context.preferences.addons["Playbook"].preferences
-        self.user_alias = addon_prefs.api_key
+        self.user_alias = get_api_key()
         jwt_request = requests.get(alias_url + self.user_alias)
 
         try:
@@ -160,8 +164,10 @@ class ComfyDeployClient:
             return "Error"
 
         try:
-            global counter
+            global counter, num_credits, check_for_credits
             counter = 0
+            num_credits = get_user_credits()
+            check_for_credits = True
 
             # These are determined by UI selection:
             logging.info(f"Current workflow selection: {global_settings.workflow}")
@@ -353,9 +359,17 @@ class ComfyDeployClient:
 
     #
     def call_for_render_result(self):
-        global counter
+        global counter, num_credits, check_for_credits
         counter += 1
         result = self.get_render_result()
+        user_info = get_user_info(get_api_key())
+
+        if check_for_credits:
+            if num_credits not in {-1, -2}:
+                if num_credits != user_info["credits"]:
+                    set_user_credits(user_info["credits"])
+                    check_for_credits = False
+
         if result:
             rendered_image = result.text
 
