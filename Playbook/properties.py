@@ -79,9 +79,9 @@ angle_options = [
 # Available upscale options
 upscale_options = [("1", "1x", ""), ("2", "2x", ""), ("4", "4x", "")]
 
-render_stats = {
-    "STABLE": {"Height": 768, "Time": "15s - 30s", "Cost": "10"},
-    "FLUX": {"Height": 1024, "Time": "45s - 1m", "Cost": "30"},
+model_render_stats = {
+    "STABLE": {"Height": 768, "Time": "15s - 30s", "Cost": 10},
+    "FLUX": {"Height": 1024, "Time": "45s - 1m", "Cost": 30},
 }
 
 
@@ -301,6 +301,7 @@ class FlagProperties(PropertyGroup):
     upscale_flag: BoolProperty(name="", default=False)
 
 
+#
 def get_user_credits() -> int:
     user_props = bpy.context.scene.user_properties
 
@@ -311,11 +312,17 @@ def get_user_credits() -> int:
     return -2
 
 
+#
 def set_user_credits(credits: int) -> None:
     user_props = bpy.context.scene.user_properties
 
     if user_props:
         user_props.user_credits = credits
+
+
+#
+def set_render_status(string: str) -> None:
+    bpy.context.scene.render_status = string.capitalize()
 
 
 classes = [
@@ -343,6 +350,7 @@ def register():
     Scene.upscale_properties = PointerProperty(type=UpscaleProperties)
     Scene.flag_properties = PointerProperty(type=FlagProperties)
     Scene.error_message = StringProperty(default="")
+    Scene.render_status = StringProperty(default="")
     Scene.show_retexture_panel = BoolProperty(default=True)
     Scene.show_object_dropdown = BoolProperty(default=False)
     Scene.is_rendering = BoolProperty(default=False)
@@ -368,6 +376,7 @@ def unregister():
     del Scene.upscale_properties
     del Scene.flag_properties
     del Scene.error_message
+    del Scene.render_status
     del Scene.show_retexture_panel
     del Scene.show_object_dropdown
     del Scene.is_rendering

@@ -1,6 +1,6 @@
 import bpy
 from .main_panels import MainPanel3D, MainPanelRender
-from ...properties import render_stats
+from ...properties import model_render_stats
 from ...utilities import get_scale_resolution_width
 from .panel_utils import PlaybookPanel3D, BOX_PADDING, PlaybookPanelRender
 
@@ -10,6 +10,7 @@ def draw_render_panel(context, layout):
     box = layout.box()
     box.separator(factor=BOX_PADDING)
 
+    scene = context.scene
     model = context.scene.global_properties.global_model
 
     row = box.row()
@@ -24,37 +25,33 @@ def draw_render_panel(context, layout):
 
     column2 = split.column(align=True)
     column2.alignment = "RIGHT"
-    height = render_stats[model]["Height"]
+    height = model_render_stats[model]["Height"]
     width = get_scale_resolution_width(height)
+    cost = model_render_stats[model]["Cost"]
     column2.label(text=f"{width} x {height}")
-    column2.label(text=render_stats[model]["Time"])
-    column2.label(text=render_stats[model]["Cost"])
+    column2.label(text=model_render_stats[model]["Time"])
+    column2.label(text=f"{cost}")
 
-    # row1 = box.row()
-    # row1.scale_y = 1.75
-    # row1.separator(factor=BOX_PADDING)
-    # row1.operator("op.queue")
-    # row1.separator(factor=BOX_PADDING)
+    row1 = box.row()
+    row1.scale_y = 1.75
+    row1.active_default = True
+    row1.separator(factor=BOX_PADDING)
+    row1.operator("op.render_image")
+    row1.separator(factor=BOX_PADDING)
 
-    row2 = box.row()
-    row2.scale_y = 1.75
-    row2.active_default = True
-    row2.separator(factor=BOX_PADDING)
-    row2.operator("op.render_image")
-    row2.separator(factor=BOX_PADDING)
-
-    if context.scene.is_rendering:
+    if scene.render_status:
         row_label = box.row()
         row_label.alignment = "CENTER"
-        row_label.label(text="Generating...")
+        status_text = f"Status: {scene.render_status}"
+        row_label.label(text=status_text)
 
-    if context.scene.error_message:
+    if scene.error_message:
         error_row = box.row()
         error_row.alert = True
         error_row.alignment = "CENTER"
         error_row.separator(factor=BOX_PADDING)
         error_row.label(
-            text=context.scene.error_message,
+            text=scene.error_message,
         )
         error_row.separator(factor=BOX_PADDING)
 

@@ -1,14 +1,19 @@
 import json
 import logging
 import os
-import base64
+import traceback
 import requests
-import urllib.parse
 import numpy as np
 from websockets.sync.client import connect
 from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
-from ..properties import get_user_credits, set_user_credits, prompt_placeholders
+from ..properties import (
+    get_user_credits,
+    set_user_credits,
+    set_render_status,
+    prompt_placeholders,
+    model_render_stats,
+)
 from ..utilities import get_scale_resolution_width, get_api_key
 from ..workspace import open_render_window
 from ..network_utilities import get_user_info
@@ -21,16 +26,12 @@ workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
 base_model_dict = {"STABLE": 0, "FLUX": 1}
 style_dict = {"PHOTOREAL": 0, "3DCARTOON": 1, "ANIME": 2}
 
-model_resolution_heights = {"STABLE": 768, "FLUX": 1024}
-
-render_counter = 0
-credit_counter = 0
-num_of_current_credits = 0
+result_counter = 0
+status_counter = 0
 
 RENDER_RESULT_CHECK_INTERVAL = 10
+RENDER_STATUS_CHECK_INTERVAL = 5
 RENDER_RESULT_ATTEMPT_LIMIT = 15
-status_counter = 0
-result_counter = 0
 
 
 def machine_id_status(machine_id: str):
@@ -166,10 +167,21 @@ class ComfyDeployClient:
             return "Error"
 
         try:
-            global render_counter, credit_counter, num_of_current_credits
-            render_counter = 0
-            credit_counter = 0
-            num_of_current_credits = get_user_credits()
+            global result_counter, status_counter
+            result_counter = 0
+            status_counter = 0
+
+            curr_credits = get_user_credits()
+            # -1 means unlimited credits
+            if curr_credits != -1:
+                pending_credits = (
+                    curr_credits
+                    - model_render_stats[global_settings.base_model]["Cost"]
+                )
+
+                # Not enough credits
+                if pending_credits < 0:
+                    return "CREDITS"
 
             # These are determined by UI selection:
             logging.info(f"Current workflow selection: {global_settings.workflow}")
@@ -215,9 +227,11 @@ class ComfyDeployClient:
                         "is_blender_plugin": 1,
                         "workflow_id": workflow_id,
                         "width": get_scale_resolution_width(
-                            model_resolution_heights[global_settings.base_model]
+                            model_render_stats[global_settings.base_model]["Height"]
                         ),
-                        "height": model_resolution_heights[global_settings.base_model],
+                        "height": model_render_stats[global_settings.base_model][
+                            "Height"
+                        ],
                         "scene_prompt": retexture_settings.prompt,
                         "structure_strength_depth": clamped_retexture_depth,
                         "structure_strength_outline": clamped_retexture_outline,
@@ -258,6 +272,7 @@ class ComfyDeployClient:
                         ),
                     }
                     files = {
+                        "beauty": self.beauty.decode("utf-8"),
                         "mask": self.mask.decode("utf-8"),
                         "depth": self.depth.decode("utf-8"),
                         "outline": self.outline.decode("utf-8"),
@@ -265,6 +280,7 @@ class ComfyDeployClient:
                     render_result = self.send_authorized_request(
                         "/generative-retexture", render_input, files
                     )
+                    print(render_result)
                     self.run_id = render_result.json()["run_id"]
                     print(f"Current run id is {self.run_id}")
 
@@ -273,12 +289,8 @@ class ComfyDeployClient:
                         first_interval=RENDER_RESULT_CHECK_INTERVAL,
                     )
                     bpy.app.timers.register(
-                        self.check_for_credit_change,
-                        first_interval=RENDER_RESULT_CHECK_INTERVAL,
-                    )
-
-                    bpy.app.timers.register(
-                        self.call_for_render_status(), first_interval=5.0
+                        self.call_for_render_status,
+                        first_interval=0,
                     )
 
                     return render_result.json()
@@ -289,9 +301,11 @@ class ComfyDeployClient:
                         "is_blender_plugin": 1,
                         "workflow_id": workflow_id,
                         "width": get_scale_resolution_width(
-                            model_resolution_heights[global_settings.base_model]
+                            model_render_stats[global_settings.base_model]["Height"]
                         ),
-                        "height": model_resolution_heights[global_settings.base_model],
+                        "height": model_render_stats[global_settings.base_model][
+                            "Height"
+                        ],
                         "style_transfer_strength": clamped_style_transfer_strength,
                         "structure_strength_depth": clamped_style_transfer_depth,
                         "structure_strength_outline": clamped_style_transfer_outline,
@@ -319,12 +333,8 @@ class ComfyDeployClient:
                         first_interval=RENDER_RESULT_CHECK_INTERVAL,
                     )
                     bpy.app.timers.register(
-                        self.check_for_credit_change,
-                        first_interval=RENDER_RESULT_CHECK_INTERVAL,
-                    )
-
-                    bpy.app.timers.register(
-                        self.call_for_render_status(), first_interval=5.0
+                        self.call_for_render_status(),
+                        first_interval=0,
                     )
 
                     return render_result.json()
@@ -334,6 +344,7 @@ class ComfyDeployClient:
                     logging.error("Workflow input not valid")
         except Exception as e:
             print(f"Error occurred while running workflow: {e}")
+            traceback.print_exc()
             return "Error"
 
     #
@@ -390,22 +401,6 @@ class ComfyDeployClient:
         return RENDER_RESULT_CHECK_INTERVAL
 
     #
-    def check_for_credit_change(self):
-        global credit_counter, num_of_current_credits
-        credit_counter += 1
-        user_info = get_user_info(get_api_key())
-
-        # -1 = unlimited credits; -2 = error when retrieving credits
-        if num_of_current_credits not in {-1, -2}:
-            if num_of_current_credits != user_info["credits"]:
-                set_user_credits(user_info["credits"])
-                return None
-
-        if credit_counter == RENDER_RESULT_ATTEMPT_LIMIT:
-            return None
-
-        return RENDER_RESULT_CHECK_INTERVAL
-
     def get_render_status(self):
         try:
             if self.run_id is not None:
@@ -423,17 +418,28 @@ class ComfyDeployClient:
         except json.decoder.JSONDecodeError as e:
             logging.error(f"Invalid JSON response {e}")
 
+    #
     def call_for_render_status(self):
         print("starting to get render status")
         global status_counter
         status_counter += 1
         status = self.get_render_status()
+
         if status:
-            # TODO: Add logic to display status
-            print(f"Run found with status: {status}")
-        if status_counter == 50 or status is "success":
+            set_render_status(status.content.decode("utf-8"))
+
+            if status == b"success":
+                user_info = get_user_info(get_api_key())
+                set_user_credits(user_info["credits"])
+
+                return None
+        else:
+            set_render_status("Not started")
+
+        if status_counter == RENDER_RESULT_ATTEMPT_LIMIT:
             return None
-        return 2.0
+
+        return RENDER_RESULT_CHECK_INTERVAL
 
 
 class PlaybookWebsocket:
