@@ -80,8 +80,8 @@ angle_options = [
 upscale_options = [("1", "1x", ""), ("2", "2x", ""), ("4", "4x", "")]
 
 render_stats = {
-    "STABLE": {"Resolution": "960 x 960", "Time": "15s - 30s", "Cost": "10"},
-    "FLUX": {"Resolution": "1024 x 1024", "Time": "45s - 1m", "Cost": "30"},
+    "STABLE": {"Height": 768, "Time": "15s - 30s", "Cost": "10"},
+    "FLUX": {"Height": 1024, "Time": "45s - 1m", "Cost": "30"},
 }
 
 
@@ -89,7 +89,6 @@ render_stats = {
 class UserProperties(PropertyGroup):
     user_email: StringProperty(
         name="",
-        default="User",
     )
 
     user_credits: IntProperty(name="")

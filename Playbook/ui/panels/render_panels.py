@@ -1,6 +1,7 @@
 import bpy
 from .main_panels import MainPanel3D, MainPanelRender
 from ...properties import render_stats
+from ...utilities import get_scale_resolution_width
 from .panel_utils import PlaybookPanel3D, BOX_PADDING, PlaybookPanelRender
 
 
@@ -23,7 +24,9 @@ def draw_render_panel(context, layout):
 
     column2 = split.column(align=True)
     column2.alignment = "RIGHT"
-    column2.label(text=render_stats[model]["Resolution"])
+    height = render_stats[model]["Height"]
+    width = get_scale_resolution_width(height)
+    column2.label(text=f"{width} x {height}")
     column2.label(text=render_stats[model]["Time"])
     column2.label(text=render_stats[model]["Cost"])
 

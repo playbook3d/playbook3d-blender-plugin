@@ -23,9 +23,9 @@ style_dict = {"PHOTOREAL": 0, "3DCARTOON": 1, "ANIME": 2}
 
 model_resolution_heights = {"STABLE": 768, "FLUX": 1024}
 
-check_for_credits = False
-counter = 0
-num_credits = 0
+render_counter = 0
+credit_counter = 0
+num_of_current_credits = 0
 
 RENDER_RESULT_CHECK_INTERVAL = 10
 RENDER_RESULT_ATTEMPT_LIMIT = 15
@@ -164,10 +164,10 @@ class ComfyDeployClient:
             return "Error"
 
         try:
-            global counter, num_credits, check_for_credits
-            counter = 0
-            num_credits = get_user_credits()
-            check_for_credits = True
+            global render_counter, credit_counter, num_of_current_credits
+            render_counter = 0
+            credit_counter = 0
+            num_of_current_credits = get_user_credits()
 
             # These are determined by UI selection:
             logging.info(f"Current workflow selection: {global_settings.workflow}")
@@ -273,6 +273,10 @@ class ComfyDeployClient:
                         self.call_for_render_result,
                         first_interval=RENDER_RESULT_CHECK_INTERVAL,
                     )
+                    bpy.app.timers.register(
+                        self.check_for_credit_change,
+                        first_interval=RENDER_RESULT_CHECK_INTERVAL,
+                    )
 
                     return render_result.json()
 
@@ -312,6 +316,10 @@ class ComfyDeployClient:
 
                     bpy.app.timers.register(
                         self.call_for_render_result,
+                        first_interval=RENDER_RESULT_CHECK_INTERVAL,
+                    )
+                    bpy.app.timers.register(
+                        self.check_for_credit_change,
                         first_interval=RENDER_RESULT_CHECK_INTERVAL,
                     )
 
@@ -359,16 +367,9 @@ class ComfyDeployClient:
 
     #
     def call_for_render_result(self):
-        global counter, num_credits, check_for_credits
-        counter += 1
+        global render_counter
+        render_counter += 1
         result = self.get_render_result()
-        user_info = get_user_info(get_api_key())
-
-        if check_for_credits:
-            if num_credits not in {-1, -2}:
-                if num_credits != user_info["credits"]:
-                    set_user_credits(user_info["credits"])
-                    check_for_credits = False
 
         if result:
             rendered_image = result.text
@@ -376,8 +377,28 @@ class ComfyDeployClient:
             open_render_window(rendered_image)
 
             print(f"Image found!: {rendered_image}")
-        if counter == RENDER_RESULT_ATTEMPT_LIMIT or result:
             return None
+
+        if render_counter == RENDER_RESULT_ATTEMPT_LIMIT:
+            return None
+
+        return RENDER_RESULT_CHECK_INTERVAL
+
+    #
+    def check_for_credit_change(self):
+        global credit_counter, num_of_current_credits
+        credit_counter += 1
+        user_info = get_user_info(get_api_key())
+
+        # -1 = unlimited credits; -2 = error when retrieving credits
+        if num_of_current_credits not in {-1, -2}:
+            if num_of_current_credits != user_info["credits"]:
+                set_user_credits(user_info["credits"])
+                return None
+
+        if credit_counter == RENDER_RESULT_ATTEMPT_LIMIT:
+            return None
+
         return RENDER_RESULT_CHECK_INTERVAL
 
 
