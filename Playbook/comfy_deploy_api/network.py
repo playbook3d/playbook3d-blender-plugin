@@ -29,6 +29,8 @@ num_of_current_credits = 0
 
 RENDER_RESULT_CHECK_INTERVAL = 10
 RENDER_RESULT_ATTEMPT_LIMIT = 15
+status_counter = 0
+result_counter = 0
 
 
 def machine_id_status(machine_id: str):
@@ -264,10 +266,7 @@ class ComfyDeployClient:
                         "/generative-retexture", render_input, files
                     )
                     self.run_id = render_result.json()["run_id"]
-                    playbook_ws = PlaybookWebsocket(self.user_token)
-                    retexture_result_thread = threading.Thread(target=playbook_ws.run)
-                    retexture_result_thread.start()
-                    retexture_result_thread.join()
+                    print(f"Current run id is {self.run_id}")
 
                     bpy.app.timers.register(
                         self.call_for_render_result,
@@ -276,6 +275,10 @@ class ComfyDeployClient:
                     bpy.app.timers.register(
                         self.check_for_credit_change,
                         first_interval=RENDER_RESULT_CHECK_INTERVAL,
+                    )
+
+                    bpy.app.timers.register(
+                        self.call_for_render_status(), first_interval=5.0
                     )
 
                     return render_result.json()
@@ -309,10 +312,7 @@ class ComfyDeployClient:
                         "/style-transfer", render_input, files
                     )
                     self.run_id = render_result.json()["run_id"]
-                    playbook_style_ws = PlaybookWebsocket(self.user_token)
-                    style_result_thread = threading.Thread(target=playbook_style_ws.run)
-                    style_result_thread.start()
-                    style_result_thread.join()
+                    print(f"Current run id is {self.run_id}")
 
                     bpy.app.timers.register(
                         self.call_for_render_result,
@@ -321,6 +321,10 @@ class ComfyDeployClient:
                     bpy.app.timers.register(
                         self.check_for_credit_change,
                         first_interval=RENDER_RESULT_CHECK_INTERVAL,
+                    )
+
+                    bpy.app.timers.register(
+                        self.call_for_render_status(), first_interval=5.0
                     )
 
                     return render_result.json()
@@ -367,8 +371,9 @@ class ComfyDeployClient:
 
     #
     def call_for_render_result(self):
-        global render_counter
-        render_counter += 1
+        print("starting to get render result")
+        global result_counter
+        result_counter += 1
         result = self.get_render_result()
 
         if result:
@@ -379,7 +384,7 @@ class ComfyDeployClient:
             print(f"Image found!: {rendered_image}")
             return None
 
-        if render_counter == RENDER_RESULT_ATTEMPT_LIMIT:
+        if result_counter == RENDER_RESULT_ATTEMPT_LIMIT:
             return None
 
         return RENDER_RESULT_CHECK_INTERVAL
@@ -400,6 +405,35 @@ class ComfyDeployClient:
             return None
 
         return RENDER_RESULT_CHECK_INTERVAL
+
+    def get_render_status(self):
+        try:
+            if self.run_id is not None:
+                run_uri = (
+                    "https://dev-api.playbookengine.com"
+                    + "/render-status?run_id="
+                    + self.run_id
+                )
+                render_result = requests.get(run_uri)
+                return render_result
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Result request failed {e}")
+        except KeyError:
+            logging.error("run_id not found in response")
+        except json.decoder.JSONDecodeError as e:
+            logging.error(f"Invalid JSON response {e}")
+
+    def call_for_render_status(self):
+        print("starting to get render status")
+        global status_counter
+        status_counter += 1
+        status = self.get_render_status()
+        if status:
+            # TODO: Add logic to display status
+            print(f"Run found with status: {status}")
+        if status_counter == 50 or status is "success":
+            return None
+        return 2.0
 
 
 class PlaybookWebsocket:
