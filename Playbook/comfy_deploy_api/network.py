@@ -3,16 +3,12 @@ import logging
 import os
 import requests
 import numpy as np
-from websockets.sync.client import connect
 from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
 from ..properties import prompt_placeholders
 from ..utilities import get_scaled_resolution_height
 from ..workspace import open_render_window
 import bpy
-import socketio
-import _thread as thread
-import threading
 
 workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
 base_model_dict = {"STABLE": 0, "FLUX": 1}
@@ -384,42 +380,3 @@ class ComfyDeployClient:
         if status_counter == 50 or status is "success":
             return None
         return 2.0
-
-
-class PlaybookWebsocket:
-    def __init__(self, jwt):
-        self.base_url = os.getenv("API_URL")
-        self.jwt = jwt
-        self.websocket = None
-
-    def run(self):
-
-        playbook_ws = socketio.SimpleClient()
-        ws_uri = f"{self.base_url}&auth_token={self.jwt}"
-        playbook_ws.connect(ws_uri)
-        if playbook_ws.connected:
-            print("connected!")
-        event = playbook_ws.receive()
-        print(f"received {event[0]} {event[1]} from websocket")
-        self.websocket = playbook_ws
-
-    async def websocket_message(self) -> str:
-        try:
-            async with connect(self.base_url) as websocket:
-                self.websocket = websocket
-
-                while True:
-                    message = await websocket.recv()
-                    try:
-                        data = json.loads(message)
-
-                        if data.get("status") == "success":
-                            extracted_data = data.get["data"]
-                            image_url = extracted_data.outputs[0].data.images[0].url
-                            return image_url
-
-                    except json.JSONDecodeError:
-                        print("Error while parsing response from server", message)
-
-        except Exception as exception:
-            print(f"Error while parsing response from server: {exception}")
