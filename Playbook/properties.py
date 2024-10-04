@@ -32,15 +32,17 @@ workflows = [
 ]
 
 
-base_models = [
+base_models = {
     # ("SD15", "SD 1.5", "Base model by Stability AI. Checkpoint by Juggernaut"),
-    (
+    "STABLE": (
         "STABLE",
         "Stable Diffusion",
         "Base model by Stability AI. Checkpoint by Juggernaut",
     ),
-    ("FLUX", "Flux", "SOTA model by Black Forest Labs. Best quality"),
-]
+    "FLUX": ("FLUX", "Flux", "SOTA model by Black Forest Labs. Best quality"),
+}
+
+models_in_workflow = {"RETEXTURE": ["STABLE", "FLUX"], "STYLETRANSFER": ["STABLE"]}
 
 styles_in_model = {"STABLE": ["PHOTOREAL", "3DCARTOON", "ANIME"], "FLUX": ["PHOTOREAL"]}
 
@@ -96,6 +98,11 @@ class UserProperties(PropertyGroup):
 
 #
 class GlobalProperties(PropertyGroup):
+    def get_workflow_models(self, context):
+        return [
+            base_models[model] for model in models_in_workflow[self.global_workflow]
+        ]
+
     def get_prompt_styles(self, context):
         enum_items = []
         model = self.global_model
@@ -111,6 +118,7 @@ class GlobalProperties(PropertyGroup):
         return enum_items
 
     def on_update_workflow(self, context):
+        self.global_model = models_in_workflow[self.global_workflow][0]
         context.scene.show_retexture_panel = self.global_workflow == "RETEXTURE"
 
     def on_update_model(self, context):
@@ -123,7 +131,7 @@ class GlobalProperties(PropertyGroup):
     )
     global_model: EnumProperty(
         name="",
-        items=base_models,
+        items=get_workflow_models,
         update=lambda self, context: self.on_update_model(context),
     )
     global_style: EnumProperty(

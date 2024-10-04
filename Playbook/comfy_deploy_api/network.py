@@ -164,7 +164,7 @@ class ComfyDeployClient:
         style_transfer_settings: StyleTransferRenderSettings,
     ) -> str:
         if not self.mask or not self.depth or not self.outline:
-            return "Error"
+            return "RENDER"
 
         try:
             global result_counter, status_counter
@@ -345,7 +345,7 @@ class ComfyDeployClient:
         except Exception as e:
             print(f"Error occurred while running workflow: {e}")
             traceback.print_exc()
-            return "Error"
+            return "RENDER"
 
     #
     def save_image(self, image: bytes, pass_type: str):

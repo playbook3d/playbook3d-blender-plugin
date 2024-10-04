@@ -2,6 +2,7 @@ import bpy
 import os
 import math
 import requests
+import uuid
 
 
 preferences = None
@@ -119,3 +120,10 @@ def load_image_into_blender(file_path):
     else:
         print(f"File does not exist: {file_path}")
         return None
+
+
+#
+def create_render_filename() -> str:
+    uuid_str = str(uuid.uuid4())
+
+    return f"Playbook_{uuid_str}.png"

@@ -79,6 +79,8 @@ def clear_render_folder():
 
 #
 def clean_up_files():
+    bpy.data.images.remove(bpy.data.images["Render Result"])
+
     dir = os.path.dirname(__file__)
     folder_path = os.path.join(dir, "renders")
 
@@ -201,11 +203,12 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
         global_settings, retexture_settings, style_settings
     )
 
-    if response == "Error":
-        return False
+    if response == "CREDITS":
+        return "You don't have enough credits."
+    elif response == "RENDER":
+        return "Something went wrong."
 
     print(f"Response: {response}")
-    return True
 
 
 def start_render_thread():
@@ -246,11 +249,11 @@ def continue_render():
 
     comfy = ComfyDeployClient()
     set_comfy_images(comfy)
-    was_successful = asyncio.run(run_comfy_workflow(comfy))
+    workflow_message = asyncio.run(run_comfy_workflow(comfy))
 
-    if not was_successful:
+    if workflow_message:
         scene = bpy.context.scene
-        scene.error_message = "The API key could not be found."
+        scene.error_message = workflow_message
         scene.is_rendering = False
 
     return None

@@ -1,10 +1,20 @@
 import bpy
-from .utilities import get_filepath, download_image, load_image_into_blender
+from .utilities import (
+    get_filepath,
+    download_image,
+    load_image_into_blender,
+    create_render_filename,
+)
+
+filename = ""
 
 
 #
 def open_render_window(image_url: str):
-    download_image(image_url, get_filepath("final.png"))
+    global filename
+    filename = create_render_filename()
+
+    download_image(image_url, get_filepath(filename))
 
     # Playbook render workspace exists. Set workspace as active
     playbook = bpy.data.workspaces.get("Playbook")
@@ -54,10 +64,12 @@ def get_duplicate_workspace():
 
 #
 def set_render_area(workspace: bpy.types.WorkSpace):
+    global filename
+
     # Change one of the areas to an Image Editor and set the image to Render Result
     area = get_largest_area(workspace)
 
-    render_image = load_image_into_blender(get_filepath("final.png"))
+    render_image = load_image_into_blender(get_filepath(filename))
 
     if area.type != "IMAGE_EDITOR":
         area.type = "IMAGE_EDITOR"
