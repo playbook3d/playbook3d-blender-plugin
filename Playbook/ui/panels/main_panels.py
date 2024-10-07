@@ -50,18 +50,6 @@ def draw_credentials_panel(context, layout):
     box = layout.box()
     box.separator(factor=BOX_PADDING)
 
-    row1 = box.row()
-    row1.scale_y = 1.25
-    row1.separator(factor=BOX_PADDING)
-    row1.prop(auth_props, "user_email")
-    row1.separator(factor=BOX_PADDING)
-
-    row2 = box.row()
-    row2.scale_y = 1.25
-    row2.separator(factor=BOX_PADDING)
-    row2.prop(auth_props, "api_key")
-    row2.separator(factor=BOX_PADDING)
-
     row3 = box.row()
     row3.scale_y = 1.8
     row3.active_default = True

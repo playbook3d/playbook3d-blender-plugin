@@ -3,14 +3,19 @@ import logging
 import os
 import requests
 import numpy as np
-from websockets.sync.client import connect
 from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
 from ..properties import prompt_placeholders
+from ..utilities import get_scaled_resolution_height
+from ..workspace import open_render_window
+import bpy
 
 workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
 base_model_dict = {"STABLE": 0, "FLUX": 1}
 style_dict = {"PHOTOREAL": 0, "3DCARTOON": 1, "ANIME": 2}
+
+status_counter = 0
+result_counter = 0
 
 
 def machine_id_status(machine_id: str):
@@ -74,6 +79,9 @@ class ComfyDeployClient:
         self.outline: bytes = b""
         self.beauty: bytes = b""
         self.style_transfer: bytes = b""
+        self.user_alias: str = ""
+        self.user_token: str = ""
+        self.run_id: str = ""
 
         # Determine the path to the .env file
         env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
@@ -82,6 +90,33 @@ class ComfyDeployClient:
         load_dotenv(dotenv_path=env_path)
 
         self.url = os.getenv("BASE_URL")
+
+    def send_authorized_request(
+        self, endpoint: str, data: any, files: any
+    ) -> requests.Response:
+        alias_url = os.getenv("ALIAS_URL")
+        addon_prefs = bpy.context.preferences.addons["Playbook"].preferences
+        self.user_alias = addon_prefs.api_key
+        jwt_request = requests.get(alias_url + self.user_alias)
+
+        try:
+            if jwt_request is not None:
+                user_token = jwt_request.json()["access_token"]
+                self.user_token = user_token
+                render_result = requests.post(
+                    self.url + endpoint,
+                    data=data,
+                    files=files,
+                    headers={"Authorization": f"Bearer {user_token}"},
+                )
+
+                return render_result
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Alias request failed {e}")
+        except KeyError:
+            logging.error("Access token not found in response")
+        except json.decoder.JSONDecodeError as e:
+            logging.error(f"Invalid JSON response {e}")
 
     def get_workflow_id(self, workflow: int, base_model: int, style: int) -> int:
         # Format is '{workflow}_{base_model}_{style}'
@@ -162,8 +197,8 @@ class ComfyDeployClient:
                     render_input = {
                         "is_blender_plugin": 1,
                         "workflow_id": workflow_id,
-                        "width": 768,
-                        "height": 768,
+                        "width": 512,
+                        "height": get_scaled_resolution_height(512),
                         "scene_prompt": retexture_settings.prompt,
                         "structure_strength_depth": clamped_retexture_depth,
                         "structure_strength_outline": clamped_retexture_outline,
@@ -208,11 +243,20 @@ class ComfyDeployClient:
                         "depth": self.depth.decode("utf-8"),
                         "outline": self.outline.decode("utf-8"),
                     }
-                    render_result = requests.post(
-                        self.url + "/generative-retexture",
-                        data=render_input,
-                        files=files,
+                    render_result = self.send_authorized_request(
+                        "/generative-retexture", render_input, files
                     )
+                    self.run_id = render_result.json()["run_id"]
+                    print(f"Current run id is {self.run_id}")
+
+                    bpy.app.timers.register(
+                        self.call_for_render_result, first_interval=5.0
+                    )
+
+                    bpy.app.timers.register(
+                        self.call_for_render_status(), first_interval=5.0
+                    )
+
                     return render_result.json()
 
                 # Style Transfer
@@ -220,8 +264,8 @@ class ComfyDeployClient:
                     render_input = {
                         "is_blender_plugin": 1,
                         "workflow_id": workflow_id,
-                        "width": 768,
-                        "height": 768,
+                        "width": 512,
+                        "height": get_scaled_resolution_height(512),
                         "style_transfer_strength": clamped_style_transfer_strength,
                         "structure_strength_depth": clamped_style_transfer_depth,
                         "structure_strength_outline": clamped_style_transfer_outline,
@@ -238,15 +282,27 @@ class ComfyDeployClient:
                         "style_transfer_image": self.style_transfer.decode("utf-8"),
                     }
 
-                    render_result = requests.post(
-                        self.url + "/style-transfer", data=render_input, files=files
+                    render_result = self.send_authorized_request(
+                        "/style-transfer", render_input, files
                     )
+                    self.run_id = render_result.json()["run_id"]
+                    print(f"Current run id is {self.run_id}")
+
+                    bpy.app.timers.register(
+                        self.call_for_render_result, first_interval=5.0
+                    )
+
+                    bpy.app.timers.register(
+                        self.call_for_render_status(), first_interval=5.0
+                    )
+
                     return render_result.json()
 
                 # Workflow does not exist
                 case _:
                     logging.error("Workflow input not valid")
 
+    #
     def save_image(self, image: bytes, pass_type: str):
         match pass_type:
             case "mask":
@@ -260,29 +316,67 @@ class ComfyDeployClient:
             case "style_transfer":
                 self.style_transfer = image
 
-
-class PlaybookWebsocket:
-    def __init__(self):
-        self.base_url = os.getenv("BASE_URL")
-        self.websocket = None
-
-    async def websocket_message(self) -> str:
+    #
+    def get_render_result(self):
         try:
-            async with connect(self.base_url) as websocket:
-                self.websocket = websocket
+            if self.run_id is not None:
+                run_uri = (
+                    "https://dev-api.playbookengine.com"
+                    + "/render-result?run_id="
+                    + self.run_id
+                )
+                print(f"Current run is {run_uri}")
+                rendered_img = requests.get(run_uri)
+                return rendered_img
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Result request failed {e}")
+        except KeyError:
+            logging.error("run_id not found in response")
+        except json.decoder.JSONDecodeError as e:
+            logging.error(f"Invalid JSON response {e}")
 
-                while True:
-                    message = await websocket.recv()
-                    try:
-                        data = json.loads(message)
+    #
+    def call_for_render_result(self):
+        print("starting to get render result")
+        global result_counter
+        result_counter += 1
+        result = self.get_render_result()
+        if result:
+            rendered_image = result.text
 
-                        if data.get("status") == "success":
-                            extracted_data = data.get["data"]
-                            image_url = extracted_data.outputs[0].data.images[0].url
-                            return image_url
+            open_render_window(rendered_image)
 
-                    except json.JSONDecodeError:
-                        print("Error while parsing response from server", message)
+            print(f"Image found!: {rendered_image}")
+        print(result)
+        if result_counter == 30 or result:
+            return None
+        return 5.0
 
-        except Exception as exception:
-            print(f"Error while parsing response from server: {exception}")
+    def get_render_status(self):
+        try:
+            if self.run_id is not None:
+                run_uri = (
+                    "https://dev-api.playbookengine.com"
+                    + "/render-status?run_id="
+                    + self.run_id
+                )
+                render_result = requests.get(run_uri)
+                return render_result
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Result request failed {e}")
+        except KeyError:
+            logging.error("run_id not found in response")
+        except json.decoder.JSONDecodeError as e:
+            logging.error(f"Invalid JSON response {e}")
+
+    def call_for_render_status(self):
+        print("starting to get render status")
+        global status_counter
+        status_counter += 1
+        status = self.get_render_status()
+        if status:
+        #TODO: Add logic to display status
+            print(f"Run found with status: {status}")
+        if status_counter == 50 or status is "success":
+            return None
+        return 2.0

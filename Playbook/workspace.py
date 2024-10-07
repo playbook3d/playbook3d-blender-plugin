@@ -1,8 +1,11 @@
 import bpy
+from .utilities import get_filepath, download_image, load_image_into_blender
 
 
 #
-def open_render_window():
+def open_render_window(image_url: str):
+    download_image(image_url, get_filepath("final.png"))
+
     # Playbook render workspace exists. Set workspace as active
     playbook = bpy.data.workspaces.get("Playbook")
     if playbook:
@@ -54,16 +57,20 @@ def set_render_area(workspace: bpy.types.WorkSpace):
     # Change one of the areas to an Image Editor and set the image to Render Result
     area = get_largest_area(workspace)
 
+    render_image = load_image_into_blender(get_filepath("final.png"))
+
     if area.type != "IMAGE_EDITOR":
         area.type = "IMAGE_EDITOR"
 
     for space in area.spaces:
         if space.type == "IMAGE_EDITOR":
-            space.image = bpy.data.images["Render Result"]
+            space.image = render_image
             break
 
     # Set the new workspace as active
     bpy.context.window.workspace = workspace
+
+    bpy.context.scene.is_rendering = False
 
 
 #

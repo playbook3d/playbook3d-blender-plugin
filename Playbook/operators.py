@@ -2,11 +2,27 @@ import bpy
 import webbrowser
 from .objects import mask_objects
 from .render_image import render_image
-from .properties import prompt_placeholders, get_render_type
+from .comfy_deploy_api.network import ComfyDeployClient
+from .properties import prompt_placeholders
 from bpy.props import StringProperty
 from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
 from bpy.app.handlers import persistent
+
+
+class AddonDocumentationOperator(Operator):
+    bl_idname = "op.addon_documentation"
+    bl_label = "Documentation"
+    bl_description = "Open Playbook's documentation in the web browser."
+
+    url: StringProperty(
+        name="",
+        default="https://www.notion.so/playbook3d/Playbook-Docs-7685fd10b604486c81616f43976be5e6?pvs=4",
+    )
+
+    def execute(self, context):
+        webbrowser.open(self.url)
+        return {"FINISHED"}
 
 
 class ResetAddonOperator(Operator):
@@ -28,14 +44,12 @@ class ResetAddonOperator(Operator):
         scene.retexture_properties.retexture_structure_strength = 50
 
         # Style Transfer Properties
-        scene.style_properties.style_image = None
+        scene.style_properties.style_image = ""
         scene.style_properties.style_strength = 50
 
         # Mask Properties
-        scene.IMAGE_mask_list.clear()
-        scene.VIDEO_mask_list.clear()
-        mask = scene.IMAGE_mask_list.add()
-        mask = scene.VIDEO_mask_list.add()
+        scene.mask_list.clear()
+        mask = scene.mask_list.add()
         mask.name = "Mask 1"
         scene.mask_list_index = 0
 
@@ -45,8 +59,8 @@ class ResetAddonOperator(Operator):
 #
 class LoginOperator(Operator):
     bl_idname = "op.login"
-    bl_label = "Login"
-    bl_description = "Login to Playbook"
+    bl_label = "Logged in as Skylar"
+    bl_description = "Logged in"
 
     def execute(self, context):
         return {"FINISHED"}
@@ -176,6 +190,7 @@ class ClearRelightImageOperator(Operator):
 
 
 classes = [
+    AddonDocumentationOperator,
     LoginOperator,
     UpgradeOperator,
     RandomizePromptOperator,
@@ -193,15 +208,10 @@ classes = [
 
 # Automatically add Mask 1 to the mask list if it is empty
 def on_register():
+    list = bpy.context.scene.mask_list
 
-    image_list = bpy.context.scene.IMAGE_mask_list
-    video_list = bpy.context.scene.VIDEO_mask_list
-
-    if not image_list:
-        item = image_list.add()
-        item.name = "Mask 1"
-    if not video_list:
-        item = video_list.add()
+    if not list:
+        item = list.add()
         item.name = "Mask 1"
 
 
@@ -255,9 +265,7 @@ def check_for_deleted_objects_handler(scene):
         # There is no selected object. Reset dropdown to None
         if not obj or not obj.select_get():
             mask_index = scene.mask_list_index
-
-            render_type = get_render_type()
-            mask = getattr(scene, f"{render_type}_mask_properties{mask_index + 1}")
+            mask = getattr(scene, f"mask_properties{mask_index + 1}")
             mask.object_dropdown = "NONE"
 
     previous_objects = current_objects
@@ -266,8 +274,7 @@ def check_for_deleted_objects_handler(scene):
 # Remove the given objects from the mask lists
 def remove_object_from_list(scene, mask: str, obj_name: str):
     mask_index = mask[-1]
-    render_type = get_render_type()
-    mask_props = getattr(scene, f"{render_type}_mask_properties{mask_index + 1}")
+    mask_props = getattr(scene, f"mask_properties{mask_index}")
 
     obj_index = mask_objects[mask].index(obj_name)
 
