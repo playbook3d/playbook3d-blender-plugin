@@ -27,29 +27,10 @@ style_dict = {"PHOTOREAL": 0, "3DCARTOON": 1, "ANIME": 2}
 
 result_counter = 0
 status_counter = 0
-artificial_status_counter = 0
 
 RENDER_RESULT_CHECK_INTERVAL = 10
 RENDER_STATUS_CHECK_INTERVAL = 5
 RENDER_RESULT_ATTEMPT_LIMIT = 15
-# ARTIFICIAL_PROGRESS_INTERVAL = 10
-# ARTIFICIAL_PROGRESS_ATTEMPT_LIMIT = 3
-
-
-#
-# def increase_artificial_progress():
-#     global artificial_status_counter
-#     artificial_status_counter += 1
-
-#     value1 = int(100 / ARTIFICIAL_PROGRESS_ATTEMPT_LIMIT) * artificial_status_counter
-#     print(value1)
-#     bpy.context.scene.artificial_progress = value1
-
-#     if artificial_status_counter == ARTIFICIAL_PROGRESS_ATTEMPT_LIMIT:
-#         bpy.context.scene.artificial_progress = 100
-#         return None
-
-#     return ARTIFICIAL_PROGRESS_INTERVAL
 
 
 #
@@ -200,11 +181,9 @@ class ComfyDeployClient:
             return "RENDER"
 
         try:
-            bpy.context.scene.artificial_progress = 0
-            global result_counter, status_counter, artificial_status_counter
+            global result_counter, status_counter
             result_counter = 0
             status_counter = 0
-            artificial_status_counter = 0
 
             pending_credits = calculate_pending_credits(global_settings.base_model)
             if pending_credits == "CREDITS":
@@ -350,7 +329,6 @@ class ComfyDeployClient:
                 self.call_for_render_result, first_interval=RENDER_RESULT_CHECK_INTERVAL
             )
             bpy.app.timers.register(self.call_for_render_status, first_interval=0)
-            # bpy.app.timers.register(increase_artificial_progress, first_interval=10)
 
             return render_result.json()
 
