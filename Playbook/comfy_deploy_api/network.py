@@ -20,7 +20,6 @@ from ..network_utilities import get_user_info
 import bpy
 import socketio
 import _thread as thread
-import threading
 
 workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
 base_model_dict = {"STABLE": 0, "FLUX": 1}
@@ -28,16 +27,50 @@ style_dict = {"PHOTOREAL": 0, "3DCARTOON": 1, "ANIME": 2}
 
 result_counter = 0
 status_counter = 0
+artificial_status_counter = 0
 
 RENDER_RESULT_CHECK_INTERVAL = 10
 RENDER_STATUS_CHECK_INTERVAL = 5
 RENDER_RESULT_ATTEMPT_LIMIT = 15
+# ARTIFICIAL_PROGRESS_INTERVAL = 10
+# ARTIFICIAL_PROGRESS_ATTEMPT_LIMIT = 3
 
 
+#
+# def increase_artificial_progress():
+#     global artificial_status_counter
+#     artificial_status_counter += 1
+
+#     value1 = int(100 / ARTIFICIAL_PROGRESS_ATTEMPT_LIMIT) * artificial_status_counter
+#     print(value1)
+#     bpy.context.scene.artificial_progress = value1
+
+#     if artificial_status_counter == ARTIFICIAL_PROGRESS_ATTEMPT_LIMIT:
+#         bpy.context.scene.artificial_progress = 100
+#         return None
+
+#     return ARTIFICIAL_PROGRESS_INTERVAL
+
+
+#
 def machine_id_status(machine_id: str):
     client = ComfyDeploy(bearer_auth="")
 
     client.machines.get_v1_machines_machine_id_(machine_id=machine_id)
+
+
+#
+def calculate_pending_credits(base_model):
+    curr_credits = get_user_credits()
+    # -1 means unlimited credits
+    if curr_credits != -1:
+        pending_credits = curr_credits - model_render_stats[base_model]["Cost"]
+
+        set_user_credits(pending_credits)
+
+        # Not enough credits
+        if pending_credits < 0:
+            return "CREDITS"
 
 
 class GlobalRenderSettings:
@@ -167,21 +200,15 @@ class ComfyDeployClient:
             return "RENDER"
 
         try:
-            global result_counter, status_counter
+            bpy.context.scene.artificial_progress = 0
+            global result_counter, status_counter, artificial_status_counter
             result_counter = 0
             status_counter = 0
+            artificial_status_counter = 0
 
-            curr_credits = get_user_credits()
-            # -1 means unlimited credits
-            if curr_credits != -1:
-                pending_credits = (
-                    curr_credits
-                    - model_render_stats[global_settings.base_model]["Cost"]
-                )
-
-                # Not enough credits
-                if pending_credits < 0:
-                    return "CREDITS"
+            pending_credits = calculate_pending_credits(global_settings.base_model)
+            if pending_credits == "CREDITS":
+                return "CREDITS"
 
             # These are determined by UI selection:
             logging.info(f"Current workflow selection: {global_settings.workflow}")
@@ -280,20 +307,6 @@ class ComfyDeployClient:
                     render_result = self.send_authorized_request(
                         "/generative-retexture", render_input, files
                     )
-                    print(render_result)
-                    self.run_id = render_result.json()["run_id"]
-                    print(f"Current run id is {self.run_id}")
-
-                    bpy.app.timers.register(
-                        self.call_for_render_result,
-                        first_interval=RENDER_RESULT_CHECK_INTERVAL,
-                    )
-                    bpy.app.timers.register(
-                        self.call_for_render_status,
-                        first_interval=0,
-                    )
-
-                    return render_result.json()
 
                 # Style Transfer
                 case 1:
@@ -325,23 +338,22 @@ class ComfyDeployClient:
                     render_result = self.send_authorized_request(
                         "/style-transfer", render_input, files
                     )
-                    self.run_id = render_result.json()["run_id"]
-                    print(f"Current run id is {self.run_id}")
-
-                    bpy.app.timers.register(
-                        self.call_for_render_result,
-                        first_interval=RENDER_RESULT_CHECK_INTERVAL,
-                    )
-                    bpy.app.timers.register(
-                        self.call_for_render_status(),
-                        first_interval=0,
-                    )
-
-                    return render_result.json()
 
                 # Workflow does not exist
                 case _:
                     logging.error("Workflow input not valid")
+
+            self.run_id = render_result.json()["run_id"]
+            print(f"Current run id is {self.run_id}")
+
+            bpy.app.timers.register(
+                self.call_for_render_result, first_interval=RENDER_RESULT_CHECK_INTERVAL
+            )
+            bpy.app.timers.register(self.call_for_render_status, first_interval=0)
+            # bpy.app.timers.register(increase_artificial_progress, first_interval=10)
+
+            return render_result.json()
+
         except Exception as e:
             print(f"Error occurred while running workflow: {e}")
             traceback.print_exc()
@@ -421,6 +433,9 @@ class ComfyDeployClient:
     #
     def call_for_render_status(self):
         print("starting to get render status")
+        if not bpy.context.scene.is_rendering:
+            None
+
         global status_counter
         status_counter += 1
         status = self.get_render_status()
@@ -433,6 +448,7 @@ class ComfyDeployClient:
                 set_user_credits(user_info["credits"])
 
                 return None
+
         else:
             set_render_status("Not started")
 

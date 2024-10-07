@@ -359,6 +359,7 @@ def register():
     Scene.flag_properties = PointerProperty(type=FlagProperties)
     Scene.error_message = StringProperty(default="")
     Scene.render_status = StringProperty(default="")
+    # Scene.artificial_progress = IntProperty(default=0)
     Scene.show_retexture_panel = BoolProperty(default=True)
     Scene.show_object_dropdown = BoolProperty(default=False)
     Scene.is_rendering = BoolProperty(default=False)
@@ -385,6 +386,7 @@ def unregister():
     del Scene.flag_properties
     del Scene.error_message
     del Scene.render_status
+    # del Scene.artificial_progress
     del Scene.show_retexture_panel
     del Scene.show_object_dropdown
     del Scene.is_rendering

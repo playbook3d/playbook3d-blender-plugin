@@ -17,7 +17,7 @@ class AddonDocumentationOperator(Operator):
 
     url: StringProperty(
         name="",
-        default="https://www.notion.so/playbook3d/Playbook-Docs-7685fd10b604486c81616f43976be5e6?pvs=4",
+        default="https://playbook3d.notion.site/Blender-Plugin-coming-soon-115471267f0d8068b0fecdbebdbd0ad5",
     )
 
     def execute(self, context):

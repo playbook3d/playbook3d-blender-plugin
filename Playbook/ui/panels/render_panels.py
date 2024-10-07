@@ -42,8 +42,8 @@ def draw_render_panel(context, layout):
     if scene.render_status:
         row_label = box.row()
         row_label.alignment = "CENTER"
-        status_text = f"Status: {scene.render_status}"
-        row_label.label(text=status_text)
+        # row_label.label(text=f"Progress: {scene.artificial_progress}%")
+        row_label.label(text=f"Status: {scene.render_status}")
 
     if scene.error_message:
         error_row = box.row()
