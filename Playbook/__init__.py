@@ -11,7 +11,6 @@ bl_info = {
 import sys
 import subprocess
 import os
-import asyncio
 
 
 def install_packages():
@@ -41,7 +40,7 @@ import bpy
 from . import ui
 from . import properties
 from . import operators
-from .network_utilities import get_user_info
+from .utilities.network_utilities import get_user_info
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty
 

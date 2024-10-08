@@ -26,6 +26,16 @@ def is_valid_image_file(filepath: str) -> bool:
 
 
 #
+def get_parent_filepath(filename, folder=""):
+    dir = os.path.dirname(os.path.dirname(__file__))
+
+    if not folder:
+        return os.path.join(dir, filename)
+
+    return os.path.join(dir, folder, filename)
+
+
+#
 def get_filepath(filename, folder=""):
     dir = os.path.dirname(__file__)
 

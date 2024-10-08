@@ -1,16 +1,16 @@
 import bpy
 import os
-from .beauty_render import render_beauty_pass
-from .mask_render import render_mask_pass
-from .depth_render import render_depth_pass
-from .outline_render import render_outline_pass
-from .visible_objects import (
+from .beauty_pass import render_beauty_pass
+from .mask_pass import render_mask_pass
+from .depth_pass import render_depth_pass
+from .outline_pass import render_outline_pass
+from ..visible_objects import (
     set_visible_objects,
     save_object_materials,
     set_object_materials_opaque,
     reset_object_materials,
 )
-from .objects import visible_objects
+from ..objects import visible_objects
 
 
 # Returns True if an error occurs while attempting to render the image.
@@ -50,18 +50,17 @@ def render_passes():
 
 def continue_render():
 
+    # Prepare for renders
     clear_render_folder()
-
     save_object_materials()
-
     # Set materials opaque for beauty and depth passes
     set_object_materials_opaque()
 
     # Render all required passes
     render_all_passes()
 
+    # Reset settings set for renders
     reset_object_materials()
-
     clean_up_files()
 
     return None
@@ -97,7 +96,7 @@ def clear_render_folder():
 def clean_up_files():
     bpy.data.images.remove(bpy.data.images["Render Result"])
 
-    dir = os.path.dirname(__file__)
+    dir = os.path.dirname(os.path.dirname(__file__))
     folder_path = os.path.join(dir, "renders")
 
     if os.path.exists(folder_path):

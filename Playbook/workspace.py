@@ -1,5 +1,5 @@
 import bpy
-from .utilities import (
+from .utilities.utilities import (
     get_filepath,
     download_image,
     load_image_into_blender,

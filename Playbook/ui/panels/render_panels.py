@@ -1,7 +1,7 @@
 import bpy
 from .main_panels import MainPanel3D, MainPanelRender
 from ...properties import model_render_stats
-from ...utilities import get_scale_resolution_width
+from ...utilities.utilities import get_scale_resolution_width
 from .panel_utils import PlaybookPanel3D, BOX_PADDING, PlaybookPanelRender
 
 

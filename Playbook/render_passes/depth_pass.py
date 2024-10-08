@@ -1,8 +1,6 @@
 import bpy
 import os
-import math
-import mathutils
-from .visible_objects import allowed_obj_types
+from ..visible_objects import allowed_obj_types
 
 original_settings = {}
 
@@ -19,10 +17,6 @@ def calculate_mist_distances():
     # Iterate through all objects in the scene
     for obj in bpy.context.scene.objects:
         if obj.type in allowed_obj_types:
-            print(obj.name)
-
-            obj_location = obj.location
-
             distance = (obj.location - camera_location).length
 
             # Check if object is closer than previous closest
@@ -83,7 +77,7 @@ def render_depth_to_file():
     scene = bpy.context.scene
     render = scene.render
 
-    dir = os.path.dirname(__file__)
+    dir = os.path.dirname(os.path.dirname(__file__))
     output_path = os.path.join(dir, "renders", "render_mist.png")
     render.filepath = output_path
 

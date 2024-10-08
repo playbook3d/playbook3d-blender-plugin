@@ -2,8 +2,8 @@ import os
 import bpy
 import requests
 from dotenv import load_dotenv
-from .render_passes import render_passes
-from .utilities import get_api_key
+from .render_passes.render_passes import render_passes
+from .utilities.utilities import get_api_key
 
 
 def capture_passes():

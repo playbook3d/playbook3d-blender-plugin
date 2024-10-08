@@ -14,9 +14,9 @@ from ..properties import (
     prompt_placeholders,
     model_render_stats,
 )
-from ..utilities import get_scale_resolution_width, get_api_key
+from ..utilities.utilities import get_scale_resolution_width, get_api_key
 from ..workspace import open_render_window
-from ..network_utilities import get_user_info
+from ..utilities.network_utilities import get_user_info
 import bpy
 import socketio
 import _thread as thread

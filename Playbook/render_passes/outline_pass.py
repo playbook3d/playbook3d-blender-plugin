@@ -1,6 +1,5 @@
 import bpy
 import os
-from .utilities import get_filepath
 
 original_settings = {}
 
@@ -76,7 +75,7 @@ def render_outline_to_file():
     scene = bpy.context.scene
     render = scene.render
 
-    dir = os.path.dirname(__file__)
+    dir = os.path.dirname(os.path.dirname(__file__))
     output_path = os.path.join(dir, "renders", "render_edge.png")
     render.filepath = output_path
 

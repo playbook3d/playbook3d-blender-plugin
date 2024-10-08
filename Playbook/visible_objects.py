@@ -1,5 +1,5 @@
 import bpy
-from .utilities import create_rgb_material
+from .utilities.utilities import create_rgb_material
 from .objects import visible_objects, mask_objects, hidden_objects
 
 original_materials: dict[str, bpy.types.Material] = {}

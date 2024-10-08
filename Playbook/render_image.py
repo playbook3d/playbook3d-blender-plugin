@@ -2,7 +2,7 @@ import asyncio
 import bpy
 import os
 import base64
-from .render_passes import render_passes
+from .render_passes.render_passes import render_passes
 from .visible_objects import color_hex
 from .comfy_deploy_api.network import (
     GlobalRenderSettings,
