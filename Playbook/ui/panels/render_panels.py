@@ -32,6 +32,12 @@ def draw_render_panel(context, layout):
     column2.label(text=model_render_stats[model]["Time"])
     column2.label(text=f"{cost}")
 
+    row0 = box.row()
+    row0.scale_y = 1.75
+    row0.separator(factor=BOX_PADDING)
+    row0.operator("op.capture_passes")
+    row0.separator(factor=BOX_PADDING)
+
     row1 = box.row()
     row1.scale_y = 1.75
     row1.active_default = True
@@ -42,7 +48,6 @@ def draw_render_panel(context, layout):
     if scene.render_status:
         row_label = box.row()
         row_label.alignment = "CENTER"
-        # row_label.label(text=f"Progress: {scene.artificial_progress}%")
         row_label.label(text=f"Status: {scene.render_status}")
 
     if scene.error_message:

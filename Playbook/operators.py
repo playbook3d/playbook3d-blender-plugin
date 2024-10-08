@@ -2,6 +2,7 @@ import bpy
 import webbrowser
 from .objects import mask_objects
 from .render_image import render_image
+from .capture_passes import capture_passes
 from .comfy_deploy_api.network import ComfyDeployClient
 from .properties import prompt_placeholders
 from bpy.props import StringProperty
@@ -109,6 +110,17 @@ class QueueOperator(Operator):
         return {"FINISHED"}
 
 
+#
+class CapturePassesOperator(Operator):
+    bl_idname = "op.capture_passes"
+    bl_label = "Capture Passes"
+    bl_description = "Capture passes"
+
+    def execute(self, context):
+        capture_passes()
+        return {"FINISHED"}
+
+
 # Render the image according to the settings
 class RenderOperator(Operator):
     bl_idname = "op.render_image"
@@ -196,6 +208,7 @@ classes = [
     RandomizePromptOperator,
     RandomizeMaskPromptOperator,
     QueueOperator,
+    CapturePassesOperator,
     RenderOperator,
     PlaybookWebsiteOperator,
     PlaybookDiscordOperator,

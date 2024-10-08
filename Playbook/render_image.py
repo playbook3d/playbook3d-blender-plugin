@@ -1,20 +1,9 @@
 import asyncio
 import bpy
 import os
-import threading
 import base64
-from .beauty_render import render_beauty_pass
-from .mask_render import render_mask_pass
-from .depth_render import render_depth_pass
-from .outline_render import render_outline_pass
-from .objects import visible_objects
-from .visible_objects import (
-    set_visible_objects,
-    save_object_materials,
-    set_object_materials_opaque,
-    reset_object_materials,
-    color_hex,
-)
+from .render_passes import render_passes
+from .visible_objects import color_hex
 from .comfy_deploy_api.network import (
     GlobalRenderSettings,
     RetextureRenderSettings,
@@ -25,94 +14,6 @@ from .comfy_deploy_api.network import (
 
 # VARIABLES
 api_url = os.getenv("API_URL")
-
-
-# Returns True if an error occurs while attempting to render the image.
-def error_exists_in_flow(scene) -> bool:
-    # [workflow, condition for error message]
-    workflow_checks = {
-        # "EMAIL": scene.auth_properties.user_email == "Email",
-        "APIKEY": bpy.context.preferences.addons.get("Playbook").preferences.api_key
-        == "",
-        "VISIBLEOBJECT": not visible_objects,
-    }
-
-    # [workflow, error message]
-    messages = {
-        "EMAIL": "Please login to render.",
-        "APIKEY": "Copy your API key from the Playbook web editor.",
-        "RETEXTURE": "Scene prompt is missing.",
-        "STYLETRANSFER": "Style transfer image is missing.",
-        "VISIBLEOBJECT": "No object(s) to render.",
-    }
-
-    if scene.global_properties.global_workflow == "RETEXTURE":
-        workflow_checks["RETEXTURE"] = (
-            scene.retexture_properties.retexture_prompt == "Describe the scene..."
-        )
-    elif scene.global_properties.global_workflow == "STYLETRANSFER":
-        workflow_checks["STYLETRANSFER"] = not scene.style_properties.style_image
-
-    for key, val in workflow_checks.items():
-        if val:
-            scene.error_message = messages[key]
-            return True
-
-    scene.error_message = ""
-    return False
-
-
-#
-def clear_render_folder():
-    dir = os.path.dirname(__file__)
-    folder_path = os.path.join(dir, "renders")
-
-    if os.path.exists(folder_path):
-        for filename in os.listdir(folder_path):
-            path = os.path.join(folder_path, filename)
-            try:
-                if os.path.isfile(path):
-                    os.unlink(path)
-            except Exception as e:
-                print(f"Failed to delete {path}: {e}")
-
-
-#
-def clean_up_files():
-    bpy.data.images.remove(bpy.data.images["Render Result"])
-
-    dir = os.path.dirname(__file__)
-    folder_path = os.path.join(dir, "renders")
-
-    if os.path.exists(folder_path):
-
-        render_mist = os.path.join(folder_path, "render_mist.png")
-        render_edge = os.path.join(folder_path, "render_edge.png")
-        render_depth = os.path.join(folder_path, "depth0000.png")
-        render_depth1 = os.path.join(folder_path, "depth0001.png")
-
-        render_outline = os.path.join(folder_path, "outline0000.png")
-        render_outline1 = os.path.join(folder_path, "outline0001.png")
-
-        render_depth_new = os.path.join(folder_path, "depth.png")
-        render_outline_new = os.path.join(folder_path, "outline.png")
-
-        if os.path.exists(render_mist):
-            os.remove(render_mist)
-        if os.path.exists(render_edge):
-            os.remove(render_edge)
-
-        # Depth alternates between 0000 and 0001 and I don't know why
-        if os.path.exists(render_depth):
-            os.rename(render_depth, render_depth_new)
-        elif os.path.exists(render_depth1):
-            os.rename(render_depth1, render_depth_new)
-
-        # Outline alternates between 0000 and 0001 and I don't know why
-        if os.path.exists(render_outline):
-            os.rename(render_outline, render_outline_new)
-        elif os.path.exists(render_outline1):
-            os.rename(render_outline1, render_outline_new)
 
 
 # -------------------------------------------
@@ -211,60 +112,54 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
     print(f"Response: {response}")
 
 
-def start_render_thread():
-    render_thread = threading.Thread(target=render_image)
-    render_thread.start()
+# Returns True if an error occurs while attempting to render the image.
+def error_exists_in_render_image(scene) -> bool:
+    # [workflow, condition for error message]
+    workflow_checks = {
+        "APIKEY": bpy.context.preferences.addons.get("Playbook").preferences.api_key
+        == "",
+    }
+
+    # [workflow, error message]
+    messages = {
+        "APIKEY": "Copy your API key from the Playbook web editor.",
+        "RETEXTURE": "Scene prompt is missing.",
+        "STYLETRANSFER": "Style transfer image is missing.",
+    }
+
+    if scene.global_properties.global_workflow == "RETEXTURE":
+        workflow_checks["RETEXTURE"] = (
+            scene.retexture_properties.retexture_prompt == "Describe the scene..."
+        )
+    elif scene.global_properties.global_workflow == "STYLETRANSFER":
+        workflow_checks["STYLETRANSFER"] = not scene.style_properties.style_image
+
+    for key, val in workflow_checks.items():
+        if val:
+            scene.error_message = messages[key]
+            return True
+
+    scene.error_message = ""
+    return False
 
 
-# Render the image from the active camera
+#
 def render_image():
     scene = bpy.context.scene
-
-    set_visible_objects(bpy.context)
-
-    if error_exists_in_flow(scene):
-        visible_objects.clear()
-        return
-
     scene.is_rendering = True
 
-    bpy.app.timers.register(continue_render, first_interval=0.1)
+    if not render_passes():
+        scene.is_rendering = False
+        return
 
-
-def continue_render():
-
-    clear_render_folder()
-
-    save_object_materials()
-
-    # Set materials opaque for beauty and depth passes
-    set_object_materials_opaque()
-
-    # Render all required passes
-    render_all_passes()
-
-    reset_object_materials()
-
-    clean_up_files()
+    if error_exists_in_render_image(scene):
+        scene.is_rendering = False
+        return
 
     comfy = ComfyDeployClient()
     set_comfy_images(comfy)
     workflow_message = asyncio.run(run_comfy_workflow(comfy))
 
     if workflow_message:
-        scene = bpy.context.scene
         scene.error_message = workflow_message
         scene.is_rendering = False
-
-    return None
-
-
-def render_all_passes():
-    # Render unmodified image
-    render_beauty_pass()
-    # Render depth image
-    render_depth_pass()
-    # Render mask image
-    render_mask_pass()
-    # Render outline image
-    render_outline_pass()
