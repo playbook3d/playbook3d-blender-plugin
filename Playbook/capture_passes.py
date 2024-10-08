@@ -16,9 +16,7 @@ def capture_passes():
     load_dotenv(dotenv_path=env_path)
     url = os.getenv("BASE_ACCOUNTS_URL")
 
-    headers = {"Authorization": f"Bearer {get_api_key()}"}
-
-    upload_urls = get_upload_urls(url, headers)
+    upload_urls = get_upload_urls(url)
 
     if upload_urls:
         print(upload_urls)
@@ -27,11 +25,17 @@ def capture_passes():
 
 
 #
-def get_upload_urls(url, headers):
-    print(f"{url}/upload-assets/get-upload-urls")
-    print(headers)
-    response = requests.get(url=f"{url}/upload-assets/get-upload-urls", headers=headers)
-    print(response.status_code)
+def get_upload_urls(url):
+    alias_url = os.getenv("ALIAS_URL")
+    user_alias = get_api_key()
+    jwt_request = requests.get(alias_url + user_alias)
+    if jwt_request is not None:
+        user_token = jwt_request.json()["access_token"]
+
+    response = requests.get(
+        url=f"{url}/upload-assets/get-upload-urls",
+        headers={"Authorization": f"Bearer {user_token}"},
+    )
     return response.json() if response.status_code == 200 else None
 
 
