@@ -50,6 +50,7 @@ class RetextureRenderSettings:
         mask5: MaskData,
         mask6: MaskData,
         mask7: MaskData,
+        preserves_textures_mask: int,
     ):
         self.prompt = prompt
         self.structure_strength = structure_strength
@@ -60,6 +61,7 @@ class RetextureRenderSettings:
         self.mask5 = mask5
         self.mask6 = mask6
         self.mask7 = mask7
+        self.preserves_textures_mask = preserves_textures_mask
 
 
 class StyleTransferRenderSettings:
@@ -149,7 +151,7 @@ class ComfyDeployClient:
         style_transfer_settings: StyleTransferRenderSettings,
     ) -> str:
 
-        if self.mask and self.depth and self.outline:
+        if self.mask and self.depth and self.outline and self.beauty:
             # These are determined by UI selection:
             logging.info(f"Current workflow selection: {global_settings.workflow}")
             print(f"Current workflow selection: {global_settings.workflow}")
@@ -237,8 +239,10 @@ class ComfyDeployClient:
                             if mask_prompt_7 != prompt_placeholders["Mask"]
                             else ""
                         ),
+                        "preserves_textures_mask": retexture_settings.preserves_textures_mask
                     }
                     files = {
+                        "beauty": self.beauty.decode("utf-8"),
                         "mask": self.mask.decode("utf-8"),
                         "depth": self.depth.decode("utf-8"),
                         "outline": self.outline.decode("utf-8"),
