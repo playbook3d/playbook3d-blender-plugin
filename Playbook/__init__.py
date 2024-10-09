@@ -37,15 +37,17 @@ def install_packages():
 install_packages()
 
 import bpy
+from bpy.types import AddonPreferences
+from bpy.props import StringProperty
 from . import ui
 from . import properties
 from . import operators
+from . import preferences
+from .version_control import UpdateChecker
 from .utilities.network_utilities import get_user_info
-from bpy.types import AddonPreferences
-from bpy.props import StringProperty
 
 
-class AddonPreference(AddonPreferences):
+class Preferences(AddonPreferences):
     bl_idname = __name__
 
     def on_api_key_updated(self, context):
@@ -65,7 +67,16 @@ class AddonPreference(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("op.addon_documentation")
+
+        if UpdateChecker.can_update:
+            layout.alert = True
+            layout.label(text="You can update to our latest version.")
+            layout.alert = False
+            layout.operator("op.update_addon")
+        else:
+            layout.label(text="You have the latest version of Playbook.")
+
+        layout.operator("op.documentation")
         layout.operator("op.reset_addon_settings")
         layout.prop(self, "api_key")
 
@@ -74,11 +85,17 @@ def register():
     ui.register()
     properties.register()
     operators.register()
-    bpy.utils.register_class(AddonPreference)
+    preferences.register()
+
+    bpy.utils.register_class(Preferences)
+
+    UpdateChecker.check_if_version_up_to_date(bl_info["version"])
 
 
 def unregister():
     ui.unregister()
     properties.unregister()
     operators.unregister()
-    bpy.utils.unregister_class(AddonPreference)
+    preferences.unregister()
+
+    bpy.utils.unregister_class(Preferences)

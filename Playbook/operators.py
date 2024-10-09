@@ -3,57 +3,10 @@ import webbrowser
 from .objects import mask_objects
 from .render_image import render_image
 from .capture_passes import capture_passes
-from .properties import prompt_placeholders
 from bpy.props import StringProperty
 from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
 from bpy.app.handlers import persistent
-
-
-class AddonDocumentationOperator(Operator):
-    bl_idname = "op.addon_documentation"
-    bl_label = "Documentation"
-    bl_description = "Open Playbook's documentation in the web browser."
-
-    url: StringProperty(
-        name="",
-        default="https://playbook3d.notion.site/Blender-Plugin-coming-soon-115471267f0d8068b0fecdbebdbd0ad5",
-    )
-
-    def execute(self, context):
-        webbrowser.open(self.url)
-        return {"FINISHED"}
-
-
-class ResetAddonOperator(Operator):
-    bl_idname = "op.reset_addon_settings"
-    bl_label = "Reset Addon"
-
-    def execute(self, context):
-        print("Resetting")
-
-        scene = context.scene
-
-        # Global Properties
-        scene.global_properties.global_workflow = "RETEXTURE"
-        scene.global_properties.global_model = "STABLE"
-        scene.global_properties.global_style = "PHOTOREAL"
-
-        # Retexture Properties
-        scene.retexture_properties.retexture_prompt = prompt_placeholders["Retexture"]
-        scene.retexture_properties.retexture_structure_strength = 50
-
-        # Style Transfer Properties
-        scene.style_properties.style_image = ""
-        scene.style_properties.style_strength = 50
-
-        # Mask Properties
-        scene.mask_list.clear()
-        mask = scene.mask_list.add()
-        mask.name = "Mask 1"
-        scene.mask_list_index = 0
-
-        return {"FINISHED"}
 
 
 #
@@ -201,7 +154,6 @@ class ClearRelightImageOperator(Operator):
 
 
 classes = [
-    AddonDocumentationOperator,
     LoginOperator,
     UpgradeOperator,
     RandomizePromptOperator,
@@ -214,7 +166,6 @@ classes = [
     PlaybookTwitterOperator,
     ClearStyleTransferImageOperator,
     ClearRelightImageOperator,
-    ResetAddonOperator,
 ]
 
 

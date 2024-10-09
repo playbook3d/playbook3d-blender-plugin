@@ -3,9 +3,20 @@ import os
 import math
 import requests
 import uuid
+from dotenv import load_dotenv
 
 
 preferences = None
+
+
+def get_env(key):
+    # Determine the path to the .env file
+    env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+
+    # Load the .env file
+    load_dotenv(dotenv_path=env_path)
+
+    return os.getenv(key)
 
 
 def get_api_key() -> str:
