@@ -13,15 +13,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Read version from .env and generate date tag
+    - name: Read version from .env and generate datetime tag
       id: version
       run: |
         if [ -f .env ]; then
           version=$(grep VERSION .env | cut -d '=' -f2)
-          date=$(date +'%Y%m%d')
+          datetime=$(date +'%Y%m%d_%H%M%S')
           echo "version=$version" >> $GITHUB_OUTPUT
-          echo "date_tag=${date}" >> $GITHUB_OUTPUT
-          echo "full_version=${version}-${date}" >> $GITHUB_OUTPUT
+          echo "datetime_tag=${datetime}" >> $GITHUB_OUTPUT
+          echo "full_version=${version}-${datetime}" >> $GITHUB_OUTPUT
         else
           echo "Error: .env file not found"
           exit 1
