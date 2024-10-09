@@ -18,7 +18,7 @@ jobs:
       run: |
         if [ -f .env ]; then
           version=$(grep VERSION .env | cut -d '=' -f2)
-          echo "::set-output name=version::$version"
+          echo "version=$version" >> $GITHUB_OUTPUT
         else
           echo "Error: .env file not found"
           exit 1
