@@ -1,0 +1,60 @@
+name: Deploy new Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-zip-upload-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Read version from .env
+      id: version
+      run: |
+        if [ -f .env ]; then
+          version=$(grep VERSION .env | cut -d '=' -f2)
+          echo "version=$version" >> $GITHUB_OUTPUT
+        else
+          echo "Error: .env file not found"
+          exit 1
+        fi
+
+    - name: Zip directory
+      run: zip -r release.zip Playbook
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-2
+
+    - name: Upload to S3
+      run: |
+        aws s3 cp release.zip s3://playbook-blender-plugin/release-${{ steps.version.outputs.version }}.zip
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.version.outputs.version }}
+        release_name: Release ${{ steps.version.outputs.version }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./release.zip
+        asset_name: release-${{ steps.version.outputs.version }}.zip
+        asset_content_type: application/zip

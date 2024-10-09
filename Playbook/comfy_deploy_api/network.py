@@ -4,7 +4,6 @@ import os
 import traceback
 import requests
 import numpy as np
-from websockets.sync.client import connect
 from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
 from ..properties import (
@@ -18,8 +17,6 @@ from ..utilities.utilities import get_scale_resolution_width, get_api_key
 from ..workspace import open_render_window
 from ..utilities.network_utilities import get_user_info
 import bpy
-import socketio
-import _thread as thread
 
 workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
 base_model_dict = {"STABLE": 0, "FLUX": 1}
@@ -80,6 +77,7 @@ class RetextureRenderSettings:
         mask5: MaskData,
         mask6: MaskData,
         mask7: MaskData,
+        preserves_textures_mask: int,
     ):
         self.prompt = prompt
         self.structure_strength = structure_strength
@@ -90,6 +88,7 @@ class RetextureRenderSettings:
         self.mask5 = mask5
         self.mask6 = mask6
         self.mask7 = mask7
+        self.preserves_textures_mask = preserves_textures_mask
 
 
 class StyleTransferRenderSettings:
@@ -276,6 +275,7 @@ class ComfyDeployClient:
                             if mask_prompt_7 != prompt_placeholders["Mask"]
                             else ""
                         ),
+                        "preserves_textures_mask": retexture_settings.preserves_textures_mask,
                     }
                     files = {
                         "beauty": self.beauty.decode("utf-8"),
@@ -432,44 +432,4 @@ class ComfyDeployClient:
 
         if status_counter == RENDER_RESULT_ATTEMPT_LIMIT:
             return None
-
-        return RENDER_RESULT_CHECK_INTERVAL
-
-
-class PlaybookWebsocket:
-    def __init__(self, jwt):
-        self.base_url = os.getenv("API_URL")
-        self.jwt = jwt
-        self.websocket = None
-
-    def run(self):
-
-        playbook_ws = socketio.SimpleClient()
-        ws_uri = f"{self.base_url}&auth_token={self.jwt}"
-        playbook_ws.connect(ws_uri)
-        if playbook_ws.connected:
-            print("connected!")
-        event = playbook_ws.receive()
-        print(f"received {event[0]} {event[1]} from websocket")
-        self.websocket = playbook_ws
-
-    async def websocket_message(self) -> str:
-        try:
-            async with connect(self.base_url) as websocket:
-                self.websocket = websocket
-
-                while True:
-                    message = await websocket.recv()
-                    try:
-                        data = json.loads(message)
-
-                        if data.get("status") == "success":
-                            extracted_data = data.get["data"]
-                            image_url = extracted_data.outputs[0].data.images[0].url
-                            return image_url
-
-                    except json.JSONDecodeError:
-                        print("Error while parsing response from server", message)
-
-        except Exception as exception:
-            print(f"Error while parsing response from server: {exception}")
+        return 2.0
