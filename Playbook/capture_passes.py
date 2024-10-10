@@ -19,7 +19,22 @@ def capture_passes():
     upload_urls = get_upload_urls(url)
 
     if upload_urls:
-        print(upload_urls)
+        dir = os.path.dirname(__file__)
+        beauty_path = os.path.join(dir, "renders", "beauty.png")
+        beauty_url = upload_urls["beauty"]
+        upload_file(beauty_url, beauty_path)
+
+        mask_path = os.path.join(dir, "renders", "mask.png")
+        mask_url = upload_urls["mask"]
+        upload_file(mask_url, mask_path)
+
+        depth_path = os.path.join(dir, "renders", "depth.png")
+        depth_url = upload_urls["depth"]
+        upload_file(depth_url, depth_path)
+
+        outline_path = os.path.join(dir, "renders", "outline.png")
+        outline_url = upload_urls["outline"]
+        upload_file(outline_url, outline_path)
 
     return
 

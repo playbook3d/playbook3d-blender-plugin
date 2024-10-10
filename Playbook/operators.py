@@ -1,7 +1,6 @@
 import bpy
 import webbrowser
 from .objects import mask_objects
-from .render_image import render_image
 from .capture_passes import capture_passes
 from bpy.props import StringProperty
 from bpy.types import Operator
@@ -70,21 +69,6 @@ class CapturePassesOperator(Operator):
 
     def execute(self, context):
         capture_passes()
-        return {"FINISHED"}
-
-
-# Render the image according to the settings
-class RenderOperator(Operator):
-    bl_idname = "op.render_image"
-    bl_label = "Render"
-    bl_description = "Render the image"
-
-    @classmethod
-    def poll(cls, context):
-        return not context.scene.is_rendering
-
-    def execute(self, context):
-        render_image()
         return {"FINISHED"}
 
 
@@ -160,7 +144,6 @@ classes = [
     RandomizeMaskPromptOperator,
     QueueOperator,
     CapturePassesOperator,
-    RenderOperator,
     PlaybookWebsiteOperator,
     PlaybookDiscordOperator,
     PlaybookTwitterOperator,

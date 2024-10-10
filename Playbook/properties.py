@@ -328,11 +328,6 @@ def set_user_credits(credits: int) -> None:
         user_props.user_credits = credits
 
 
-#
-def set_render_status(string: str) -> None:
-    bpy.context.scene.render_status = string.capitalize()
-
-
 classes = [
     UserProperties,
     GlobalProperties,
@@ -358,10 +353,8 @@ def register():
     Scene.upscale_properties = PointerProperty(type=UpscaleProperties)
     Scene.flag_properties = PointerProperty(type=FlagProperties)
     Scene.error_message = StringProperty(default="")
-    Scene.render_status = StringProperty(default="")
     Scene.show_retexture_panel = BoolProperty(default=True)
     Scene.show_object_dropdown = BoolProperty(default=False)
-    Scene.is_rendering = BoolProperty(default=False)
 
     for i in range(NUM_MASKS_ALLOWED):
         setattr(
@@ -384,10 +377,8 @@ def unregister():
     del Scene.upscale_properties
     del Scene.flag_properties
     del Scene.error_message
-    del Scene.render_status
     del Scene.show_retexture_panel
     del Scene.show_object_dropdown
-    del Scene.is_rendering
 
     for i in range(NUM_MASKS_ALLOWED):
         delattr(Scene, f"mask_properties{i + 1}")

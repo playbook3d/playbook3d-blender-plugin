@@ -2,6 +2,8 @@ import asyncio
 import bpy
 import os
 import base64
+from bpy.types import Operator
+from bpy.utils import register_class, unregister_class
 from .render_passes.render_passes import render_passes
 from .visible_objects import color_hex
 from .comfy_deploy_api.network import (
@@ -11,6 +13,7 @@ from .comfy_deploy_api.network import (
     StyleTransferRenderSettings,
     ComfyDeployClient,
 )
+from .render_status import RenderStatus
 
 # VARIABLES
 api_url = os.getenv("API_URL")
@@ -19,6 +22,45 @@ api_url = os.getenv("API_URL")
 # -------------------------------------------
 # RENDER TO API
 # -------------------------------------------
+
+
+class RenderImage:
+
+    @classmethod
+    def render_image(cls):
+        scene = bpy.context.scene
+        RenderStatus.is_rendering = True
+
+        if not render_passes():
+            RenderStatus.is_rendering = False
+            return
+
+        if error_exists_in_render_image(scene):
+            RenderStatus.is_rendering = False
+            return
+
+        comfy = ComfyDeployClient()
+        set_comfy_images(comfy)
+        workflow_message = asyncio.run(run_comfy_workflow(comfy))
+
+        if workflow_message:
+            scene.error_message = workflow_message
+            RenderStatus.is_rendering = False
+
+
+# Render the image according to the settings
+class RenderImageOperator(Operator):
+    bl_idname = "op.render_image"
+    bl_label = "Render"
+    bl_description = "Render the image"
+
+    @classmethod
+    def poll(cls, context):
+        return not RenderStatus.is_rendering
+
+    def execute(self, context):
+        RenderImage.render_image()
+        return {"FINISHED"}
 
 
 #
@@ -143,23 +185,18 @@ def error_exists_in_render_image(scene) -> bool:
     return False
 
 
+classes = [RenderImageOperator]
+
+
 #
-def render_image():
-    scene = bpy.context.scene
-    scene.is_rendering = True
+def register():
+    global classes
+    for cls in classes:
+        register_class(cls)
 
-    if not render_passes():
-        scene.is_rendering = False
-        return
 
-    if error_exists_in_render_image(scene):
-        scene.is_rendering = False
-        return
-
-    comfy = ComfyDeployClient()
-    set_comfy_images(comfy)
-    workflow_message = asyncio.run(run_comfy_workflow(comfy))
-
-    if workflow_message:
-        scene.error_message = workflow_message
-        scene.is_rendering = False
+#
+def unregister():
+    global classes
+    for cls in classes:
+        unregister_class(cls)

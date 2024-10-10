@@ -1,3 +1,4 @@
+import bpy
 import json
 import logging
 import os
@@ -9,14 +10,13 @@ from dotenv import load_dotenv
 from ..properties import (
     get_user_credits,
     set_user_credits,
-    set_render_status,
     prompt_placeholders,
     model_render_stats,
 )
+from ..render_status import RenderStatus
 from ..utilities.utilities import get_scale_resolution_width, get_api_key
 from ..workspace import open_render_window
 from ..utilities.network_utilities import get_user_info
-import bpy
 
 workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
 base_model_dict = {"STABLE": 0, "FLUX": 1}
@@ -77,7 +77,7 @@ class RetextureRenderSettings:
         mask5: MaskData,
         mask6: MaskData,
         mask7: MaskData,
-        preserves_textures_mask: int,
+        # preserves_textures_mask: int,
     ):
         self.prompt = prompt
         self.structure_strength = structure_strength
@@ -88,7 +88,7 @@ class RetextureRenderSettings:
         self.mask5 = mask5
         self.mask6 = mask6
         self.mask7 = mask7
-        self.preserves_textures_mask = preserves_textures_mask
+        self.preserves_textures_mask = -1
 
 
 class StyleTransferRenderSettings:
@@ -410,8 +410,7 @@ class ComfyDeployClient:
 
     #
     def call_for_render_status(self):
-        print("starting to get render status")
-        if not bpy.context.scene.is_rendering:
+        if not RenderStatus.is_rendering:
             None
 
         global status_counter
@@ -419,16 +418,17 @@ class ComfyDeployClient:
         status = self.get_render_status()
 
         if status:
-            set_render_status(status.content.decode("utf-8"))
+            RenderStatus.set_render_status(status.content.decode("utf-8"))
 
             if status == b"success":
                 user_info = get_user_info(get_api_key())
                 set_user_credits(user_info["credits"])
+                RenderStatus.set_render_status("Ready")
 
                 return None
 
         else:
-            set_render_status("Not started")
+            RenderStatus.set_render_status("Not started")
 
         if status_counter == RENDER_RESULT_ATTEMPT_LIMIT:
             return None

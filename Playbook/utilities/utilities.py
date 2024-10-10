@@ -29,6 +29,13 @@ def get_api_key() -> str:
 
 
 #
+def force_ui_redraw():
+    for window in bpy.context.window_manager.windows:
+        for area in window.screen.areas:
+            area.tag_redraw()
+
+
+#
 def is_valid_image_file(filepath: str) -> bool:
     valid_extensions = {".png", ".jpg", ".jpeg"}
 

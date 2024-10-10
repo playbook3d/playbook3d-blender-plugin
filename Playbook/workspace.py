@@ -1,4 +1,5 @@
 import bpy
+from .render_status import RenderStatus
 from .utilities.utilities import (
     get_filepath,
     download_image,
@@ -82,7 +83,7 @@ def set_render_area(workspace: bpy.types.WorkSpace):
     # Set the new workspace as active
     bpy.context.window.workspace = workspace
 
-    bpy.context.scene.is_rendering = False
+    RenderStatus.is_rendering = False
 
 
 #

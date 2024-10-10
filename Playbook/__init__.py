@@ -3,7 +3,7 @@ bl_info = {
     "description": "Playbook is a diffusion based engine for 3D scenes. Press 'N' to bring up the plugin window.",
     "author": "Playbook",
     "location": "Properties > Render > Playbook",
-    "version": (0, 0, 0),
+    "version": (1, 0, 0),
     "blender": (4, 0, 0),
     "category": "Render",
 }
@@ -43,6 +43,7 @@ from . import ui
 from . import properties
 from . import operators
 from . import preferences
+from . import render_image
 from .version_control import UpdateChecker
 from .utilities.network_utilities import get_user_info
 
@@ -86,6 +87,7 @@ def register():
     properties.register()
     operators.register()
     preferences.register()
+    render_image.register()
 
     bpy.utils.register_class(Preferences)
 
@@ -97,5 +99,6 @@ def unregister():
     properties.unregister()
     operators.unregister()
     preferences.unregister()
+    render_image.unregister()
 
     bpy.utils.unregister_class(Preferences)
