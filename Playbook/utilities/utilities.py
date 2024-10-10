@@ -155,3 +155,15 @@ def create_render_filename() -> str:
     uuid_str = str(uuid.uuid4())
 
     return f"Playbook_{uuid_str}.png"
+
+
+#
+def show_message_box(messages, title, icon="INFO"):
+
+    def draw(self, context):
+        for message in messages:
+            self.layout.label(text=message)
+
+    bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
+
+    return True

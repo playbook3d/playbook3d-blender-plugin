@@ -44,7 +44,7 @@ from . import properties
 from . import operators
 from . import preferences
 from . import render_image
-from .version_control import UpdateChecker
+from .version_control import PlaybookVersionControl
 from .utilities.network_utilities import get_user_info
 
 
@@ -69,13 +69,13 @@ class Preferences(AddonPreferences):
     def draw(self, context):
         layout = self.layout
 
-        if UpdateChecker.can_update:
+        if PlaybookVersionControl.can_update:
             layout.alert = True
-            layout.label(text="You can update to our latest version.")
+            layout.label(text=PlaybookVersionControl.version_control_label)
             layout.alert = False
             layout.operator("op.update_addon")
         else:
-            layout.label(text="You have the latest version of Playbook.")
+            layout.label(text=PlaybookVersionControl.version_control_label)
 
         layout.operator("op.documentation")
         layout.operator("op.reset_addon_settings")
@@ -91,7 +91,7 @@ def register():
 
     bpy.utils.register_class(Preferences)
 
-    UpdateChecker.check_if_version_up_to_date(bl_info["version"])
+    PlaybookVersionControl.check_if_version_up_to_date(bl_info["version"])
 
 
 def unregister():

@@ -28,6 +28,7 @@ status_counter = 0
 RENDER_RESULT_CHECK_INTERVAL = 10
 RENDER_STATUS_CHECK_INTERVAL = 5
 RENDER_RESULT_ATTEMPT_LIMIT = 15
+RENDER_STATUS_ATTEMPT_LIMIT = 30
 
 
 #
@@ -420,7 +421,7 @@ class ComfyDeployClient:
         if status:
             RenderStatus.set_render_status(status.content.decode("utf-8"))
 
-            if status == b"success":
+            if status.content.decode("utf-8") == "success":
                 user_info = get_user_info(get_api_key())
                 set_user_credits(user_info["credits"])
                 RenderStatus.set_render_status("Ready")
@@ -430,6 +431,7 @@ class ComfyDeployClient:
         else:
             RenderStatus.set_render_status("Not started")
 
-        if status_counter == RENDER_RESULT_ATTEMPT_LIMIT:
+        if status_counter == RENDER_STATUS_ATTEMPT_LIMIT:
             return None
-        return 2.0
+
+        return RENDER_STATUS_CHECK_INTERVAL

@@ -11,7 +11,7 @@ class RenderStatus:
 
         if status == "not-started":
             cls.render_status = "Not started"
-        elif status in {"queued", "running"}:
+        elif status in {"queued", "running", "started"}:
             cls.render_status = status.capitalize()
         else:
             cls.render_status = status

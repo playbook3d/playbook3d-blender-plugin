@@ -83,7 +83,7 @@ upscale_options = [("1", "1x", ""), ("2", "2x", ""), ("4", "4x", "")]
 
 model_render_stats = {
     "STABLE": {"Height": 768, "Time": "15s - 30s", "Cost": 10},
-    "FLUX": {"Height": 1024, "Time": "45s - 1m", "Cost": 30},
+    "FLUX": {"Height": 768, "Time": "45s - 1m", "Cost": 30},
 }
 
 

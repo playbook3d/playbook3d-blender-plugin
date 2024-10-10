@@ -3,6 +3,7 @@ from bpy.types import Operator
 from bpy.props import StringProperty
 from bpy.utils import register_class, unregister_class
 from .properties import prompt_placeholders
+from .version_control import PlaybookVersionControl
 
 
 class DocumentationOperator(Operator):
@@ -24,11 +25,8 @@ class UpdateAddonOperator(Operator):
     bl_idname = "op.update_addon"
     bl_label = "Update Addon"
 
-    @classmethod
-    def poll(cls, context):
-        return True
-
     def execute(self, context):
+        PlaybookVersionControl.update_addon()
         return {"FINISHED"}
 
 
@@ -37,8 +35,6 @@ class ResetAddonOperator(Operator):
     bl_label = "Reset Addon"
 
     def execute(self, context):
-        print("Resetting")
-
         scene = context.scene
 
         # Global Properties

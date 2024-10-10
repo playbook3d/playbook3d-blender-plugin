@@ -1,13 +1,15 @@
-import bpy
 import os
 import requests
+import shutil
+import zipfile
 from packaging import version
-from .utilities.utilities import get_env
+from .utilities.utilities import get_env, show_message_box
 
 
-class UpdateChecker:
+class PlaybookVersionControl:
 
     can_update = False
+    version_control_label = ""
 
     @classmethod
     def check_if_version_up_to_date(cls, current_version):
@@ -26,31 +28,67 @@ class UpdateChecker:
 
             if latest_version > current_version:
                 cls.can_update = True
+                cls.version_control_label = "You can update to our latest version."
+            else:
+                cls.version_control_label = "You have the latest version of Playbook."
 
-        # TODO: If current version < most up-to-date version, notify user
         return
 
+    @classmethod
+    def update_addon(cls):
+        zip_path = download_latest_zip()
 
-class AutoUpdateOperator(bpy.types.Operator):
-    bl_idname = "op.auto_update"
-    bl_label = "Update"
-
-    def execute(self, context):
-        try:
-            url = get_env("LATEST_VERSION_URL")
-            print(url)
-
-            response = requests.get(url)
-
-            if response is not None:
-                print(response)
-                # print(response.json())
-
-            return {"FINISHED"}
-
-        except Exception as e:
-            print(e)
-            return {"CANCELLED"}
+        if zip_path:
+            extract_zip(zip_path)
 
 
-# def register():
+def download_latest_zip():
+    url = get_env("LATEST_VERSION_ZIP_URL")
+    download_response = requests.get(url)
+
+    if download_response.status_code != 200:
+        return None
+
+    download_url = download_response.text
+    latest_zip = requests.get(download_url)
+
+    if latest_zip.status_code != 200:
+        return None
+
+    addons_path = os.path.dirname(os.path.dirname(__file__))
+    zip_path = os.path.join(addons_path, "latest_version.zip")
+
+    with open(zip_path, "wb") as zip:
+        zip.write(latest_zip.content)
+
+    return zip_path
+
+
+def extract_zip(zip_path):
+    try:
+        addons_path = os.path.dirname(os.path.dirname(__file__))
+        extracted_path = os.path.join(addons_path, "extracted_zip")
+
+        with zipfile.ZipFile(zip_path, "r") as zip:
+            print(extracted_path)
+            zip.extractall(extracted_path)
+
+        playbook_path = os.path.join(extracted_path, "Playbook")
+        destination_path = os.path.join(addons_path, "Playbook")
+
+        if os.path.exists(playbook_path):
+            if os.path.exists(destination_path):
+                shutil.rmtree(destination_path)
+
+            shutil.move(playbook_path, destination_path)
+
+            message_lines = ["Please restart Blender."]
+            show_message_box(message_lines, "Update Sucessful!")
+
+            PlaybookVersionControl.version_control_label = (
+                "Update was successful! Please restart Blender."
+            )
+            PlaybookVersionControl.can_update = False
+
+    except Exception as e:
+        print(e)
