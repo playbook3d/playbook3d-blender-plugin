@@ -70,7 +70,6 @@ def extract_zip(zip_path):
         extracted_path = os.path.join(addons_path, "extracted_zip")
 
         with zipfile.ZipFile(zip_path, "r") as zip:
-            print(extracted_path)
             zip.extractall(extracted_path)
 
         playbook_path = os.path.join(extracted_path, "Playbook")
@@ -81,6 +80,9 @@ def extract_zip(zip_path):
                 shutil.rmtree(destination_path)
 
             shutil.move(playbook_path, destination_path)
+
+            shutil.rmtree(extracted_path)
+            os.unlink(zip_path)
 
             message_lines = ["Please restart Blender."]
             show_message_box(message_lines, "Update Sucessful!")
