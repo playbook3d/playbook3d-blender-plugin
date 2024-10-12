@@ -8,8 +8,6 @@ bl_info = {
     "category": "Render",
 }
 
-# This comment is to test version control
-
 import sys
 import subprocess
 import os
