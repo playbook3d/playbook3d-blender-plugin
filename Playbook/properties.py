@@ -187,7 +187,7 @@ class MaskProperties(PropertyGroup):
         # Background not part of any mask
         if "Background" not in object_names:
             # Background option
-            items.insert(2, ("BACKGROUND", "Background", ""))
+            items.insert(1, ("BACKGROUND", "Background", ""))
 
         return items
 

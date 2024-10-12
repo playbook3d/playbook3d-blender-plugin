@@ -19,12 +19,17 @@ def save_outline_settings():
             "freestyle": scene.render.use_freestyle,
             "freestyle_pass": view_layer.use_freestyle,
             "render_pass": view_layer.freestyle_settings.as_render_pass,
-            "silhouette": view_layer.freestyle_settings.linesets.active.select_silhouette,
-            "crease": view_layer.freestyle_settings.linesets.active.select_crease,
-            "border": view_layer.freestyle_settings.linesets.active.select_border,
             "freestyle_color": bpy.data.linestyles["LineStyle"].color,
         }
     )
+    if view_layer.freestyle_settings.linesets.active:
+        original_settings.update(
+            {
+                "silhouette": view_layer.freestyle_settings.linesets.active.select_silhouette,
+                "crease": view_layer.freestyle_settings.linesets.active.select_crease,
+                "border": view_layer.freestyle_settings.linesets.active.select_border,
+            }
+        )
 
 
 #
@@ -41,6 +46,10 @@ def set_outline_settings():
     scene.render.use_freestyle = True
     view_layer.use_freestyle = True
     view_layer.freestyle_settings.as_render_pass = True
+
+    if not view_layer.freestyle_settings.linesets.active:
+        view_layer.freestyle_settings.linesets.new("LineSet")
+
     view_layer.freestyle_settings.linesets.active.select_silhouette = True
     view_layer.freestyle_settings.linesets.active.select_crease = True
     view_layer.freestyle_settings.linesets.active.select_border = True
@@ -58,15 +67,19 @@ def reset_outline_settings():
     scene.render.use_freestyle = original_settings["freestyle"]
     view_layer.use_freestyle = original_settings["freestyle_pass"]
     view_layer.freestyle_settings.as_render_pass = original_settings["render_pass"]
-    view_layer.freestyle_settings.linesets.active.select_crease = original_settings[
-        "silhouette"
-    ]
-    view_layer.freestyle_settings.linesets.active.select_crease = original_settings[
-        "crease"
-    ]
-    view_layer.freestyle_settings.linesets.active.select_crease = original_settings[
-        "border"
-    ]
+
+    if "silhouette" in original_settings:
+        view_layer.freestyle_settings.linesets.active.select_crease = original_settings[
+            "silhouette"
+        ]
+    if "crease" in original_settings:
+        view_layer.freestyle_settings.linesets.active.select_crease = original_settings[
+            "crease"
+        ]
+    if "border" in original_settings:
+        view_layer.freestyle_settings.linesets.active.select_crease = original_settings[
+            "border"
+        ]
     bpy.data.linestyles["LineStyle"].color = original_settings["freestyle_color"]
 
 

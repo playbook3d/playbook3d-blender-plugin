@@ -23,7 +23,7 @@ def get_api_key() -> str:
     global preferences
 
     if preferences == None:
-        preferences = bpy.context.preferences.addons[__package__].preferences
+        preferences = bpy.context.preferences.addons["Playbook"].preferences
 
     return preferences.api_key
 

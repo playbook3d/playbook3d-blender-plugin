@@ -1,5 +1,6 @@
 import bpy
 import os
+import shutil
 from .beauty_pass import render_beauty_pass
 from .mask_pass import render_mask_pass
 from .depth_pass import render_depth_pass
@@ -67,6 +68,25 @@ def continue_render():
 
 
 def render_all_passes():
+    bpy.context.scene.use_nodes = True
+
+    # Get the compositor node tree
+    node_tree = bpy.context.scene.node_tree
+
+    # Find the Render Layers node (or create one if it doesn't exist)
+    render_layer_node = None
+    for node in node_tree.nodes:
+        if node.type == "R_LAYERS":
+            render_layer_node = node
+            break
+
+    # If no Render Layers node is found, create one
+    if render_layer_node is None:
+        render_layer_node = node_tree.nodes.new(type="CompositorNodeRLayers")
+
+    # Set the scene for the Render Layers node to the current scene
+    render_layer_node.scene = bpy.context.scene
+
     # Render unmodified image
     render_beauty_pass()
     # Render depth image
@@ -79,17 +99,16 @@ def render_all_passes():
 
 #
 def clear_render_folder():
-    dir = os.path.dirname(__file__)
+    dir = os.path.dirname(os.path.dirname(__file__))
     folder_path = os.path.join(dir, "renders")
 
     if os.path.exists(folder_path):
-        for filename in os.listdir(folder_path):
-            path = os.path.join(folder_path, filename)
-            try:
-                if os.path.isfile(path):
-                    os.unlink(path)
-            except Exception as e:
-                print(f"Failed to delete {path}: {e}")
+        try:
+            shutil.rmtree(folder_path)
+        except Exception as e:
+            print(f"Failed to delete {folder_path}: {e}")
+    else:
+        print(f"File {folder_path} does not exist")
 
 
 #
@@ -99,32 +118,29 @@ def clean_up_files():
     dir = os.path.dirname(os.path.dirname(__file__))
     folder_path = os.path.join(dir, "renders")
 
-    if os.path.exists(folder_path):
+    if not os.path.exists(folder_path):
+        return
 
-        render_mist = os.path.join(folder_path, "render_mist.png")
-        render_edge = os.path.join(folder_path, "render_edge.png")
-        render_depth = os.path.join(folder_path, "depth0000.png")
-        render_depth1 = os.path.join(folder_path, "depth0001.png")
+    files_in_directory = os.listdir(folder_path)
 
-        render_outline = os.path.join(folder_path, "outline0000.png")
-        render_outline1 = os.path.join(folder_path, "outline0001.png")
+    # Depth and outline files have numbers after them (0001, 0002, etc.)
+    # Get the file that includes "depth" / "outline"
+    depth_file = [f for f in files_in_directory if "depth" in f]
+    outline_file = [f for f in files_in_directory if "outline" in f]
 
-        render_depth_new = os.path.join(folder_path, "depth.png")
-        render_outline_new = os.path.join(folder_path, "outline.png")
+    render_mist = os.path.join(folder_path, "render_mist.png")
+    render_edge = os.path.join(folder_path, "render_edge.png")
+    render_depth = os.path.join(folder_path, depth_file[0])
+    render_outline = os.path.join(folder_path, outline_file[0])
 
-        if os.path.exists(render_mist):
-            os.remove(render_mist)
-        if os.path.exists(render_edge):
-            os.remove(render_edge)
+    render_depth_new = os.path.join(folder_path, "depth.png")
+    render_outline_new = os.path.join(folder_path, "outline.png")
 
-        # Depth alternates between 0000 and 0001 and I don't know why
-        if os.path.exists(render_depth):
-            os.rename(render_depth, render_depth_new)
-        elif os.path.exists(render_depth1):
-            os.rename(render_depth1, render_depth_new)
-
-        # Outline alternates between 0000 and 0001 and I don't know why
-        if os.path.exists(render_outline):
-            os.rename(render_outline, render_outline_new)
-        elif os.path.exists(render_outline1):
-            os.rename(render_outline1, render_outline_new)
+    if os.path.exists(render_mist):
+        os.remove(render_mist)
+    if os.path.exists(render_edge):
+        os.remove(render_edge)
+    if os.path.exists(render_depth):
+        os.rename(render_depth, render_depth_new)
+    if os.path.exists(render_outline):
+        os.rename(render_outline, render_outline_new)

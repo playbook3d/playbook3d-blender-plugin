@@ -35,6 +35,9 @@ def calculate_mist_distances():
 def save_depth_settings():
     scene = bpy.context.scene
 
+    if not scene.world:
+        scene.world = bpy.data.worlds["World"]
+
     original_settings.clear()
     original_settings.update(
         {
@@ -55,7 +58,7 @@ def set_depth_settings():
     scene.view_layers["ViewLayer"].use_pass_mist = True
     scene.world.mist_settings.start = distances["closest"] - DISTANCE_MARGIN
     scene.world.mist_settings.depth = (
-        distances["farthest"] - distances["closest"] + DISTANCE_MARGIN * 2
+        distances["farthest"] - distances["closest"] + DISTANCE_MARGIN * 10
     )
     scene.world.mist_settings.falloff = "INVERSE_QUADRATIC"
     scene.camera.data.show_mist = True
