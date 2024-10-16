@@ -40,7 +40,7 @@ class MaskListRemoveItem(Operator):
 
     @classmethod
     def poll(cls, context):
-        if context.scene.mask_list_index == -1:
+        if context.scene.mask_list_index == 0:
             return False
         else:
             return context.scene.mask_list

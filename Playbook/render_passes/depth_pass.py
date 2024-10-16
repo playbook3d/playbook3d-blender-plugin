@@ -56,10 +56,7 @@ def set_depth_settings():
 
     distances = calculate_mist_distances()
     scene.view_layers["ViewLayer"].use_pass_mist = True
-    if not distances:
-        scene.world.mist_settings.start = 0
-        scene.world.mist_settings.depth = 0
-    else:
+    if distances:
         scene.world.mist_settings.start = distances["closest"] - DISTANCE_MARGIN
         scene.world.mist_settings.depth = (
             distances["farthest"] - distances["closest"] + DISTANCE_MARGIN * 10
