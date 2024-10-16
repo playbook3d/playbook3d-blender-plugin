@@ -4,6 +4,7 @@ import math
 import requests
 import uuid
 from dotenv import load_dotenv
+from .. import __package__ as base_package
 
 
 preferences = None
@@ -22,8 +23,12 @@ def get_env(key):
 def get_api_key() -> str:
     global preferences
 
-    if preferences == None:
-        preferences = bpy.context.preferences.addons["Playbook"].preferences
+    if not preferences:
+        addon = bpy.context.preferences.addons.get(base_package)
+        if addon:
+            preferences = addon.preferences
+        else:
+            print(f"Could not get user preferences!")
 
     return preferences.api_key
 

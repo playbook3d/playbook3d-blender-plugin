@@ -1,34 +1,42 @@
-bl_info = {
-    "name": "Playbook",
-    "description": "Playbook is a diffusion based renderer for 3D scenes. Press 'N' to bring up the plugin window.",
-    "author": "Playbook 3D",
-    "location": "Properties > Render > Playbook",
-    "version": (1, 0, 0),
-    "blender": (4, 0, 0),
-    "category": "Render",
-}
-
-import sys
-import subprocess
-import os
+# bl_info = {
+#     "name": "Playbook",
+#     "description": "Playbook is a diffusion based renderer for 3D scenes. Press 'N' to bring up the plugin window.",
+#     "author": "Playbook 3D",
+#     "location": "Properties > Render > Playbook",
+#     "version": (1, 0, 0),
+#     "blender": (4, 0, 0),
+#     "category": "Render",
+# }
 
 
 def install_packages():
-    addon_dir = os.path.dirname(__file__)
-    requirements_path = os.path.join(addon_dir, "requirements.txt")
+    import site
+    import sys
+    import os
+    import subprocess
+    import importlib
+    import importlib.util
+
+    requirements_path = os.path.join(os.path.dirname(__file__), "requirements.txt")
+
+    user_sites = site.getusersitepackages()
+    os.makedirs(user_sites, exist_ok=True)
+    sys.path.append(user_sites)
 
     python_executable = sys.executable
     try:
         with open(requirements_path, "r") as f:
-            packages = f.readlines()
-        for package in packages:
-            package_name = package.split("==")[0]
-            try:
-                __import__(package_name)
-            except ImportError:
-                subprocess.check_call(
-                    [python_executable, "-m", "pip", "install", package]
-                )
+            packages = [
+                package
+                for package in f.read().splitlines()
+                if not importlib.util.find_spec(package)
+            ]
+            subprocess.run([python_executable, "-m", "ensurepip", "--upgrade"])
+            subprocess.run(
+                [python_executable, "-m", "pip", "install", *packages, "--user"],
+                check=True,
+            )
+
     except Exception as e:
         print(f"Error reading requirements.txt: {e}")
 
@@ -37,6 +45,8 @@ def install_packages():
 install_packages()
 
 import bpy
+import os
+import toml
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty
 from . import ui
@@ -49,7 +59,7 @@ from .utilities.network_utilities import get_user_info
 
 
 class Preferences(AddonPreferences):
-    bl_idname = __name__
+    bl_idname = __package__
 
     def on_api_key_updated(self, context):
         if not self.api_key:
@@ -91,7 +101,12 @@ def register():
 
     bpy.utils.register_class(Preferences)
 
-    PlaybookVersionControl.check_if_version_up_to_date(bl_info["version"])
+    toml_path = os.path.join(os.path.dirname(__file__), "blender_manifest.toml")
+    with open(toml_path, "r") as blender_info:
+        version = toml.load(blender_info)["version"]
+        PlaybookVersionControl.check_if_version_up_to_date(
+            tuple(map(int, version.split(".")))
+        )
 
 
 def unregister():

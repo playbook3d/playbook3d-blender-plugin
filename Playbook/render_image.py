@@ -14,6 +14,7 @@ from .comfy_deploy_api.network import (
     ComfyDeployClient,
 )
 from .render_status import RenderStatus
+from .utilities.utilities import get_api_key
 
 # VARIABLES
 api_url = os.getenv("API_URL")
@@ -158,8 +159,7 @@ async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
 def error_exists_in_render_image(scene) -> bool:
     # [workflow, condition for error message]
     workflow_checks = {
-        "APIKEY": bpy.context.preferences.addons.get("Playbook").preferences.api_key
-        == "",
+        "APIKEY": get_api_key() == "",
     }
 
     # [workflow, error message]
