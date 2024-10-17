@@ -1,3 +1,4 @@
-comfydeploy==0.2.3
-python-dotenv==1.0.1
-python-socketio==5.11.4
+comfydeploy
+python-dotenv
+python-socketio
+packaging

@@ -1,5 +1,5 @@
 import bpy
-from .utilities import create_rgb_material
+from .utilities.utilities import create_rgb_material
 from .objects import visible_objects, mask_objects, hidden_objects
 
 original_materials: dict[str, bpy.types.Material] = {}
@@ -93,7 +93,7 @@ def set_object_materials_for_mask_pass():
         for mask_obj in mask_objs:
             print(f"Mask: {mask}, Object: {mask_obj}")
             if mask_obj == "Background":
-                bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[
+                bpy.context.scene.world.node_tree.nodes["Background"].inputs[
                     0
                 ].default_value = material_props[mask][1]
             elif mask_obj in visible_objects_dict:
@@ -116,7 +116,7 @@ def set_object_materials_for_mask_pass():
 
     # Set the world background to the catch-call color if it was not part of a mask
     if not background_mask:
-        bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[
+        bpy.context.scene.world.node_tree.nodes["Background"].inputs[
             0
         ].default_value = material_props["CATCHALL"][1]
 
@@ -130,6 +130,6 @@ def reset_object_materials():
         obj.hide_render = False
 
     global background_color
-    bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[
+    bpy.context.scene.world.node_tree.nodes["Background"].inputs[
         0
     ].default_value = background_color

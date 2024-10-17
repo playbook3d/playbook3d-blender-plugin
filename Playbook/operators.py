@@ -1,65 +1,17 @@
 import bpy
 import webbrowser
 from .objects import mask_objects
-from .render_image import render_image
-from .comfy_deploy_api.network import ComfyDeployClient
-from .properties import prompt_placeholders
+from .capture_passes import capture_passes
 from bpy.props import StringProperty
 from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
 from bpy.app.handlers import persistent
 
 
-class AddonDocumentationOperator(Operator):
-    bl_idname = "op.addon_documentation"
-    bl_label = "Documentation"
-    bl_description = "Open Playbook's documentation in the web browser."
-
-    url: StringProperty(
-        name="",
-        default="https://www.notion.so/playbook3d/Playbook-Docs-7685fd10b604486c81616f43976be5e6?pvs=4",
-    )
-
-    def execute(self, context):
-        webbrowser.open(self.url)
-        return {"FINISHED"}
-
-
-class ResetAddonOperator(Operator):
-    bl_idname = "op.reset_addon_settings"
-    bl_label = "Reset Addon"
-
-    def execute(self, context):
-        print("Resetting")
-
-        scene = context.scene
-
-        # Global Properties
-        scene.global_properties.global_workflow = "RETEXTURE"
-        scene.global_properties.global_model = "STABLE"
-        scene.global_properties.global_style = "PHOTOREAL"
-
-        # Retexture Properties
-        scene.retexture_properties.retexture_prompt = prompt_placeholders["Retexture"]
-        scene.retexture_properties.retexture_structure_strength = 50
-
-        # Style Transfer Properties
-        scene.style_properties.style_image = ""
-        scene.style_properties.style_strength = 50
-
-        # Mask Properties
-        scene.mask_list.clear()
-        mask = scene.mask_list.add()
-        mask.name = "Mask 1"
-        scene.mask_list_index = 0
-
-        return {"FINISHED"}
-
-
 #
 class LoginOperator(Operator):
     bl_idname = "op.login"
-    bl_label = "Logged in as Skylar"
+    bl_label = "Logged in as"
     bl_description = "Logged in"
 
     def execute(self, context):
@@ -72,7 +24,10 @@ class UpgradeOperator(Operator):
     bl_label = "Get Credits"
     bl_description = "Upgrade"
 
+    url: StringProperty(name="", default="https://www.beta.playbook3d.com/")
+
     def execute(self, context):
+        webbrowser.open(self.url)
         return {"FINISHED"}
 
 
@@ -102,25 +57,18 @@ class QueueOperator(Operator):
     bl_label = "Open Queue"
     bl_description = "Open queue"
 
-    url: StringProperty(name="", default="https://www.beta.playbook3d.com/")
-
     def execute(self, context):
-        webbrowser.open(self.url)
         return {"FINISHED"}
 
 
-# Render the image according to the settings
-class RenderOperator(Operator):
-    bl_idname = "op.render_image"
-    bl_label = "Render"
-    bl_description = "Render the image"
-
-    @classmethod
-    def poll(cls, context):
-        return not context.scene.is_rendering
+#
+class CapturePassesOperator(Operator):
+    bl_idname = "op.capture_passes"
+    bl_label = "Capture Passes"
+    bl_description = "Capture passes"
 
     def execute(self, context):
-        render_image()
+        capture_passes()
         return {"FINISHED"}
 
 
@@ -190,19 +138,17 @@ class ClearRelightImageOperator(Operator):
 
 
 classes = [
-    AddonDocumentationOperator,
     LoginOperator,
     UpgradeOperator,
     RandomizePromptOperator,
     RandomizeMaskPromptOperator,
     QueueOperator,
-    RenderOperator,
+    CapturePassesOperator,
     PlaybookWebsiteOperator,
     PlaybookDiscordOperator,
     PlaybookTwitterOperator,
     ClearStyleTransferImageOperator,
     ClearRelightImageOperator,
-    ResetAddonOperator,
 ]
 
 

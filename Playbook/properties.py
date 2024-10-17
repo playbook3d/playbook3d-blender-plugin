@@ -1,3 +1,4 @@
+import bpy
 from bpy.props import (
     PointerProperty,
     IntProperty,
@@ -31,15 +32,17 @@ workflows = [
 ]
 
 
-base_models = [
+base_models = {
     # ("SD15", "SD 1.5", "Base model by Stability AI. Checkpoint by Juggernaut"),
-    (
+    "STABLE": (
         "STABLE",
         "Stable Diffusion",
         "Base model by Stability AI. Checkpoint by Juggernaut",
     ),
-    ("FLUX", "Flux", "SOTA model by Black Forest Labs. Best quality"),
-]
+    "FLUX": ("FLUX", "Flux", "SOTA model by Black Forest Labs. Best quality"),
+}
+
+models_in_workflow = {"RETEXTURE": ["STABLE", "FLUX"], "STYLETRANSFER": ["STABLE"]}
 
 styles_in_model = {"STABLE": ["PHOTOREAL", "3DCARTOON", "ANIME"], "FLUX": ["PHOTOREAL"]}
 
@@ -78,39 +81,28 @@ angle_options = [
 # Available upscale options
 upscale_options = [("1", "1x", ""), ("2", "2x", ""), ("4", "4x", "")]
 
-render_stats = {
-    "STABLE": {"Resolution": "1024 x 1024", "Time": "15s - 30s", "Cost": "10"},
-    "FLUX": {"Resolution": "960 x 960", "Time": "45s - 1m", "Cost": "30"},
+model_render_stats = {
+    "STABLE": {"Height": 768, "Time": "15s - 30s", "Cost": 10},
+    "FLUX": {"Height": 768, "Time": "45s - 1m", "Cost": 30},
 }
 
 
 #
-class AuthProperties(PropertyGroup):
-    def on_update_user_email(self, context):
-        if not self.user_email:
-            self.user_email = prompt_placeholders["Email"]
-
-    def on_update_api_key(self, context):
-        if not self.api_key:
-            self.api_key = prompt_placeholders["API_Key"]
-            addon_prefs = context.preferences.addons[__name__].preferences
-            addon_prefs.api_key = self.api_key
-
-
+class UserProperties(PropertyGroup):
     user_email: StringProperty(
         name="",
-        default="Email",
-        update=lambda self, context: self.on_update_user_email(context),
     )
-    api_key: StringProperty(
-        name="",
-        default="API key",
-        update=lambda self, context: self.on_update_api_key(context),
-    )
+
+    user_credits: IntProperty(name="")
 
 
 #
 class GlobalProperties(PropertyGroup):
+    def get_workflow_models(self, context):
+        return [
+            base_models[model] for model in models_in_workflow[self.global_workflow]
+        ]
+
     def get_prompt_styles(self, context):
         enum_items = []
         model = self.global_model
@@ -126,14 +118,22 @@ class GlobalProperties(PropertyGroup):
         return enum_items
 
     def on_update_workflow(self, context):
+        self.global_model = models_in_workflow[self.global_workflow][0]
         context.scene.show_retexture_panel = self.global_workflow == "RETEXTURE"
+
+    def on_update_model(self, context):
+        self.global_style = styles_in_model[self.global_model][0]
 
     global_workflow: EnumProperty(
         name="",
         items=workflows,
         update=lambda self, context: self.on_update_workflow(context),
     )
-    global_model: EnumProperty(name="", items=base_models)
+    global_model: EnumProperty(
+        name="",
+        items=get_workflow_models,
+        update=lambda self, context: self.on_update_model(context),
+    )
     global_style: EnumProperty(
         name="",
         items=get_prompt_styles,
@@ -187,7 +187,7 @@ class MaskProperties(PropertyGroup):
         # Background not part of any mask
         if "Background" not in object_names:
             # Background option
-            items.insert(2, ("BACKGROUND", "Background", ""))
+            items.insert(1, ("BACKGROUND", "Background", ""))
 
         return items
 
@@ -309,8 +309,27 @@ class FlagProperties(PropertyGroup):
     upscale_flag: BoolProperty(name="", default=False)
 
 
+#
+def get_user_credits() -> int:
+    user_props = bpy.context.scene.user_properties
+
+    if user_props:
+        return user_props.user_credits
+
+    # -1 is reserved for unlimited credits
+    return -2
+
+
+#
+def set_user_credits(credits: int) -> None:
+    user_props = bpy.context.scene.user_properties
+
+    if user_props:
+        user_props.user_credits = credits
+
+
 classes = [
-    AuthProperties,
+    UserProperties,
     GlobalProperties,
     RetextureProperties,
     MaskProperties,
@@ -326,7 +345,7 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    Scene.auth_properties = PointerProperty(type=AuthProperties)
+    Scene.user_properties = PointerProperty(type=UserProperties)
     Scene.global_properties = PointerProperty(type=GlobalProperties)
     Scene.retexture_properties = PointerProperty(type=RetextureProperties)
     Scene.style_properties = PointerProperty(type=StyleProperties)
@@ -336,7 +355,6 @@ def register():
     Scene.error_message = StringProperty(default="")
     Scene.show_retexture_panel = BoolProperty(default=True)
     Scene.show_object_dropdown = BoolProperty(default=False)
-    Scene.is_rendering = BoolProperty(default=False)
 
     for i in range(NUM_MASKS_ALLOWED):
         setattr(
@@ -351,7 +369,7 @@ def unregister():
     for cls in classes:
         unregister_class(cls)
 
-    del Scene.auth_properties
+    del Scene.user_properties
     del Scene.global_properties
     del Scene.retexture_properties
     del Scene.style_properties
@@ -361,7 +379,6 @@ def unregister():
     del Scene.error_message
     del Scene.show_retexture_panel
     del Scene.show_object_dropdown
-    del Scene.is_rendering
 
     for i in range(NUM_MASKS_ALLOWED):
         delattr(Scene, f"mask_properties{i + 1}")

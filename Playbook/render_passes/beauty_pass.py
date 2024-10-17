@@ -1,5 +1,5 @@
 import bpy
-from .utilities import get_filepath
+from ..utilities.utilities import get_parent_filepath
 
 
 #
@@ -7,7 +7,7 @@ def render_beauty_pass():
     scene = bpy.context.scene
     render = scene.render
 
-    output_path = get_filepath("beauty.png", "renders")
+    output_path = get_parent_filepath("beauty.png", "renders")
     render.filepath = output_path
 
     if scene.camera:

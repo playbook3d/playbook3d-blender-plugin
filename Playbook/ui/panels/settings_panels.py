@@ -1,6 +1,6 @@
 import bpy
 from .main_panels import MainPanel3D, MainPanelRender
-from ...utilities import is_valid_image_file
+from ...utilities.utilities import is_valid_image_file
 from .panel_utils import (
     PlaybookPanel3D,
     PlaybookPanelRender,

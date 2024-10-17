@@ -2,6 +2,42 @@ import bpy
 import os
 import math
 import requests
+import uuid
+from dotenv import load_dotenv
+from .. import __package__ as base_package
+
+
+preferences = None
+
+
+def get_env(key):
+    # Determine the path to the .env file
+    env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+
+    # Load the .env file
+    load_dotenv(dotenv_path=env_path)
+
+    return os.getenv(key)
+
+
+def get_api_key() -> str:
+    global preferences
+
+    if not preferences:
+        addon = bpy.context.preferences.addons.get(base_package)
+        if addon:
+            preferences = addon.preferences
+        else:
+            print(f"Could not get user preferences!")
+
+    return preferences.api_key
+
+
+#
+def force_ui_redraw():
+    for window in bpy.context.window_manager.windows:
+        for area in window.screen.areas:
+            area.tag_redraw()
 
 
 #
@@ -10,6 +46,16 @@ def is_valid_image_file(filepath: str) -> bool:
 
     ext = filepath.lower().rsplit(".", 1)[-1]
     return f".{ext}" in valid_extensions
+
+
+#
+def get_parent_filepath(filename, folder=""):
+    dir = os.path.dirname(os.path.dirname(__file__))
+
+    if not folder:
+        return os.path.join(dir, filename)
+
+    return os.path.join(dir, folder, filename)
 
 
 #
@@ -24,6 +70,22 @@ def get_filepath(filename, folder=""):
 
 #
 def get_scaled_resolution_height(width: int):
+    final_resolutions = get_final_resolutions()
+
+    resolution_scale = width / final_resolutions["x"]
+    return math.ceil(final_resolutions["y"] * resolution_scale)
+
+
+#
+def get_scale_resolution_width(height: int):
+    final_resolutions = get_final_resolutions()
+
+    resolution_scale = height / final_resolutions["y"]
+    return math.ceil(final_resolutions["x"] * resolution_scale)
+
+
+#
+def get_final_resolutions():
     render = bpy.context.scene.render
     resolution_x = render.resolution_x
     resolution_y = render.resolution_y
@@ -32,8 +94,7 @@ def get_scaled_resolution_height(width: int):
     final_resolution_x = resolution_x * (resolution_percentage / 100)
     final_resolution_y = resolution_y * (resolution_percentage / 100)
 
-    resolution_scale = width / final_resolution_x
-    return math.ceil(final_resolution_y * resolution_scale)
+    return {"x": final_resolution_x, "y": final_resolution_y}
 
 
 # Create a new simple RGB material
@@ -92,3 +153,22 @@ def load_image_into_blender(file_path):
     else:
         print(f"File does not exist: {file_path}")
         return None
+
+
+#
+def create_render_filename() -> str:
+    uuid_str = str(uuid.uuid4())
+
+    return f"Playbook_{uuid_str}.png"
+
+
+#
+def show_message_box(messages, title, icon="INFO"):
+
+    def draw(self, context):
+        for message in messages:
+            self.layout.label(text=message)
+
+    bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
+
+    return True
