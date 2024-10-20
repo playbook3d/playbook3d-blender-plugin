@@ -64,6 +64,8 @@ def continue_render():
     reset_object_materials()
     clean_up_files()
 
+    bpy.context.scene.node_tree.nodes.clear()
+
     return None
 
 
