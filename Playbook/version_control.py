@@ -23,12 +23,12 @@ class PlaybookVersionControl:
                 f"{str(current_version[0])}.{str(current_version[1])}.{str(current_version[2])}"
             )
 
-            print(f"Latest: {latest_version}")
-            print(f"Current: {current_version}")
+            print(f"Current version of Playbook: {current_version}")
 
             if latest_version > current_version:
                 cls.can_update = True
                 cls.version_control_label = "You can update to our latest version."
+                print(f"You can update your Playbook to {latest_version}")
             else:
                 cls.version_control_label = "You have the latest version of Playbook."
 

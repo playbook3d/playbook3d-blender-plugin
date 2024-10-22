@@ -1,50 +1,53 @@
-# bl_info = {
-#     "name": "Playbook",
-#     "description": "Playbook is a diffusion based renderer for 3D scenes. Press 'N' to bring up the plugin window.",
-#     "author": "Playbook 3D",
-#     "location": "Properties > Render > Playbook",
-#     "version": (1, 0, 0),
-#     "blender": (4, 0, 0),
-#     "category": "Render",
-# }
-
-
-def install_packages():
-    import site
-    import sys
-    import os
-    import subprocess
-    import importlib
-    import importlib.util
-
-    requirements_path = os.path.join(os.path.dirname(__file__), "requirements.txt")
-
-    user_sites = site.getusersitepackages()
-    os.makedirs(user_sites, exist_ok=True)
-    sys.path.append(user_sites)
-
-    python_executable = sys.executable
-    try:
-        with open(requirements_path, "r") as f:
-            packages = [
-                package
-                for package in f.read().splitlines()
-                if not importlib.util.find_spec(package)
-            ]
-            subprocess.run([python_executable, "-m", "ensurepip", "--upgrade"])
-            subprocess.run(
-                [python_executable, "-m", "pip", "install", *packages, "--user"],
-                check=True,
-            )
-
-    except Exception as e:
-        print(f"Error reading requirements.txt: {e}")
-
-
-# Call the install_packages function
-install_packages()
+bl_info = {
+    "name": "Playbook",
+    "description": "Playbook is a diffusion based renderer for 3D scenes. Press 'N' to bring up the plugin window.",
+    "author": "Playbook 3D",
+    "location": "Properties > Render > Playbook",
+    "version": (1, 0, 1),
+    "blender": (4, 0, 0),
+    "category": "Render",
+}
 
 import bpy
+
+def ensure_packages():
+    if bpy.app.version < (4, 2, 0):
+        import site
+        import sys
+        import os
+        import subprocess
+        import importlib
+        import importlib.util
+
+        requirements_path = os.path.join(os.path.dirname(__file__), "requirements.txt")
+
+        user_sites = site.getusersitepackages()
+        os.makedirs(user_sites, exist_ok=True)
+        sys.path.append(user_sites)
+
+        python_executable = sys.executable
+        try:
+            with open(requirements_path, "r") as f:
+                packages = [
+                    package
+                    for package in f.read().splitlines()
+                    if not importlib.util.find_spec(package)
+                ]
+                subprocess.run([python_executable, "-m", "ensurepip", "--upgrade"])
+                subprocess.run(
+                    [python_executable, "-m", "pip", "install", *packages, "--user"],
+                    check=True,
+                )
+
+        except Exception as e:
+            print(f"Error reading requirements.txt: {e}")
+
+
+    import dotenv
+    print(dotenv.__file__)
+
+ensure_packages()
+
 import os
 import toml
 from bpy.types import AddonPreferences
