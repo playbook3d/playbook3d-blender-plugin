@@ -27,6 +27,10 @@ jobs:
           exit 1
         fi
 
+    - name: Create .env file from secret
+      run: |
+        echo "${{ secrets.ENV_FILE }}" > Playbook/.env
+
     - name: Zip directory
       run: zip -r release.zip Playbook
 

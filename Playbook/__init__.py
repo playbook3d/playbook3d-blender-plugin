@@ -58,6 +58,7 @@ from . import operators
 from . import preferences
 from . import render_image
 from .version_control import PlaybookVersionControl
+from .utilities.secret_manager import BlenderSecretsManager
 from .utilities.network_utilities import get_user_info
 
 
@@ -103,7 +104,7 @@ def register():
     render_image.register()
 
     bpy.utils.register_class(Preferences)
-
+    BlenderSecretsManager.load_to_env()
     toml_path = os.path.join(os.path.dirname(__file__), "blender_manifest.toml")
     with open(toml_path, "r") as blender_info:
         version = toml.load(blender_info)["version"]

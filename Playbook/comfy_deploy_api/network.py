@@ -17,6 +17,7 @@ from ..render_status import RenderStatus
 from ..utilities.utilities import get_scale_resolution_width, get_api_key
 from ..workspace import open_render_window
 from ..utilities.network_utilities import get_user_info
+from ..utilities.secret_manager import BlenderSecretsManager
 
 workflow_dict = {"RETEXTURE": 0, "STYLETRANSFER": 1}
 base_model_dict = {"STABLE": 0, "FLUX": 1}
@@ -119,6 +120,8 @@ class ComfyDeployClient:
         # Load the .env file
         load_dotenv(dotenv_path=env_path)
 
+        # Load env from secret manager
+        BlenderSecretsManager.load_to_env()
         self.url = os.getenv("BASE_URL")
 
     def send_authorized_request(
