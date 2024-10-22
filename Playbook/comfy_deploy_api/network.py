@@ -71,6 +71,7 @@ class RetextureRenderSettings:
         self,
         prompt: str,
         structure_strength: int,
+        preserves_textures_mask: int,
         mask1: MaskData,
         mask2: MaskData,
         mask3: MaskData,
@@ -78,10 +79,10 @@ class RetextureRenderSettings:
         mask5: MaskData,
         mask6: MaskData,
         mask7: MaskData,
-        # preserves_textures_mask: int,
     ):
         self.prompt = prompt
         self.structure_strength = structure_strength
+        self.preserves_textures_mask = preserves_textures_mask
         self.mask1 = mask1
         self.mask2 = mask2
         self.mask3 = mask3
@@ -89,7 +90,6 @@ class RetextureRenderSettings:
         self.mask5 = mask5
         self.mask6 = mask6
         self.mask7 = mask7
-        self.preserves_textures_mask = -1
 
 
 class StyleTransferRenderSettings:

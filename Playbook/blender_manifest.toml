@@ -1,7 +1,7 @@
-schema_version = "1.0.1"
+schema_version = "1.0.0"
 
 id = "Playbook"
-version = "1.0.1"
+version = "1.0.2"
 name = "Playbook Diffusion Based Renderer"
 tagline = "Playbook is a diffusion based engine for 3D scenes"
 maintainer = "<support@playbook3d.com>"
@@ -23,3 +23,33 @@ copyright = [
 
 network = "Need to connect to ComfyUI"
 files = "Import/export renders from/to disk"
+
+wheels = [
+  "./wheels/annotated_types-0.7.0-py3-none-any.whl",
+  "./wheels/anyio-4.6.2.post1-py3-none-any.whl",
+  "./wheels/certifi-2024.8.30-py3-none-any.whl",
+  "./wheels/charset_normalizer-3.4.0-py3-none-any.whl",
+  "./wheels/comfydeploy-0.0.3-py3-none-any.whl",
+  "./wheels/comfydeploy-0.4.1-py3-none-any.whl",
+  "./wheels/dataclasses_json-0.6.7-py3-none-any.whl",
+  "./wheels/eval_type_backport-0.2.0-py3-none-any.whl",
+  "./wheels/h11-0.14.0-py3-none-any.whl",
+  "./wheels/httpcore-1.0.6-py3-none-any.whl",
+  "./wheels/httpx-0.27.2-py3-none-any.whl",
+  "./wheels/idna-3.10-py3-none-any.whl",
+  "./wheels/jsonpath_python-1.0.6-py3-none-any.whl",
+  "./wheels/marshmallow-3.23.0-py3-none-any.whl",
+  "./wheels/mypy_extensions-1.0.0-py3-none-any.whl",
+  "./wheels/packaging-24.1-py3-none-any.whl",
+  "./wheels/pydantic-2.8.2-py3-none-any.whl",
+  "./wheels/pydantic_core-2.20.1-cp311-cp311-macosx_11_0_arm64.whl",
+  "./wheels/pydantic_core-2.20.1-cp311-none-win_amd64.whl",
+  "./wheels/python_dateutil-2.9.0.post0-py2.py3-none-any.whl",
+  "./wheels/requests-2.32.3-py3-none-any.whl",
+  "./wheels/six-1.16.0-py2.py3-none-any.whl",
+  "./wheels/sniffio-1.3.1-py3-none-any.whl",
+  "./wheels/typing_extensions-4.12.2-py3-none-any.whl",
+  "./wheels/typing_inspect-0.9.0-py3-none-any.whl",
+  "./wheels/urllib3-2.2.3-py3-none-any.whl",
+  "./wheels/python_dotenv-1.0.1-py3-none-any.whl",
+]

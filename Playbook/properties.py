@@ -149,12 +149,36 @@ class RetextureProperties(PropertyGroup):
         else:
             context.scene.flag_properties.retexture_flag = True
 
+    def on_update_preserve_texture_mask(self, context):
+        item = self.preserve_texture_mask_dropdown
+
+        self.preserve_texture_mask_index = (
+            self.preserve_texture_mask_dropdown.index(item) - 1
+        )
+
+    def get_texture_masks(self, context):
+        scene = context.scene
+        mask_list = scene.mask_list
+
+        dropdown_options = [
+            (mask.name.upper(), mask.name, mask.name) for mask in mask_list
+        ]
+        dropdown_options.insert(0, ("NONE", "None", "None"))
+
+        return dropdown_options
+
     retexture_prompt: StringProperty(
         name="",
         default=prompt_placeholders["Retexture"],
         update=lambda self, context: self.on_update_prompt(context),
     )
     retexture_structure_strength: FloatProperty(name="", default=50, min=0, max=100)
+    preserve_texture_mask_dropdown: EnumProperty(
+        name="",
+        items=get_texture_masks,
+        update=lambda self, context: self.on_update_preserve_texture_mask(context),
+    )
+    preserve_texture_mask_index: IntProperty(name="", default=-1)
 
 
 #

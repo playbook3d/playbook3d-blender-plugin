@@ -93,6 +93,7 @@ def get_retexture_settings() -> RetextureRenderSettings:
     return RetextureRenderSettings(
         retexture_props.retexture_prompt,
         retexture_props.retexture_structure_strength,
+        retexture_props.preserve_texture_mask_index,
         *mask_props,
     )
 
