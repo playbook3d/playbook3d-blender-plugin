@@ -35,7 +35,7 @@ class RenderImage:
         if not render_passes():
             RenderStatus.is_rendering = False
             return
-
+        
         if error_exists_in_render_image(scene):
             RenderStatus.is_rendering = False
             return

@@ -40,10 +40,8 @@ class MaskListRemoveItem(Operator):
 
     @classmethod
     def poll(cls, context):
-        if context.scene.mask_list_index == 0:
-            return False
-        else:
-            return context.scene.mask_list
+        # At least one mask has to be present
+        return len(context.scene.mask_list) > 1
 
     def execute(self, context):
         mask_list = context.scene.mask_list
