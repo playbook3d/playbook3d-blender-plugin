@@ -4,7 +4,6 @@ from ..utilities.utilities import get_parent_filepath
 
 original_settings = {}
 
-
 # Save the current color management settings
 def save_mask_settings():
     scene = bpy.context.scene

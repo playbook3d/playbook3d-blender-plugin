@@ -153,7 +153,7 @@ class RetextureProperties(PropertyGroup):
         item = self.preserve_texture_mask_dropdown
 
         self.preserve_texture_mask_index = (
-            self.preserve_texture_mask_dropdown.index(item) - 1
+            self.preserve_texture_mask_dropdown.index(item)
         )
 
     def get_texture_masks(self, context):

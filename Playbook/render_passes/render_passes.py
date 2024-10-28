@@ -10,6 +10,8 @@ from ..visible_objects import (
     save_object_materials,
     set_object_materials_opaque,
     reset_object_materials,
+    make_background_unreflective,
+    reset_background
 )
 from ..objects import visible_objects
 
@@ -54,6 +56,10 @@ def continue_render():
     # Prepare for renders
     clear_render_folder()
     save_object_materials()
+
+    # Make world background unreflective so that scene objects don't
+    # reflect the background color
+    make_background_unreflective()
     # Set materials opaque for beauty and depth passes
     set_object_materials_opaque()
 
@@ -62,6 +68,7 @@ def continue_render():
 
     # Reset settings set for renders
     reset_object_materials()
+    reset_background()
     clean_up_files()
 
     bpy.context.scene.node_tree.nodes.clear()

@@ -13,9 +13,9 @@ def save_outline_settings():
     original_settings.update(
         {
             "background_color": bpy.data.worlds["World"]
-            .node_tree.nodes["Background"]
-            .inputs[0]
-            .default_value,
+                .node_tree.nodes["RGB"]
+                .outputs[0]
+                .default_value,
             "freestyle": scene.render.use_freestyle,
             "freestyle_pass": view_layer.use_freestyle,
             "render_pass": view_layer.freestyle_settings.as_render_pass,
