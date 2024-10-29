@@ -89,7 +89,7 @@ def render_outline_to_file():
     render = scene.render
 
     dir = os.path.dirname(os.path.dirname(__file__))
-    output_path = os.path.join(dir, "renders", "render_edge.png")
+    output_path = os.path.join(dir, "renders", "render_outline.png")
     render.filepath = output_path
 
     if scene.node_tree is None:

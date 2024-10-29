@@ -109,6 +109,7 @@ class ComfyDeployClient:
         self.depth: bytes = b""
         self.outline: bytes = b""
         self.beauty: bytes = b""
+        self.normal: bytes = b""
         self.style_transfer: bytes = b""
         self.user_alias: str = ""
         self.user_token: str = ""
@@ -352,6 +353,8 @@ class ComfyDeployClient:
                 self.outline = image
             case "beauty":
                 self.beauty = image
+            case "normal":
+                self.normal = image
             case "style_transfer":
                 self.style_transfer = image
 

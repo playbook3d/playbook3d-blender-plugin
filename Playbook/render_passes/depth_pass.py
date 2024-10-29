@@ -33,6 +33,8 @@ def calculate_mist_distances():
 
 #
 def save_depth_settings():
+    global original_settings
+
     scene = bpy.context.scene
 
     if not scene.world:
@@ -67,6 +69,8 @@ def set_depth_settings():
 
 #
 def reset_depth_settings():
+    global original_settings
+
     scene = bpy.context.scene
 
     scene.view_layers["ViewLayer"].use_pass_mist = original_settings["use_pass_mist"]
@@ -82,7 +86,7 @@ def render_depth_to_file():
     render = scene.render
 
     dir = os.path.dirname(os.path.dirname(__file__))
-    output_path = os.path.join(dir, "renders", "render_mist.png")
+    output_path = os.path.join(dir, "renders", "render_depth.png")
     render.filepath = output_path
 
     if scene.node_tree is None:
