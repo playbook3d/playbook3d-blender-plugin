@@ -52,4 +52,8 @@ wheels = [
   "./wheels/typing_inspect-0.9.0-py3-none-any.whl",
   "./wheels/urllib3-2.2.3-py3-none-any.whl",
   "./wheels/python_dotenv-1.0.1-py3-none-any.whl",
+  "./wheels/boto3-1.35.50-py3-none-any.whl",
+  "./wheels/botocore-1.35.50-py3-none-any.whl",
+  "./wheels/jmespath-1.0.1-py3-none-any.whl",
+  "./wheels/s3transfer-0.10.3-py3-none-any.whl"
 ]
