@@ -35,7 +35,7 @@ class RenderImage:
         if not render_passes():
             RenderStatus.is_rendering = False
             return
-        
+
         if error_exists_in_render_image(scene):
             RenderStatus.is_rendering = False
             return
@@ -110,6 +110,7 @@ def set_comfy_images(comfy_deploy: ComfyDeployClient):
     dir = os.path.dirname(__file__)
 
     beauty_path = os.path.join(dir, "renders", "beauty.png")
+    normal_path = os.path.join(dir, "renders", "normal.png")
     mask_path = os.path.join(dir, "renders", "mask.png")
     depth_path = os.path.join(dir, "renders", "depth.png")
     outline_path = os.path.join(dir, "renders", "outline.png")
@@ -117,6 +118,8 @@ def set_comfy_images(comfy_deploy: ComfyDeployClient):
     # Open the PNG files in binary mode
     with open(beauty_path, "rb") as beauty_file:
         beauty_blob = base64.b64encode(beauty_file.read())
+    with open(normal_path, "rb") as normal_file:
+        normal_blob = base64.b64encode(normal_file.read())
     with open(mask_path, "rb") as mask_file:
         mask_blob = base64.b64encode(mask_file.read())
     with open(depth_path, "rb") as depth_file:
@@ -125,6 +128,7 @@ def set_comfy_images(comfy_deploy: ComfyDeployClient):
         outline_blob = base64.b64encode(outline_file.read())
 
     comfy_deploy.save_image(beauty_blob, "beauty")
+    comfy_deploy.save_image(normal_blob, "normal")
     comfy_deploy.save_image(mask_blob, "mask")
     comfy_deploy.save_image(depth_blob, "depth")
     comfy_deploy.save_image(outline_blob, "outline")

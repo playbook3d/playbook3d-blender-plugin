@@ -24,6 +24,10 @@ def capture_passes():
         beauty_url = upload_urls["beauty"]
         upload_file(beauty_url, beauty_path)
 
+        normal_path = os.path.join(dir, "renders", "normal.png")
+        normal_url = upload_urls["normal"]
+        upload_file(normal_url, normal_path)
+
         mask_path = os.path.join(dir, "renders", "mask.png")
         mask_url = upload_urls["mask"]
         upload_file(mask_url, mask_path)

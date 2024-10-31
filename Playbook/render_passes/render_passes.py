@@ -5,6 +5,7 @@ from .beauty_pass import render_beauty_pass
 from .mask_pass import render_mask_pass
 from .depth_pass import render_depth_pass
 from .outline_pass import render_outline_pass
+from .normal_pass import NormalPass
 from ..visible_objects import (
     set_visible_objects,
     save_object_materials,
@@ -98,6 +99,9 @@ def render_all_passes():
 
     # Render unmodified image
     render_beauty_pass()
+    # Render normal image
+    normal_pass = NormalPass()
+    normal_pass.render_normal_pass()
     # Render depth image
     render_depth_pass()
     # Render mask image
@@ -132,24 +136,41 @@ def clean_up_files():
 
     files_in_directory = os.listdir(folder_path)
 
-    # Depth and outline files have numbers after them (0001, 0002, etc.)
-    # Get the file that includes "depth" / "outline"
+    # Normal, depth, and outline files have numbers after them (0001, 0002, etc.)
+    # Get the files that include "normal" / "depth" / "outline"
+    normal_file = [f for f in files_in_directory if "normal" in f]
     depth_file = [f for f in files_in_directory if "depth" in f]
     outline_file = [f for f in files_in_directory if "outline" in f]
 
-    render_mist = os.path.join(folder_path, "render_mist.png")
-    render_edge = os.path.join(folder_path, "render_edge.png")
+    # Normal pass
+    render_normal = os.path.join(folder_path, 'render_normal.png')
+    if os.path.exists(render_normal):
+        os.remove(render_normal)
+
+    render_normal = os.path.join(folder_path, normal_file[0])
+    render_normal_new = os.path.join(folder_path, 'normal.png')
+    if os.path.exists(render_normal):
+        os.rename(render_normal, render_normal_new)
+
+    # Depth pass
+    render_depth = os.path.join(folder_path, "render_depth.png")
+    if os.path.exists(render_depth):
+        os.remove(render_depth)
+
     render_depth = os.path.join(folder_path, depth_file[0])
-    render_outline = os.path.join(folder_path, outline_file[0])
-
     render_depth_new = os.path.join(folder_path, "depth.png")
-    render_outline_new = os.path.join(folder_path, "outline.png")
-
-    if os.path.exists(render_mist):
-        os.remove(render_mist)
-    if os.path.exists(render_edge):
-        os.remove(render_edge)
     if os.path.exists(render_depth):
         os.rename(render_depth, render_depth_new)
+
+    # Outline pass
+    render_outline = os.path.join(folder_path, "render_outline.png")
+    if os.path.exists(render_outline):
+        os.remove(render_outline)
+
+    render_outline = os.path.join(folder_path, outline_file[0])
+    render_outline_new = os.path.join(folder_path, "outline.png")
     if os.path.exists(render_outline):
         os.rename(render_outline, render_outline_new)
+    
+    
+    
