@@ -81,8 +81,8 @@ def set_object_materials_opaque():
             obj.data.materials.append(mat)
 
 
-# Make the world background unreflective so the mask color is not reflected in the 
-# scene objects 
+# Make the world background unreflective so the mask color is not reflected in the
+# scene objects
 def make_background_unreflective():
     world = bpy.context.scene.world
 
@@ -99,11 +99,15 @@ def make_background_unreflective():
     world_output_node = nodes.new(type="ShaderNodeOutputWorld")
 
     links = world.node_tree.links
-    light_path_output = "Is Diffuse Ray" if bpy.app.version < (4, 2, 0) else "Is Glossy Ray"
-    links.new(light_path_node.outputs[light_path_output], mix_node.inputs['Fac'])
-    links.new(rgb_node.outputs['Color'], mix_node.inputs['Color1'])
-    links.new(mix_node.outputs['Color'], background_node.inputs['Color'])
-    links.new(background_node.outputs['Background'], world_output_node.inputs['Surface'])
+    light_path_output = (
+        "Is Diffuse Ray" if bpy.app.version < (4, 2, 0) else "Is Glossy Ray"
+    )
+    links.new(light_path_node.outputs[light_path_output], mix_node.inputs["Fac"])
+    links.new(rgb_node.outputs["Color"], mix_node.inputs["Color1"])
+    links.new(mix_node.outputs["Color"], background_node.inputs["Color"])
+    links.new(
+        background_node.outputs["Background"], world_output_node.inputs["Surface"]
+    )
 
 
 #
@@ -118,8 +122,10 @@ def reset_background():
     world_output_node = nodes.new(type="ShaderNodeOutputWorld")
 
     links = world.node_tree.links
-    links.new(background_node.outputs['Background'], world_output_node.inputs['Surface'])
-    background_node.inputs['Color'].default_value = background_color
+    links.new(
+        background_node.outputs["Background"], world_output_node.inputs["Surface"]
+    )
+    background_node.inputs["Color"].default_value = background_color
 
 
 # Set the current object materials to a given preset
@@ -133,12 +139,13 @@ def set_object_materials_for_mask_pass():
             background_mask = mask
             break
 
-    preserve_mask = bpy.context.scene.retexture_properties.preserve_texture_mask_index + 1
+    preserve_mask = (
+        bpy.context.scene.retexture_properties.preserve_texture_mask_index + 1
+    )
 
     # Set objects in masks to their respective material colors
     for mask, mask_objs in mask_objects.items():
         # Skip objects in the mask to be preserved
-        print(f"Preserve mask: MASK{preserve_mask}")
         if mask == f"MASK{preserve_mask}":
             for mask_obj in mask_objs:
                 visible_objects_dict.pop(mask_obj)
@@ -171,9 +178,9 @@ def set_object_materials_for_mask_pass():
 
     # Set the world background to the catch-call color if it was not part of a mask
     if not background_mask:
-        bpy.context.scene.world.node_tree.nodes["RGB"].outputs[
-            0
-        ].default_value = material_props["CATCHALL"][1]
+        bpy.context.scene.world.node_tree.nodes["RGB"].outputs[0].default_value = (
+            material_props["CATCHALL"][1]
+        )
 
 
 # Reset object materials to their originals

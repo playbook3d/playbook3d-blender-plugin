@@ -1,5 +1,6 @@
 import bpy
 import os
+from ..utilities.utilities import get_parent_filepath
 
 original_settings = {}
 
@@ -13,9 +14,9 @@ def save_outline_settings():
     original_settings.update(
         {
             "background_color": bpy.data.worlds["World"]
-                .node_tree.nodes["RGB"]
-                .outputs[0]
-                .default_value,
+            .node_tree.nodes["RGB"]
+            .outputs[0]
+            .default_value,
             "freestyle": scene.render.use_freestyle,
             "freestyle_pass": view_layer.use_freestyle,
             "render_pass": view_layer.freestyle_settings.as_render_pass,
@@ -88,11 +89,19 @@ def render_outline_to_file():
     scene = bpy.context.scene
     render = scene.render
 
-    dir = os.path.dirname(os.path.dirname(__file__))
-    output_path = os.path.join(dir, "renders", "render_outline.png")
+    output_path = get_parent_filepath("outline.png", "renders")
     render.filepath = output_path
 
-    if scene.node_tree is None:
+    create_outline_compositing()
+
+    bpy.ops.render.render(write_still=True)
+
+
+#
+def create_outline_compositing():
+    scene = bpy.context.scene
+
+    if not scene.use_nodes:
         scene.use_nodes = True
 
     node_tree = scene.node_tree
@@ -105,22 +114,12 @@ def render_outline_to_file():
     render_layers_node = nodes.new(type="CompositorNodeRLayers")
     alpha_node = nodes.new(type="CompositorNodeAlphaOver")
     invert_node = nodes.new(type="CompositorNodeInvert")
-    output_node = nodes.new(type="CompositorNodeOutputFile")
+    output_node = nodes.new(type="CompositorNodeComposite")
 
     # Connect nodes
     links.new(render_layers_node.outputs["Freestyle"], alpha_node.inputs[2])
     links.new(alpha_node.outputs[0], invert_node.inputs[1])
-    links.new(invert_node.outputs[0], output_node.inputs[0])
-
-    # Set output file path and format
-    node_path = os.path.join(dir, "renders")
-    output_node.base_path = bpy.path.abspath(node_path)  # Set to your desired path
-    output_node.file_slots[0].path = "outline"
-    output_node.format.file_format = "PNG"
-
-    bpy.ops.render.render(write_still=True)
-
-    # nodes.clear()
+    links.new(invert_node.outputs[0], output_node.inputs["Image"])
 
 
 #

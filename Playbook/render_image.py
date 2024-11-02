@@ -32,6 +32,11 @@ class RenderImage:
         scene = bpy.context.scene
         RenderStatus.is_rendering = True
 
+        # TODO: Remove
+        render_passes()
+        RenderStatus.is_rendering = False
+        return
+
         if not render_passes():
             RenderStatus.is_rendering = False
             return
