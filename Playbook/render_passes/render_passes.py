@@ -12,7 +12,7 @@ from ..visible_objects import (
     set_object_materials_opaque,
     reset_object_materials,
     make_background_unreflective,
-    reset_background
+    reset_background,
 )
 from ..objects import visible_objects
 
@@ -70,8 +70,9 @@ def continue_render():
     # Reset settings set for renders
     reset_object_materials()
     reset_background()
-    clean_up_files()
 
+    # Clean up renders
+    bpy.data.images.remove(bpy.data.images["Render Result"])
     bpy.context.scene.node_tree.nodes.clear()
 
     return None
@@ -102,10 +103,10 @@ def render_all_passes():
     # Render normal image
     normal_pass = NormalPass()
     normal_pass.render_normal_pass()
-    # Render depth image
-    render_depth_pass()
     # Render mask image
     render_mask_pass()
+    # Render depth image
+    render_depth_pass()
     # Render outline image
     render_outline_pass()
 
@@ -122,55 +123,3 @@ def clear_render_folder():
             print(f"Failed to delete {folder_path}: {e}")
     else:
         print(f"File {folder_path} does not exist")
-
-
-#
-def clean_up_files():
-    bpy.data.images.remove(bpy.data.images["Render Result"])
-
-    dir = os.path.dirname(os.path.dirname(__file__))
-    folder_path = os.path.join(dir, "renders")
-
-    if not os.path.exists(folder_path):
-        return
-
-    files_in_directory = os.listdir(folder_path)
-
-    # Normal, depth, and outline files have numbers after them (0001, 0002, etc.)
-    # Get the files that include "normal" / "depth" / "outline"
-    normal_file = [f for f in files_in_directory if "normal" in f]
-    depth_file = [f for f in files_in_directory if "depth" in f]
-    outline_file = [f for f in files_in_directory if "outline" in f]
-
-    # Normal pass
-    render_normal = os.path.join(folder_path, 'render_normal.png')
-    if os.path.exists(render_normal):
-        os.remove(render_normal)
-
-    render_normal = os.path.join(folder_path, normal_file[0])
-    render_normal_new = os.path.join(folder_path, 'normal.png')
-    if os.path.exists(render_normal):
-        os.rename(render_normal, render_normal_new)
-
-    # Depth pass
-    render_depth = os.path.join(folder_path, "render_depth.png")
-    if os.path.exists(render_depth):
-        os.remove(render_depth)
-
-    render_depth = os.path.join(folder_path, depth_file[0])
-    render_depth_new = os.path.join(folder_path, "depth.png")
-    if os.path.exists(render_depth):
-        os.rename(render_depth, render_depth_new)
-
-    # Outline pass
-    render_outline = os.path.join(folder_path, "render_outline.png")
-    if os.path.exists(render_outline):
-        os.remove(render_outline)
-
-    render_outline = os.path.join(folder_path, outline_file[0])
-    render_outline_new = os.path.join(folder_path, "outline.png")
-    if os.path.exists(render_outline):
-        os.rename(render_outline, render_outline_new)
-    
-    
-    

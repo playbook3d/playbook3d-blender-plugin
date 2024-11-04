@@ -151,7 +151,9 @@ class ComfyDeployClient:
         except json.decoder.JSONDecodeError as e:
             logging.error(f"Invalid JSON response {e}")
 
-    def get_workflow_id(self, workflow: int, base_model: int, style: int) -> int:
+    def get_workflow_id(
+        self, workflow: int, base_model: int, style: int, preserve_texture_mask: int
+    ) -> int:
         # Format is '{workflow}_{base_model}_{style}'
         ids = {
             # Generative Retexture
@@ -169,6 +171,11 @@ class ComfyDeployClient:
             "1_1_1": 10,
             "1_1_2": 11,
         }
+
+        # There exists a mask to be preserved
+        if preserve_texture_mask != 0:
+            return 13
+
         key = f"{workflow}_{base_model}_{style}"
         if ids.get(key) is not None:
             return ids[key]

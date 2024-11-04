@@ -10,6 +10,7 @@ bl_info = {
 
 import bpy
 
+
 def ensure_packages():
     if bpy.app.version < (4, 2, 0):
         import site
@@ -42,11 +43,19 @@ def ensure_packages():
         except Exception as e:
             print(f"Error reading requirements.txt: {e}")
 
-
     import dotenv
+
     print(dotenv.__file__)
 
+
+def reset_addon_values():
+    from .render_status import RenderStatus
+
+    RenderStatus.is_rendering = False
+
+
 ensure_packages()
+reset_addon_values()
 
 import os
 import toml
@@ -97,6 +106,8 @@ class Preferences(AddonPreferences):
 
 
 def register():
+    reset_addon_values()
+
     ui.register()
     properties.register()
     operators.register()

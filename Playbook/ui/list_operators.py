@@ -7,6 +7,11 @@ from ..objects import mask_objects
 MAX_MASKS = 7
 
 
+#
+def is_object_part_of_a_mask(obj_name: str):
+    return any(obj_name in obj_list for obj_list in mask_objects.values())
+
+
 # Add a mask to the mask list
 class MaskListAddItem(Operator):
     bl_idname = "list.add_mask_item"
@@ -74,7 +79,7 @@ class MaskObjectListAddItem(Operator):
                     continue
 
                 # Object is already part of a mask
-                if any(obj.name in obj_list for obj_list in mask_objects.values()):
+                if is_object_part_of_a_mask(obj.name):
                     continue
 
                 # At least one object can be added
@@ -106,6 +111,7 @@ class MaskObjectListAddItem(Operator):
 
         elif mask.object_dropdown == "ADDALL":
             self.add_all_objects(mask, mask_index)
+            mask.object_dropdown = "NONE"
             return {"FINISHED"}
 
         elif mask.object_dropdown == "BACKGROUND":
@@ -130,7 +136,7 @@ class MaskObjectListAddItem(Operator):
         for obj in selected_objects:
             if obj.type in allowed_obj_types:
                 # The currently selected item is not part of any list
-                if not any(item.name == obj.name for item in mask.mask_objects):
+                if not is_object_part_of_a_mask(obj.name):
                     addable_object.append(obj.name)
 
         if not addable_object:
@@ -146,7 +152,7 @@ class MaskObjectListAddItem(Operator):
     # Add all available objects in the scene
     def add_all_objects(self, mask, mask_index):
         for obj in visible_objects:
-            if not any(item.name == obj.name for item in mask.mask_objects):
+            if not is_object_part_of_a_mask(obj.name):
                 added = mask.mask_objects.add()
                 added.name = obj.name
                 mask_objects[f"MASK{mask_index + 1}"].append(added.name)

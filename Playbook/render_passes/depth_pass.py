@@ -1,34 +1,8 @@
 import bpy
 import os
-from ..visible_objects import allowed_obj_types
+from ..utilities.utilities import get_parent_filepath
 
 original_settings = {}
-
-DISTANCE_MARGIN = 4
-
-
-def calculate_mist_distances():
-    camera = bpy.context.scene.camera
-    camera_location = camera.location
-
-    closest_distance = float("inf")
-    farthest_distance = 0
-
-    # Iterate through all objects in the scene
-    for obj in bpy.context.scene.objects:
-        if obj.type in allowed_obj_types:
-            distance = (obj.location - camera_location).length
-
-            # Check if object is closer than previous closest
-            if distance < closest_distance:
-                closest_distance = distance
-
-            # Check if object is farther than previous farthest
-            if distance > farthest_distance:
-                farthest_distance = distance
-
-    if closest_distance != float("inf") and farthest_distance > 0:
-        return {"closest": closest_distance, "farthest": farthest_distance}
 
 
 #
@@ -43,11 +17,9 @@ def save_depth_settings():
     original_settings.clear()
     original_settings.update(
         {
-            "use_pass_mist": scene.view_layers["ViewLayer"].use_pass_mist,
-            "mist_start": scene.world.mist_settings.start,
-            "mist_depth": scene.world.mist_settings.depth,
-            "mist_falloff": scene.world.mist_settings.falloff,
-            "camera_show_mist": scene.camera.data.show_mist,
+            "z_pass": scene.view_layers["ViewLayer"].use_pass_z,
+            "exposure": scene.view_settings.exposure,
+            "gamma": scene.view_settings.gamma,
         }
     )
 
@@ -56,15 +28,9 @@ def save_depth_settings():
 def set_depth_settings():
     scene = bpy.context.scene
 
-    distances = calculate_mist_distances()
-    scene.view_layers["ViewLayer"].use_pass_mist = True
-    if distances:
-        scene.world.mist_settings.start = distances["closest"] - DISTANCE_MARGIN
-        scene.world.mist_settings.depth = (
-            distances["farthest"] - distances["closest"] + DISTANCE_MARGIN * 10
-        )
-    scene.world.mist_settings.falloff = "INVERSE_QUADRATIC"
-    scene.camera.data.show_mist = True
+    scene.view_layers["ViewLayer"].use_pass_z = True
+    scene.view_settings.exposure = 1
+    scene.view_settings.gamma = 1
 
 
 #
@@ -73,11 +39,9 @@ def reset_depth_settings():
 
     scene = bpy.context.scene
 
-    scene.view_layers["ViewLayer"].use_pass_mist = original_settings["use_pass_mist"]
-    scene.world.mist_settings.start = original_settings["mist_start"]
-    scene.world.mist_settings.depth = original_settings["mist_depth"]
-    scene.world.mist_settings.falloff = original_settings["mist_falloff"]
-    scene.camera.data.show_mist = original_settings["camera_show_mist"]
+    scene.view_layers["ViewLayer"].use_pass_z = original_settings["z_pass"]
+    scene.view_settings.exposure = original_settings["exposure"]
+    scene.view_settings.gamma = original_settings["gamma"]
 
 
 #
@@ -85,11 +49,19 @@ def render_depth_to_file():
     scene = bpy.context.scene
     render = scene.render
 
-    dir = os.path.dirname(os.path.dirname(__file__))
-    output_path = os.path.join(dir, "renders", "render_depth.png")
+    output_path = get_parent_filepath("depth.png", "renders")
     render.filepath = output_path
 
-    if scene.node_tree is None:
+    create_depth_compositing()
+
+    bpy.ops.render.render(write_still=True)
+
+
+#
+def create_depth_compositing():
+    scene = bpy.context.scene
+
+    if not scene.use_nodes:
         scene.use_nodes = True
 
     node_tree = scene.node_tree
@@ -98,25 +70,24 @@ def render_depth_to_file():
 
     nodes.clear()
 
-    # Render settings
-    render.use_compositing = True
-
-    # Create necessary nodes
+    # Create nodes
     render_layers_node = nodes.new(type="CompositorNodeRLayers")
+    normalize_node = nodes.new(type="CompositorNodeNormalize")
     invert_node = nodes.new(type="CompositorNodeInvert")
-    output_node = nodes.new(type="CompositorNodeOutputFile")
+
+    rgb_curve_node = nodes.new(type="CompositorNodeCurveRGB")
+    curve = rgb_curve_node.mapping.curves[3]
+    curve.points.new(0.944, 0.125)
+    curve.points.new(0.956, 0.144)
+    rgb_curve_node.mapping.update()
+
+    output_node = nodes.new(type="CompositorNodeComposite")
 
     # Connect nodes
-    links.new(render_layers_node.outputs["Mist"], invert_node.inputs[1])
-    links.new(invert_node.outputs[0], output_node.inputs[0])
-
-    # Set output file path and format
-    node_path = os.path.join(dir, "renders")
-    output_node.base_path = bpy.path.abspath(node_path)  # Set to your desired path
-    output_node.file_slots[0].path = "depth"
-    output_node.format.file_format = "PNG"
-
-    bpy.ops.render.render(write_still=True)
+    links.new(render_layers_node.outputs["Depth"], normalize_node.inputs["Value"])
+    links.new(normalize_node.outputs["Value"], invert_node.inputs["Fac"])
+    links.new(invert_node.outputs[0], rgb_curve_node.inputs["Image"])
+    links.new(rgb_curve_node.outputs["Image"], output_node.inputs["Image"])
 
 
 #

@@ -4,6 +4,7 @@ from ..utilities.utilities import get_parent_filepath
 
 original_settings = {}
 
+
 # Save the current color management settings
 def save_mask_settings():
     scene = bpy.context.scene
@@ -68,7 +69,6 @@ def render_mask_to_file():
 
     if scene.camera:
         bpy.ops.render.render(write_still=True)
-        # bpy.ops.render.view_show("INVOKE_DEFAULT")
     else:
         print("No active camera found in the scene")
 
