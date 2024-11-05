@@ -173,6 +173,7 @@ class RetextureProperties(PropertyGroup):
         name="",
         default=prompt_placeholders["Retexture"],
         update=lambda self, context: self.on_update_prompt(context),
+        options={"TEXTEDIT_UPDATE"},
     )
     retexture_structure_strength: FloatProperty(name="", default=50, min=0, max=100)
     preserve_texture_mask_dropdown: EnumProperty(
@@ -391,9 +392,14 @@ def register():
 
 
 def unregister():
+    # Reset properties
     scene = bpy.context.scene
     scene.retexture_properties.retexture_prompt = ""
     scene.error_message = ""
+
+    for i in range(NUM_MASKS_ALLOWED):
+        mask_props = getattr(scene, f"mask_properties{i + 1}")
+        mask_props.mask_objects.clear()
 
     global classes
     for cls in classes:

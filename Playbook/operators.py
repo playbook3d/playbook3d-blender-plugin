@@ -178,6 +178,9 @@ def update_object_dropdown():
 # dropdown option
 @persistent
 def update_object_dropdown_handler(scene):
+    if not hasattr(scene, "mask_list_index"):
+        return
+
     # No mask exists
     if scene.mask_list_index == -1:
         return
