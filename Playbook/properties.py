@@ -150,11 +150,13 @@ class RetextureProperties(PropertyGroup):
             context.scene.flag_properties.retexture_flag = True
 
     def on_update_preserve_texture_mask(self, context):
-        item = self.preserve_texture_mask_dropdown
+        dropdown_item = self.preserve_texture_mask_dropdown
+        items = self.get_texture_masks(context)
 
-        self.preserve_texture_mask_index = (
-            self.preserve_texture_mask_dropdown.index(item)
+        index = next(
+            (i for i, item in enumerate(items) if item[0] == dropdown_item), None
         )
+        self.preserve_texture_mask_index = index
 
     def get_texture_masks(self, context):
         scene = context.scene

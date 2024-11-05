@@ -23,7 +23,6 @@ def get_user_info(api_key: str):
         username = decoded_json["username"]
 
         url = os.getenv("USER_URL").replace("*", username)
-        print(url)
         headers = {"authorization": access_token, "x-api-key": os.getenv("X_API_KEY")}
         jwt_request = requests.get(url=url, headers=headers)
         request_data = jwt_request.json()

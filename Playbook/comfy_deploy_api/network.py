@@ -179,6 +179,7 @@ class ComfyDeployClient:
         key = f"{workflow}_{base_model}_{style}"
         if ids.get(key) is not None:
             return ids[key]
+
         return 0
 
     # Noting - in web repo, retexture and style transfer settings are combined into single RenderSettings. Should match
