@@ -173,7 +173,8 @@ class ComfyDeployClient:
         }
 
         # There exists a mask to be preserved
-        if preserve_texture_mask != 0:
+        if preserve_texture_mask > 0:
+            print(f"Preserving texture mask {preserve_texture_mask}")
             return 13
 
         key = f"{workflow}_{base_model}_{style}"
