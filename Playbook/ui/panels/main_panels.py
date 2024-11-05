@@ -57,9 +57,12 @@ def draw_credentials_panel(context, layout):
     login_text = (
         f"Logged in as {user_props.user_email}"
         if user_props.user_email
-        else "Enter API key"
+        else "Enter API key in Preferences"
     )
-    row3.operator("op.login", text=login_text)
+    row3.operator(
+        "op.login",
+        text=login_text,
+    )
     row3.separator(factor=BOX_PADDING)
 
     row4 = box.row()

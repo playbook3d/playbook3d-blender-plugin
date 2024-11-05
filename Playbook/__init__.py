@@ -3,7 +3,7 @@ bl_info = {
     "description": "Playbook is a diffusion based renderer for 3D scenes. Press 'N' to bring up the plugin window.",
     "author": "Playbook 3D",
     "location": "Properties > Render > Playbook",
-    "version": (1, 0, 2),
+    "version": (1, 0, 3),
     "blender": (4, 0, 0),
     "category": "Render",
 }
@@ -78,15 +78,21 @@ class Preferences(AddonPreferences):
         if not self.api_key:
             return
 
+        if len(self.api_key) != 36:
+            return
+
         user_info = get_user_info(self.api_key)
-        context.scene.user_properties.user_email = user_info["email"]
-        context.scene.user_properties.user_credits = user_info["credits"]
+
+        if user_info is not None:
+            context.scene.user_properties.user_email = user_info["email"]
+            context.scene.user_properties.user_credits = user_info["credits"]
 
     api_key: StringProperty(
         name="API Key",
         default="",
         description="Your Playbook API Key",
         update=lambda self, context: self.on_api_key_updated(context),
+        options={"TEXTEDIT_UPDATE"},
     )
 
     def draw(self, context):

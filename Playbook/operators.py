@@ -11,10 +11,15 @@ from bpy.app.handlers import persistent
 #
 class LoginOperator(Operator):
     bl_idname = "op.login"
-    bl_label = "Logged in as"
-    bl_description = "Logged in"
+    bl_label = "Enter API key in Preferences"
+    bl_description = "Open up the preferences panel to Playbook."
 
     def execute(self, context):
+        bpy.ops.screen.userpref_show("INVOKE_DEFAULT")
+        bpy.context.preferences.active_section = "ADDONS"
+        bpy.ops.preferences.addon_expand(module=__package__)
+        bpy.ops.preferences.addon_show(module=__package__)
+
         return {"FINISHED"}
 
 
