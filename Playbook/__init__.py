@@ -112,8 +112,6 @@ class Preferences(AddonPreferences):
 
 
 def register():
-    reset_addon_values()
-
     ui.register()
     properties.register()
     operators.register()
@@ -131,10 +129,17 @@ def register():
 
 
 def unregister():
-    ui.unregister()
-    properties.unregister()
-    operators.unregister()
-    preferences.unregister()
-    render_image.unregister()
+    try:
+        ui.unregister()
+        properties.unregister()
+        operators.unregister()
+        preferences.unregister()
+        render_image.unregister()
 
-    bpy.utils.unregister_class(Preferences)
+        bpy.utils.unregister_class(Preferences)
+
+        reset_addon_values()
+
+    except Exception as e:
+        print(e)
+        print(e.__traceback__)

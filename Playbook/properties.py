@@ -391,6 +391,10 @@ def register():
 
 
 def unregister():
+    scene = bpy.context.scene
+    scene.retexture_properties.retexture_prompt = ""
+    scene.error_message = ""
+
     global classes
     for cls in classes:
         unregister_class(cls)
