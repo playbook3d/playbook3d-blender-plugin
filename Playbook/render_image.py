@@ -4,7 +4,7 @@ import os
 import base64
 from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
-from .render_passes.render_passes import render_passes
+from .render_passes.render_passes import render_passes, error_exists_in_render_passes
 from .visible_objects import color_hex
 from .comfy_deploy_api.network import (
     GlobalRenderSettings,
@@ -30,15 +30,18 @@ class RenderImage:
     @classmethod
     def render_image(cls):
         scene = bpy.context.scene
+        scene.error_message = ""
         RenderStatus.is_rendering = True
 
-        if not render_passes():
+        if error_exists_in_render_passes():
             RenderStatus.is_rendering = False
             return
 
         if error_exists_in_render_image(scene):
             RenderStatus.is_rendering = False
             return
+
+        render_passes()
 
         comfy = ComfyDeployClient()
         set_comfy_images(comfy)

@@ -17,8 +17,8 @@ from ..visible_objects import (
 from ..objects import visible_objects
 
 
-# Returns True if an error occurs while attempting to render the image.
-def error_exists_in_render_passes(scene) -> bool:
+# Returns a message if an error occurs while attempting to render the image.
+def check_for_errors() -> bool:
     # [workflow, condition for error message]
     workflow_checks = {
         "VISIBLEOBJECT": not visible_objects,
@@ -31,29 +31,28 @@ def error_exists_in_render_passes(scene) -> bool:
 
     for key, val in workflow_checks.items():
         if val:
-            scene.error_message = messages[key]
-            return True
+            return messages[key]
 
-    scene.error_message = ""
-    return False
+    return ""
 
 
-def render_passes():
+# Is there an error when trying to render passes
+def error_exists_in_render_passes():
     context = bpy.context
 
     set_visible_objects(context)
 
-    if error_exists_in_render_passes(context.scene):
-        visible_objects.clear()
+    error = check_for_errors()
+    if not error:
         return False
 
-    continue_render()
-
+    context.scene.error_message = error
+    visible_objects.clear()
     return True
 
 
-def continue_render():
-
+#
+def render_passes():
     # Prepare for renders
     clear_render_folder()
     save_object_materials()

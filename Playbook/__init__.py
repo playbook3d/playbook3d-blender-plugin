@@ -90,7 +90,7 @@ class Preferences(AddonPreferences):
     api_key: StringProperty(
         name="API Key",
         default="",
-        description="Your Playbook API Key",
+        description="Your Playbook API key",
         update=lambda self, context: self.on_api_key_updated(context),
         options={"TEXTEDIT_UPDATE"},
     )
