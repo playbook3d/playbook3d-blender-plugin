@@ -12,24 +12,28 @@ def get_user_info(api_key: str):
     # Load the .env file
     load_dotenv(dotenv_path=env_path)
 
-    alias_url = os.getenv("ALIAS_URL")
-    jwt_request = requests.get(alias_url + api_key)
+    try:
+        alias_url = os.getenv("ALIAS_URL")
+        jwt_request = requests.get(alias_url + api_key)
 
-    access_token = jwt_request.json()["access_token"]
-    decoded_jwt = decode_jwt(access_token)
+        access_token = jwt_request.json()["access_token"]
+        decoded_jwt = decode_jwt(access_token)
 
-    decoded_json = json.loads(decoded_jwt)
-    username = decoded_json["username"]
+        decoded_json = json.loads(decoded_jwt)
+        username = decoded_json["username"]
 
-    url = os.getenv("USER_URL").replace("*", username)
-    headers = {"authorization": access_token, "x-api-key": os.getenv("X_API_KEY")}
-    jwt_request = requests.get(url=url, headers=headers)
-    request_data = jwt_request.json()
+        url = os.getenv("USER_URL").replace("*", username)
+        headers = {"authorization": access_token, "x-api-key": os.getenv("X_API_KEY")}
+        jwt_request = requests.get(url=url, headers=headers)
+        request_data = jwt_request.json()
 
-    return {
-        "email": request_data["email"],
-        "credits": request_data["users_tier"]["credits"],
-    }
+        return {
+            "email": request_data["email"],
+            "credits": request_data["users_tier"]["credits"],
+        }
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
 
 def decode_jwt(token: str):

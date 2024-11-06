@@ -78,15 +78,21 @@ class Preferences(AddonPreferences):
         if not self.api_key:
             return
 
+        if len(self.api_key) != 36:
+            return
+
         user_info = get_user_info(self.api_key)
-        context.scene.user_properties.user_email = user_info["email"]
-        context.scene.user_properties.user_credits = user_info["credits"]
+
+        if user_info is not None:
+            context.scene.user_properties.user_email = user_info["email"]
+            context.scene.user_properties.user_credits = user_info["credits"]
 
     api_key: StringProperty(
         name="API Key",
         default="",
         description="Your Playbook API Key",
         update=lambda self, context: self.on_api_key_updated(context),
+        options={"TEXTEDIT_UPDATE"},
     )
 
     def draw(self, context):
@@ -106,8 +112,6 @@ class Preferences(AddonPreferences):
 
 
 def register():
-    reset_addon_values()
-
     ui.register()
     properties.register()
     operators.register()
@@ -125,10 +129,17 @@ def register():
 
 
 def unregister():
-    ui.unregister()
-    properties.unregister()
-    operators.unregister()
-    preferences.unregister()
-    render_image.unregister()
+    try:
+        ui.unregister()
+        properties.unregister()
+        operators.unregister()
+        preferences.unregister()
+        render_image.unregister()
 
-    bpy.utils.unregister_class(Preferences)
+        bpy.utils.unregister_class(Preferences)
+
+        reset_addon_values()
+
+    except Exception as e:
+        print(e)
+        print(e.__traceback__)

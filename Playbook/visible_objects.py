@@ -64,7 +64,12 @@ def save_object_materials():
 
     # Save background color
     global background_color
-    background_node = bpy.data.worlds["World"].node_tree.nodes["Background"]
+    world = bpy.context.scene.world
+
+    if world is None:
+        return
+
+    background_node = world.node_tree.nodes["Background"]
 
     if background_node:
         background_color = tuple(background_node.inputs[0].default_value)
@@ -115,6 +120,10 @@ def reset_background():
     global background_color
 
     world = bpy.context.scene.world
+
+    if world is None:
+        return
+
     nodes = world.node_tree.nodes
     nodes.clear()
 
