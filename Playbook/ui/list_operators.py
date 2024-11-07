@@ -1,8 +1,8 @@
 import bpy
 from bpy.utils import register_class, unregister_class
 from bpy.types import Operator
-from ..visible_objects import visible_objects, allowed_obj_types
-from ..objects import mask_objects
+from ..objects.visible_objects import visible_objects, allowed_obj_types
+from ..objects.objects import mask_objects
 
 MAX_MASKS = 7
 

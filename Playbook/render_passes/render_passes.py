@@ -6,15 +6,8 @@ from .mask_pass import render_mask_pass
 from .depth_pass import render_depth_pass
 from .outline_pass import render_outline_pass
 from .normal_pass import NormalPass
-from ..visible_objects import (
-    set_visible_objects,
-    save_object_materials,
-    set_object_materials_opaque,
-    reset_object_materials,
-    make_background_unreflective,
-    reset_background,
-)
-from ..objects import visible_objects
+from ..objects.visible_objects import set_visible_objects
+from ..objects.objects import visible_objects
 
 
 # Returns a message if an error occurs while attempting to render the image.
@@ -55,20 +48,9 @@ def error_exists_in_render_passes():
 def render_passes():
     # Prepare for renders
     clear_render_folder()
-    save_object_materials()
-
-    # Make world background unreflective so that scene objects don't
-    # reflect the background color
-    make_background_unreflective()
-    # Set materials opaque for beauty and depth passes
-    set_object_materials_opaque()
 
     # Render all required passes
     render_all_passes()
-
-    # Reset settings set for renders
-    reset_object_materials()
-    reset_background()
 
     # Clean up renders
     bpy.data.images.remove(bpy.data.images["Render Result"])

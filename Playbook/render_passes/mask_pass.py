@@ -1,8 +1,12 @@
 import bpy
-from ..visible_objects import set_object_materials_for_mask_pass
+from ..objects.objects import visible_objects, mask_objects
+from ..objects.object_properties import ObjectProperties
+from ..objects.object_utilities import mask_rgb_colors
 from ..utilities.utilities import get_parent_filepath
 
 original_settings = {}
+
+original_object_properties: dict[ObjectProperties] = {}
 
 
 # Save the current color management settings
@@ -12,6 +16,8 @@ def save_mask_settings():
     original_settings.clear()
     original_settings.update(
         {
+            "render_engine": scene.render.engine,
+            "object_index": bpy.context.window.view_layer.use_pass_object_index,
             "display_device": scene.display_settings.display_device,
             "view_transform": scene.view_settings.view_transform,
             "look": scene.view_settings.look,
@@ -19,7 +25,6 @@ def save_mask_settings():
             "gamma": scene.view_settings.gamma,
             "sequencer": scene.sequencer_colorspace_settings.name,
             "user_curves": scene.view_settings.use_curve_mapping,
-            "use_nodes": scene.world.use_nodes,
             "film_transparent": scene.render.film_transparent,
             "color_mode": scene.render.image_settings.color_mode,
             "color_depth": scene.render.image_settings.color_depth,
@@ -30,6 +35,9 @@ def save_mask_settings():
 # Prepare the color management settings for render
 def set_mask_settings():
     scene = bpy.context.scene
+    scene.render.engine = "CYCLES"
+    scene.cycles.samples = 1
+    bpy.context.window.view_layer.use_pass_object_index = True
     scene.display_settings.display_device = "sRGB"
     scene.view_settings.view_transform = "Standard"
     scene.view_settings.look = "None"
@@ -37,8 +45,7 @@ def set_mask_settings():
     scene.view_settings.gamma = 1
     scene.sequencer_colorspace_settings.name = "sRGB"
     scene.view_settings.use_curve_mapping = False
-    scene.world.use_nodes = True
-    scene.render.film_transparent = False
+    scene.render.film_transparent = True
     scene.render.image_settings.color_mode = "RGBA"
     scene.render.image_settings.color_depth = "16"
 
@@ -46,6 +53,10 @@ def set_mask_settings():
 # Reset the color management settings to their previous values
 def reset_mask_settings():
     scene = bpy.context.scene
+    scene.render.engine = original_settings["render_engine"]
+    bpy.context.window.view_layer.use_pass_object_index = original_settings[
+        "object_index"
+    ]
     scene.display_settings.display_device = original_settings["display_device"]
     scene.view_settings.view_transform = original_settings["view_transform"]
     scene.view_settings.look = original_settings["look"]
@@ -53,7 +64,6 @@ def reset_mask_settings():
     scene.view_settings.gamma = original_settings["gamma"]
     scene.sequencer_colorspace_settings.name = original_settings["sequencer"]
     scene.view_settings.use_curve_mapping = original_settings["user_curves"]
-    scene.world.use_nodes = original_settings["use_nodes"]
     scene.render.film_transparent = original_settings["film_transparent"]
     scene.render.image_settings.color_mode = original_settings["color_mode"]
     scene.render.image_settings.color_depth = original_settings["color_depth"]
@@ -67,6 +77,8 @@ def render_mask_to_file():
     output_path = get_parent_filepath("mask.png", "renders")
     render.filepath = output_path
 
+    create_mask_compositing()
+
     if scene.camera:
         bpy.ops.render.render(write_still=True)
     else:
@@ -74,9 +86,188 @@ def render_mask_to_file():
 
 
 #
+def create_mask_compositing():
+    scene = bpy.context.scene
+
+    if not scene.use_nodes:
+        scene.use_nodes = True
+
+    node_tree = scene.node_tree
+    nodes = node_tree.nodes
+    links = node_tree.links
+
+    nodes.clear()
+
+    preserve_mask = scene.retexture_properties.preserve_texture_mask_index
+
+    # Preserve mask exists
+    preserve_node = (
+        create_preserve_mask_nodes(nodes, links, render_layers_node)
+        if preserve_mask > 0
+        else None
+    )
+
+    # Create nodes
+    render_layers_node = nodes.new(type="CompositorNodeRLayers")
+
+    mask_nodes = create_idmask_nodes(nodes, links, render_layers_node)
+
+    mix_node = nodes.new(type="CompositorNodeMixRGB")
+    mix_node.inputs[2].default_value = (0, 0, 0, 0)
+
+    # Background nodes
+    background_mask_name = "CATCHALL"
+    for mask, objs in mask_objects.items():
+        if "Background" in objs:
+            background_mask_name = mask
+    background_node = create_background_nodes(
+        nodes, links, render_layers_node, background_mask_name
+    )
+
+    output_node = nodes.new("CompositorNodeComposite")
+
+    # Create links
+    # Mask links
+    links.new(mask_nodes[0].outputs["Image"], mix_node.inputs[1])
+
+    for mask_node in mask_nodes[1:]:
+        new_mix_node = nodes.new("CompositorNodeMixRGB")
+        new_mix_node.blend_type = "ADD"
+
+        links.new(mix_node.outputs["Image"], new_mix_node.inputs[1])
+        links.new(mask_node.outputs["Image"], new_mix_node.inputs[2])
+
+        mix_node = new_mix_node
+
+    # Background links
+    links.new(mix_node.outputs["Image"], background_node.inputs[2])
+
+    # Preserve mask links
+    if preserve_node is not None:
+        links.new(background_node.outputs["Image"], preserve_node.inputs[1])
+        links.new(render_layers_node.outputs["Image"], preserve_node.inputs[2])
+        links.new(preserve_node.outputs["Image"], output_node.inputs["Image"])
+
+    else:
+        links.new(background_node.outputs["Image"], output_node.inputs["Image"])
+
+
+#
+def create_idmask_nodes(nodes, links, render_layers_node):
+    mask_nodes = []
+
+    # Catch-all node
+    catchall_idmask_node = nodes.new(type="CompositorNodeIDMask")
+    catchall_idmask_node.index = 8
+
+    catchall_mix_node = nodes.new(type="CompositorNodeMixRGB")
+    catchall_mix_node.blend_type = "MULTIPLY"
+    catchall_mix_node.inputs[2].default_value = mask_rgb_colors["CATCHALL"]
+
+    links.new(
+        render_layers_node.outputs["IndexOB"], catchall_idmask_node.inputs["ID value"]
+    )
+    links.new(catchall_idmask_node.outputs["Alpha"], catchall_mix_node.inputs[1])
+
+    mask_nodes.append(catchall_mix_node)
+
+    for mask, objs in mask_objects.items():
+
+        # No objects in this mask. Ignore
+        if not objs:
+            continue
+
+        idmask_node = nodes.new(type="CompositorNodeIDMask")
+        idmask_node.index = int(mask[-1])
+
+        mask_node = nodes.new(type="CompositorNodeMixRGB")
+        mask_node.blend_type = "MULTIPLY"
+        mask_node.inputs[2].default_value = mask_rgb_colors[mask]
+
+        links.new(render_layers_node.outputs["IndexOB"], idmask_node.inputs["ID value"])
+        links.new(idmask_node.outputs["Alpha"], mask_node.inputs[1])
+
+        mask_nodes.append(mask_node)
+
+    return mask_nodes
+
+
+#
+def create_preserve_mask_nodes(nodes, links, render_layers_node, mask_index: int):
+    preserve_idmask_node = nodes.new(type="CompositorNodeIDMask")
+    preserve_idmask_node.index = mask_index
+
+    alpha_over_node = nodes.new(type="CompositorNodeAlphaOver")
+
+    links.new(
+        render_layers_node.outputs["IndexOB"], preserve_idmask_node.inputs["ID value"]
+    )
+    links.new(preserve_idmask_node.outputs["Alpha"], alpha_over_node.inputs["Fac"])
+
+    return alpha_over_node
+
+
+#
+def create_background_nodes(nodes, links, render_layers_node, mask_name: str):
+    alpha_over_node = nodes.new(type="CompositorNodeAlphaOver")
+    alpha_over_node.inputs[1].default_value = mask_rgb_colors[mask_name]
+
+    links.new(render_layers_node.outputs["Alpha"], alpha_over_node.inputs["Fac"])
+
+    return alpha_over_node
+
+
+#
+def save_object_properties():
+    original_object_properties.clear()
+
+    for obj in visible_objects:
+        original_object_properties[obj.name] = ObjectProperties(
+            obj.visible_shadow, obj.pass_index
+        )
+
+        obj.visible_shadow = False
+
+
+#
+def set_object_indeces():
+    visible_objects_dict = {obj.name: obj for obj in visible_objects}
+
+    for mask, mask_objs in mask_objects.items():
+        for mask_obj in mask_objs:
+            print(f"Mask: {mask}, Object: {mask_obj}")
+
+            # Background color is set in compositing
+            if mask_obj == "Background":
+                continue
+
+            if mask_obj in visible_objects_dict:
+                obj = visible_objects_dict[mask_obj]
+                obj.pass_index = int(mask[-1])  # Index of mask
+
+                visible_objects_dict.pop(mask_obj)
+
+    # All remaining visible objects are set in the catch-all mask
+    for obj in visible_objects_dict.values():
+        obj.pass_index = 8  # Catch-all index
+
+
+#
+def reset_object_properties():
+    for obj in visible_objects:
+        obj.visible_shadow = original_object_properties[obj.name].visible_shadow
+        obj.pass_index = original_object_properties[obj.name].pass_index
+
+
+#
 def render_mask_pass():
     save_mask_settings()
-    set_object_materials_for_mask_pass()
+    save_object_properties()
+
     set_mask_settings()
+    set_object_indeces()
+
     render_mask_to_file()
+
     reset_mask_settings()
+    reset_object_properties()

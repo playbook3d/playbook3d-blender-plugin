@@ -11,8 +11,8 @@ from bpy.props import (
 )
 from bpy.types import Scene, PropertyGroup, Image
 from bpy.utils import register_class, unregister_class
-from .visible_objects import set_visible_objects
-from .objects import visible_objects, mask_objects
+from .objects.visible_objects import set_visible_objects
+from .objects.objects import visible_objects, mask_objects
 from .ui.lists import MaskObjectListItem
 from .ui.icons import get_style_icon
 
