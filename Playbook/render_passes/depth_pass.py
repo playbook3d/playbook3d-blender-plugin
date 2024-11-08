@@ -6,8 +6,6 @@ original_settings = {}
 
 #
 def save_depth_settings():
-    global original_settings
-
     scene = bpy.context.scene
 
     if not scene.world:
@@ -34,8 +32,6 @@ def set_depth_settings():
 
 #
 def reset_depth_settings():
-    global original_settings
-
     scene = bpy.context.scene
 
     scene.view_layers["ViewLayer"].use_pass_z = original_settings["z_pass"]

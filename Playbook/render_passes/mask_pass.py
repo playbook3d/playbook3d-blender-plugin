@@ -100,19 +100,20 @@ def create_mask_compositing():
 
     preserve_mask = scene.retexture_properties.preserve_texture_mask_index
 
-    # Preserve mask exists
+    # Create nodes
+    render_layers_node = nodes.new(type="CompositorNodeRLayers")
+
+    # Preserve mask nodes
     preserve_node = (
-        create_preserve_mask_nodes(nodes, links, render_layers_node)
+        create_preserve_mask_nodes(nodes, links, render_layers_node, int(preserve_mask))
         if preserve_mask > 0
         else None
     )
 
-    # Create nodes
-    render_layers_node = nodes.new(type="CompositorNodeRLayers")
-
     mask_nodes = create_idmask_nodes(nodes, links, render_layers_node)
 
     mix_node = nodes.new(type="CompositorNodeMixRGB")
+    mix_node.blend_type = "ADD"
     mix_node.inputs[2].default_value = (0, 0, 0, 0)
 
     # Background nodes
