@@ -1,3 +1,4 @@
+import bpy
 from bpy.types import Scene, UIList, PropertyGroup
 from bpy.props import IntProperty, StringProperty, CollectionProperty
 from bpy.utils import register_class, unregister_class
@@ -25,11 +26,18 @@ class PB_UL_CustomList(UIList):
             layout.alignment = "CENTER"
 
 
+#
+def reset_list_properties():
+    scene = bpy.context.scene
+
+    scene.mask_list.clear()
+    scene.mask_list_index = 0
+
+
 classes = [MaskListItem, MaskObjectListItem, PB_UL_CustomList]
 
 
 def register():
-    global classes
     for cls in classes:
         register_class(cls)
 
@@ -38,7 +46,8 @@ def register():
 
 
 def unregister():
-    global classes
+    reset_list_properties()
+
     for cls in classes:
         unregister_class(cls)
 
