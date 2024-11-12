@@ -367,15 +367,23 @@ def reset_properties():
     # Reset properties
     scene = bpy.context.scene
 
-    scene.retexture_properties.retexture_prompt = ""
-    scene.retexture_properties.preserve_texture_mask_dropdown = "NONE"
-    scene.retexture_properties.preserve_texture_mask_index = 0
+    global_properties = scene.global_properties
+    global_properties.global_workflow = "RETEXTURE"
+    global_properties.global_model = "STABLE"
+    global_properties.global_style = "PHOTOREAL"
+
+    retexture_properties = scene.retexture_properties
+    retexture_properties.retexture_prompt = ""
+    retexture_properties.retexture_structure_strength = 50
+    retexture_properties.preserve_texture_mask_dropdown = "NONE"
+    retexture_properties.preserve_texture_mask_index = 0
 
     scene.error_message = ""
 
     for i in range(NUM_MASKS_ALLOWED):
         mask_props = getattr(scene, f"mask_properties{i + 1}")
         mask_props.mask_objects.clear()
+        mask_props.mask_prompt = prompt_placeholders["Mask"]
 
 
 classes = [
