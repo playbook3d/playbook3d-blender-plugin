@@ -61,6 +61,7 @@ import os
 import toml
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty
+from bpy.app.handlers import persistent
 from . import ui
 from . import properties
 from . import operators
@@ -90,7 +91,7 @@ class Preferences(AddonPreferences):
     api_key: StringProperty(
         name="API Key",
         default="",
-        description="Your Playbook API Key",
+        description="Your Playbook API key",
         update=lambda self, context: self.on_api_key_updated(context),
         options={"TEXTEDIT_UPDATE"},
     )
@@ -111,6 +112,24 @@ class Preferences(AddonPreferences):
         layout.prop(self, "api_key")
 
 
+@persistent
+def read_preferences_on_load(dummy):
+    context = bpy.context
+    addon_prefs = bpy.context.preferences.addons[__package__].preferences
+
+    if not addon_prefs.api_key:
+        return
+
+    if len(addon_prefs.api_key) != 36:
+        return
+
+    user_info = get_user_info(addon_prefs.api_key)
+
+    if user_info is not None:
+        context.scene.user_properties.user_email = user_info["email"]
+        context.scene.user_properties.user_credits = user_info["credits"]
+
+
 def register():
     ui.register()
     properties.register()
@@ -119,7 +138,9 @@ def register():
     render_image.register()
 
     bpy.utils.register_class(Preferences)
+
     BlenderSecretsManager.load_to_env()
+
     toml_path = os.path.join(os.path.dirname(__file__), "blender_manifest.toml")
     with open(toml_path, "r") as blender_info:
         version = toml.load(blender_info)["version"]
@@ -127,8 +148,14 @@ def register():
             tuple(map(int, version.split(".")))
         )
 
+    if read_preferences_on_load not in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.append(read_preferences_on_load)
+
 
 def unregister():
+    if read_preferences_on_load in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.remove(read_preferences_on_load)
+
     try:
         ui.unregister()
         properties.unregister()

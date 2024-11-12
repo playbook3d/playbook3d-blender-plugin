@@ -11,8 +11,8 @@ from bpy.props import (
 )
 from bpy.types import Scene, PropertyGroup, Image
 from bpy.utils import register_class, unregister_class
-from .visible_objects import set_visible_objects
-from .objects import visible_objects, mask_objects
+from .objects.visible_objects import set_visible_objects
+from .objects.objects import visible_objects, mask_objects
 from .ui.lists import MaskObjectListItem
 from .ui.icons import get_style_icon
 
@@ -142,6 +142,7 @@ class GlobalProperties(PropertyGroup):
 
 #
 class RetextureProperties(PropertyGroup):
+    #
     def on_update_prompt(self, context):
         if not self.retexture_prompt:
             self.retexture_prompt = prompt_placeholders["Retexture"]
@@ -149,6 +150,7 @@ class RetextureProperties(PropertyGroup):
         else:
             context.scene.flag_properties.retexture_flag = True
 
+    #
     def on_update_preserve_texture_mask(self, context):
         dropdown_item = self.preserve_texture_mask_dropdown
         items = self.get_texture_masks(context)
@@ -158,14 +160,19 @@ class RetextureProperties(PropertyGroup):
         )
         self.preserve_texture_mask_index = index
 
+    #
     def get_texture_masks(self, context):
         scene = context.scene
-        mask_list = scene.mask_list
 
-        dropdown_options = [
-            (mask.name.upper(), mask.name, mask.name) for mask in mask_list
-        ]
-        dropdown_options.insert(0, ("NONE", "None", "None"))
+        if hasattr(scene, "mask_list"):
+            mask_list = scene.mask_list
+
+            dropdown_options = [
+                (mask.name.upper(), mask.name, mask.name) for mask in mask_list
+            ]
+            dropdown_options.insert(0, ("NONE", "None", "None"))
+        else:
+            dropdown_options = [("NONE", "None", "None")]
 
         return dropdown_options
 
@@ -181,7 +188,7 @@ class RetextureProperties(PropertyGroup):
         items=get_texture_masks,
         update=lambda self, context: self.on_update_preserve_texture_mask(context),
     )
-    preserve_texture_mask_index: IntProperty(name="", default=-1)
+    preserve_texture_mask_index: IntProperty(name="", default=0)
 
 
 #
@@ -355,6 +362,30 @@ def set_user_credits(credits: int) -> None:
         user_props.user_credits = credits
 
 
+#
+def reset_properties():
+    # Reset properties
+    scene = bpy.context.scene
+
+    global_properties = scene.global_properties
+    global_properties.global_workflow = "RETEXTURE"
+    global_properties.global_model = "STABLE"
+    global_properties.global_style = "PHOTOREAL"
+
+    retexture_properties = scene.retexture_properties
+    retexture_properties.retexture_prompt = ""
+    retexture_properties.retexture_structure_strength = 50
+    retexture_properties.preserve_texture_mask_dropdown = "NONE"
+    retexture_properties.preserve_texture_mask_index = 0
+
+    scene.error_message = ""
+
+    for i in range(NUM_MASKS_ALLOWED):
+        mask_props = getattr(scene, f"mask_properties{i + 1}")
+        mask_props.mask_objects.clear()
+        mask_props.mask_prompt = prompt_placeholders["Mask"]
+
+
 classes = [
     UserProperties,
     GlobalProperties,
@@ -368,7 +399,6 @@ classes = [
 
 
 def register():
-    global classes
     for cls in classes:
         register_class(cls)
 
@@ -392,16 +422,8 @@ def register():
 
 
 def unregister():
-    # Reset properties
-    scene = bpy.context.scene
-    scene.retexture_properties.retexture_prompt = ""
-    scene.error_message = ""
+    reset_properties()
 
-    for i in range(NUM_MASKS_ALLOWED):
-        mask_props = getattr(scene, f"mask_properties{i + 1}")
-        mask_props.mask_objects.clear()
-
-    global classes
     for cls in classes:
         unregister_class(cls)
 

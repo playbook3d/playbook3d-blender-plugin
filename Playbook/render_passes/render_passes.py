@@ -6,19 +6,12 @@ from .mask_pass import render_mask_pass
 from .depth_pass import render_depth_pass
 from .outline_pass import render_outline_pass
 from .normal_pass import NormalPass
-from ..visible_objects import (
-    set_visible_objects,
-    save_object_materials,
-    set_object_materials_opaque,
-    reset_object_materials,
-    make_background_unreflective,
-    reset_background,
-)
-from ..objects import visible_objects
+from ..objects.visible_objects import set_visible_objects
+from ..objects.objects import visible_objects
 
 
-# Returns True if an error occurs while attempting to render the image.
-def error_exists_in_render_passes(scene) -> bool:
+# Returns a message if an error occurs while attempting to render the image.
+def check_for_errors() -> bool:
     # [workflow, condition for error message]
     workflow_checks = {
         "VISIBLEOBJECT": not visible_objects,
@@ -31,45 +24,33 @@ def error_exists_in_render_passes(scene) -> bool:
 
     for key, val in workflow_checks.items():
         if val:
-            scene.error_message = messages[key]
-            return True
+            return messages[key]
 
-    scene.error_message = ""
-    return False
+    return ""
 
 
-def render_passes():
+# Is there an error when trying to render passes
+def error_exists_in_render_passes():
     context = bpy.context
 
     set_visible_objects(context)
 
-    if error_exists_in_render_passes(context.scene):
-        visible_objects.clear()
+    error = check_for_errors()
+    if not error:
         return False
 
-    continue_render()
-
+    context.scene.error_message = error
+    visible_objects.clear()
     return True
 
 
-def continue_render():
-
+#
+def render_passes():
     # Prepare for renders
     clear_render_folder()
-    save_object_materials()
-
-    # Make world background unreflective so that scene objects don't
-    # reflect the background color
-    make_background_unreflective()
-    # Set materials opaque for beauty and depth passes
-    set_object_materials_opaque()
 
     # Render all required passes
     render_all_passes()
-
-    # Reset settings set for renders
-    reset_object_materials()
-    reset_background()
 
     # Clean up renders
     bpy.data.images.remove(bpy.data.images["Render Result"])

@@ -1,6 +1,6 @@
 import bpy
 import webbrowser
-from .objects import mask_objects
+from .objects.objects import mask_objects
 from .capture_passes import capture_passes
 from bpy.props import StringProperty
 from bpy.types import Operator

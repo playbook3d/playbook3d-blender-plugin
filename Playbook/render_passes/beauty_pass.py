@@ -1,9 +1,31 @@
 import bpy
 from ..utilities.utilities import get_parent_filepath
 
+original_settings = {}
+
 
 #
-def render_beauty_pass():
+def save_beauty_settings():
+    scene = bpy.context.scene
+
+    original_settings.clear()
+    original_settings.update({"use_nodes": scene.use_nodes})
+
+
+#
+def set_beauty_settings():
+    scene = bpy.context.scene
+    scene.use_nodes = False
+
+
+#
+def reset_beauty_settings():
+    scene = bpy.context.scene
+    scene.use_nodes = original_settings["use_nodes"]
+
+
+#
+def render_beauty_to_file():
     scene = bpy.context.scene
     render = scene.render
 
@@ -15,3 +37,11 @@ def render_beauty_pass():
 
     else:
         print("No active camera found in the scene")
+
+
+#
+def render_beauty_pass():
+    save_beauty_settings()
+    set_beauty_settings()
+    render_beauty_to_file()
+    reset_beauty_settings()

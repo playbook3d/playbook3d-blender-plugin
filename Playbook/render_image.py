@@ -4,8 +4,8 @@ import os
 import base64
 from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
-from .render_passes.render_passes import render_passes
-from .visible_objects import color_hex
+from .render_passes.render_passes import render_passes, error_exists_in_render_passes
+from .objects.object_utilities import mask_hex_colors
 from .comfy_deploy_api.network import (
     GlobalRenderSettings,
     RetextureRenderSettings,
@@ -30,15 +30,19 @@ class RenderImage:
     @classmethod
     def render_image(cls):
         scene = bpy.context.scene
+        scene.error_message = ""
+
         RenderStatus.is_rendering = True
 
-        if not render_passes():
+        if error_exists_in_render_passes():
             RenderStatus.is_rendering = False
             return
 
         if error_exists_in_render_image(scene):
             RenderStatus.is_rendering = False
             return
+
+        render_passes()
 
         comfy = ComfyDeployClient()
         set_comfy_images(comfy)
@@ -85,7 +89,7 @@ def get_retexture_settings() -> RetextureRenderSettings:
     mask_props = [
         MaskData(
             getattr(scene, f"mask_properties{index + 1}").mask_prompt,
-            color_hex[f"MASK{index + 1}"],
+            mask_hex_colors[f"MASK{index + 1}"],
         )
         for index in range(7)
     ]
