@@ -79,8 +79,6 @@ class Preferences(AddonPreferences):
         if not self.api_key:
             return
 
-        context.scene.user_properties.user_api_key = self.api_key
-
         if len(self.api_key) != 36:
             return
 
