@@ -34,22 +34,28 @@ class RenderImage:
 
         RenderStatus.is_rendering = True
 
-        if error_exists_in_render_passes():
-            RenderStatus.is_rendering = False
-            return
+        try:
+            if error_exists_in_render_passes():
+                RenderStatus.is_rendering = False
+                return
 
-        if error_exists_in_render_image(scene):
-            RenderStatus.is_rendering = False
-            return
+            if error_exists_in_render_image(scene):
+                RenderStatus.is_rendering = False
+                return
 
-        render_passes()
+            render_passes()
 
-        comfy = ComfyDeployClient()
-        set_comfy_images(comfy)
-        workflow_message = asyncio.run(run_comfy_workflow(comfy))
+            comfy = ComfyDeployClient()
+            set_comfy_images(comfy)
+            workflow_message = asyncio.run(run_comfy_workflow(comfy))
 
-        if workflow_message:
-            scene.error_message = workflow_message
+            if workflow_message:
+                scene.error_message = workflow_message
+                RenderStatus.is_rendering = False
+
+        except Exception as e:
+            print(f"Error occurred: {e}")
+            scene.error_message = "An error has occurred."
             RenderStatus.is_rendering = False
 
 
