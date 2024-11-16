@@ -10,7 +10,7 @@ def save_outline_settings():
     global original_settings
 
     scene = bpy.context.scene
-    view_layers = scene.view_layers["ViewLayer"]
+    view_layers = bpy.context.view_layer
 
     if not scene.world:
         scene.world = bpy.data.worlds["World"]
@@ -27,7 +27,7 @@ def save_outline_settings():
 
 #
 def set_outline_settings():
-    view_layer = bpy.context.scene.view_layers["ViewLayer"]
+    view_layer = bpy.context.view_layer
 
     view_layer.use_pass_z = True
     view_layer.use_pass_normal = True
@@ -38,8 +38,7 @@ def set_outline_settings():
 def reset_outline_settings():
     global original_settings
 
-    view_layer = bpy.context.scene.view_layers["ViewLayer"]
-
+    view_layer = bpy.context.view_layer
     view_layer.use_pass_z = original_settings["z_pass"]
     view_layer.use_pass_normal = original_settings["normal_pass"]
     view_layer.use_pass_position = original_settings["position_pass"]
