@@ -1,6 +1,11 @@
 import bpy
 from .main_panels import MainPanel3D, MainPanelRender
-from .panel_utils import PlaybookPanel3D, PlaybookPanelRender, BOX_PADDING
+from .panel_utils import (
+    PlaybookPanel3D,
+    PlaybookPanelRender,
+    create_label_row,
+    BOX_PADDING,
+)
 
 
 ########## TEAMS PANEL ##########
@@ -11,17 +16,21 @@ def draw_teams_panel(context, layout):
     scene = context.scene
     teams_properties = scene.teams_properties
 
-    column = box.column()
-    column.scale_y = 1.75
-    column.separator(factor=BOX_PADDING)
-    column.label(text="Team")
-    column.prop(teams_properties, "teams_dropdown")
-    column.separator(factor=BOX_PADDING)
+    create_label_row(box, "Team")
+    teams_row = box.row()
+    teams_row.scale_y = 1.25
+    teams_row.separator(factor=BOX_PADDING)
+    teams_row.prop(teams_properties, "teams_dropdown")
+    teams_row.separator(factor=BOX_PADDING)
 
-    column.separator(factor=BOX_PADDING)
-    column.label(text="Project")
-    column.prop(teams_properties, "projects_dropdown")
-    column.separator(factor=BOX_PADDING)
+    box.separator(factor=BOX_PADDING)
+
+    create_label_row(box, "Project")
+    projects_row = box.row()
+    projects_row.scale_y = 1.25
+    projects_row.separator(factor=BOX_PADDING)
+    projects_row.prop(teams_properties, "projects_dropdown")
+    projects_row.separator(factor=BOX_PADDING)
 
     box.separator(factor=BOX_PADDING)
 

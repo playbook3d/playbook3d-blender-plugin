@@ -14,6 +14,8 @@ classes = [
     CredentialsPanelRender,
     TeamsPanel3D,
     TeamsPanelRender,
+    AdvancedSettingsPanel3D,
+    AdvancedSettingsPanelRender,
     RenderPanel3D,
     RenderPanelRender,
     LinksPanel3D,

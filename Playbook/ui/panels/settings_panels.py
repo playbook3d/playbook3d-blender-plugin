@@ -115,32 +115,7 @@ def draw_advanced_settings_panel(context, layout):
     box = layout.box()
     box.separator(factor=BOX_PADDING)
 
-    # Structure Strength
-    if scene.show_retexture_panel:
-        create_label_row(box, "Structure Strength")
-        strength_row = box.row()
-        strength_row.scale_y = 1.25
-        strength_row.separator(factor=BOX_PADDING)
-        strength_row.prop(
-            scene.retexture_properties, "retexture_structure_strength", slider=True
-        )
-        strength_row.separator(factor=BOX_PADDING)
-
-        box.separator(factor=BOX_PADDING)
-
-        if scene.global_properties.global_model != "FLUX":
-            draw_mask_layout(scene, box)
-
-    # Structure Strength
-    else:
-        create_label_row(box, "Style Transfer Strength")
-        strength_row = box.row()
-        strength_row.scale_y = 1.25
-        strength_row.separator(factor=BOX_PADDING)
-        strength_row.prop(scene.style_properties, "style_strength", slider=True)
-        strength_row.separator(factor=BOX_PADDING)
-
-        box.separator(factor=BOX_PADDING)
+    draw_mask_layout(scene, box)
 
 
 #
@@ -244,7 +219,7 @@ def draw_mask_layout(scene, box):
 class AdvancedSettingsPanel3D(PlaybookPanel3D, bpy.types.Panel):
     bl_idname = "VIEW_3D_PT_advanced_settings"
     bl_label = "Advanced"
-    bl_parent_id = RenderSettingsPanel3D.bl_idname
+    bl_parent_id = MainPanel3D.bl_idname
     bl_options = {"HEADER_LAYOUT_EXPAND"}
 
     def draw(self, context):
@@ -255,7 +230,7 @@ class AdvancedSettingsPanel3D(PlaybookPanel3D, bpy.types.Panel):
 class AdvancedSettingsPanelRender(PlaybookPanelRender, bpy.types.Panel):
     bl_idname = "IMAGE_RENDER_PT_advanced_settings"
     bl_label = "Advanced"
-    bl_parent_id = RenderSettingsPanelRender.bl_idname
+    bl_parent_id = MainPanelRender.bl_idname
     bl_options = {"HEADER_LAYOUT_EXPAND"}
 
     def draw(self, context):
