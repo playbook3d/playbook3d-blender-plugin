@@ -1,8 +1,6 @@
 import bpy
 from .main_panels import MainPanel3D, MainPanelRender
 from ...render_status import RenderStatus
-from ...properties import model_render_stats
-from ...utilities.utilities import get_scale_resolution_width
 from .panel_utils import PlaybookPanel3D, BOX_PADDING, PlaybookPanelRender
 
 
@@ -12,26 +10,6 @@ def draw_render_panel(context, layout):
     box.separator(factor=BOX_PADDING)
 
     scene = context.scene
-    model = context.scene.global_properties.global_model
-
-    row = box.row()
-    row.separator(factor=BOX_PADDING)
-    split = row.split()
-    column1 = split.column(align=True)
-    column1.alignment = "LEFT"
-    # column1.label(text="Final resolution:")
-    # column1.label(text="Estimated time:")
-    # column1.label(text="Credit cost:")
-    row.separator(factor=BOX_PADDING)
-
-    column2 = split.column(align=True)
-    column2.alignment = "RIGHT"
-    height = model_render_stats[model]["Height"]
-    width = get_scale_resolution_width(height)
-    cost = model_render_stats[model]["Cost"]
-    # column2.label(text=f"{width} x {height}")
-    # column2.label(text=model_render_stats[model]["Time"])
-    # column2.label(text=f"{cost}")
 
     row0 = box.row()
     row0.scale_y = 1.75

@@ -11,50 +11,12 @@ bl_info = {
 import bpy
 
 
-def ensure_packages():
-    if bpy.app.version < (4, 2, 0):
-        import site
-        import sys
-        import os
-        import subprocess
-        import importlib
-        import importlib.util
-
-        requirements_path = os.path.join(os.path.dirname(__file__), "requirements.txt")
-
-        user_sites = site.getusersitepackages()
-        os.makedirs(user_sites, exist_ok=True)
-        sys.path.append(user_sites)
-
-        python_executable = sys.executable
-        try:
-            with open(requirements_path, "r") as f:
-                packages = [
-                    package
-                    for package in f.read().splitlines()
-                    if not importlib.util.find_spec(package)
-                ]
-                subprocess.run([python_executable, "-m", "ensurepip", "--upgrade"])
-                subprocess.run(
-                    [python_executable, "-m", "pip", "install", *packages, "--user"],
-                    check=True,
-                )
-
-        except Exception as e:
-            print(f"Error reading requirements.txt: {e}")
-
-    import dotenv
-
-    print(dotenv.__file__)
-
-
 def reset_addon_values():
     from .render_status import RenderStatus
 
     RenderStatus.is_rendering = False
 
 
-ensure_packages()
 reset_addon_values()
 
 import os

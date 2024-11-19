@@ -9,12 +9,12 @@ from bpy.props import (
     FloatVectorProperty,
     BoolProperty,
 )
-from bpy.types import Scene, PropertyGroup, Image
+from bpy.types import Scene, PropertyGroup
 from bpy.utils import register_class, unregister_class
-from .objects.visible_objects import set_visible_objects
-from .objects.objects import visible_objects, mask_objects
-from .ui.lists import MaskObjectListItem
-from .ui.icons import get_style_icon
+from ...objects.visible_objects import set_visible_objects
+from ...objects.objects import visible_objects, mask_objects
+from ...ui.lists import MaskObjectListItem
+from ...ui.icons import get_style_icon
 
 NUM_MASKS_ALLOWED = 7
 

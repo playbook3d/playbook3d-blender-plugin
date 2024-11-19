@@ -62,7 +62,7 @@ class RenderImage:
 # Render the image according to the settings
 class RenderImageOperator(Operator):
     bl_idname = "op.render_image"
-    bl_label = "Render"
+    bl_label = "Run"
     bl_description = "Render the image"
 
     @classmethod

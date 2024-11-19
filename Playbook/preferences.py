@@ -2,7 +2,7 @@ import webbrowser
 from bpy.types import Operator
 from bpy.props import StringProperty
 from bpy.utils import register_class, unregister_class
-from .properties import prompt_placeholders
+from .properties.workflow_properties import prompt_placeholders
 from .version_control import PlaybookVersionControl
 
 

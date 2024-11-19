@@ -7,21 +7,12 @@ from ..icons import icons
 def draw_main_panel(layout):
     row0 = layout.row()
     row1 = layout.row()
-    row2 = layout.row()
-    row3 = layout.row()
 
     row0.alignment = "CENTER"
     row1.alignment = "CENTER"
-    row2.alignment = "CENTER"
-    row3.alignment = "CENTER"
-
-    row2.scale_y = 0.5
-    row3.scale_y = 0.5
 
     row0.label(text="", icon_value=icons["main"]["playbook_logo_main"].icon_id)
     row1.label(text="Playbook")
-    row2.label(text="Playbook is the best way for 3D artists")
-    row3.label(text="to leverage ComfyUI.")
 
 
 #
@@ -68,7 +59,7 @@ def draw_credentials_panel(context, layout):
     row4 = box.row()
     row4.scale_y = 1.8
     row4.separator(factor=BOX_PADDING)
-    row4.operator("op.upgrade")
+    row4.operator("op.dashboard")
     row4.separator(factor=BOX_PADDING)
 
     row5 = box.row()

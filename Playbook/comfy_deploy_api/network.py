@@ -7,7 +7,7 @@ import requests
 import numpy as np
 from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
-from ..properties import (
+from ..properties.workflow_properties import (
     get_user_credits,
     set_user_credits,
     prompt_placeholders,

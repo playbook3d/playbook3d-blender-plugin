@@ -24,35 +24,15 @@ class LoginOperator(Operator):
 
 
 #
-class UpgradeOperator(Operator):
-    bl_idname = "op.upgrade"
-    bl_label = "Get Credits"
-    bl_description = "Upgrade"
+class DashboardOperator(Operator):
+    bl_idname = "op.dashboard"
+    bl_label = "Open Dashboard"
+    bl_description = "Open the Playbook dashboard"
 
     url: StringProperty(name="", default="https://www.beta.playbook3d.com/")
 
     def execute(self, context):
         webbrowser.open(self.url)
-        return {"FINISHED"}
-
-
-#
-class RandomizePromptOperator(Operator):
-    bl_idname = "op.randomize_prompt"
-    bl_label = "Randomize"
-    bl_description = "Randomize"
-
-    def execute(self, context):
-        return {"FINISHED"}
-
-
-#
-class RandomizeMaskPromptOperator(Operator):
-    bl_idname = "op.randomize_mask_prompt"
-    bl_label = "Randomize"
-    bl_description = "Randomize"
-
-    def execute(self, context):
         return {"FINISHED"}
 
 
@@ -144,9 +124,7 @@ class ClearRelightImageOperator(Operator):
 
 classes = [
     LoginOperator,
-    UpgradeOperator,
-    RandomizePromptOperator,
-    RandomizeMaskPromptOperator,
+    DashboardOperator,
     QueueOperator,
     CapturePassesOperator,
     PlaybookWebsiteOperator,
