@@ -61,14 +61,6 @@ def draw_credentials_panel(context, layout):
     row4.separator(factor=BOX_PADDING)
     row4.operator("op.dashboard")
     row4.separator(factor=BOX_PADDING)
-
-    row5 = box.row()
-    row5.alignment = "CENTER"
-    credits_text = (
-        "Unlimited" if user_props.user_credits <= -1 else user_props.user_credits
-    )
-    row5.label(text=f"Credits remaining: {credits_text}")
-
     box.separator(factor=BOX_PADDING)
 
 

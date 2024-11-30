@@ -1,12 +1,23 @@
-from . import workflow_properties
-from . import teams_properties
+from bpy.props import StringProperty, BoolProperty
+from bpy.types import Scene
+from . import mask_properties
+from . import user_properties
+from . import lists
 
 
 def register():
-    workflow_properties.register()
-    teams_properties.register()
+    lists.register()
+    user_properties.register()
+    mask_properties.register()
+
+    Scene.error_message = StringProperty(default="")
+    Scene.show_object_dropdown = BoolProperty(default=False)
 
 
 def unregister():
-    workflow_properties.unregister()
-    teams_properties.unregister()
+    lists.unregister()
+    user_properties.unregister()
+    mask_properties.unregister()
+
+    del Scene.error_message
+    del Scene.show_object_dropdown

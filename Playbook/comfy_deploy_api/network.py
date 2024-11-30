@@ -7,12 +7,6 @@ import requests
 import numpy as np
 from comfydeploy import ComfyDeploy
 from dotenv import load_dotenv
-from ..properties.workflow_properties import (
-    get_user_credits,
-    set_user_credits,
-    prompt_placeholders,
-    model_render_stats,
-)
 from ..render_status import RenderStatus
 from ..utilities.utilities import get_scale_resolution_width, get_api_key
 from ..workspace import open_render_window
@@ -39,20 +33,6 @@ def machine_id_status(machine_id: str):
     client.machines.get_v1_machines_machine_id_(machine_id=machine_id)
 
 
-#
-def calculate_pending_credits(base_model):
-    curr_credits = get_user_credits()
-    # -1 means unlimited credits
-    if curr_credits != -1:
-        pending_credits = curr_credits - model_render_stats[base_model]["Cost"]
-
-        set_user_credits(pending_credits)
-
-        # Not enough credits
-        if pending_credits < 0:
-            return "CREDITS"
-
-
 class GlobalRenderSettings:
     def __init__(self, workflow: str, base_model: str, style: str, render_mode: int):
         self.workflow = workflow
@@ -62,8 +42,7 @@ class GlobalRenderSettings:
 
 
 class MaskData:
-    def __init__(self, prompt: str, color: str):
-        self.mask_prompt = prompt
+    def __init__(self, color: str):
         self.color = color
 
 
@@ -198,10 +177,6 @@ class ComfyDeployClient:
             result_counter = 0
             status_counter = 0
 
-            pending_credits = calculate_pending_credits(global_settings.base_model)
-            if pending_credits == "CREDITS":
-                return "CREDITS"
-
             # These are determined by UI selection:
             logging.info(f"Current workflow selection: {global_settings.workflow}")
             logging.info(f"Current base model: {global_settings.base_model}")
@@ -232,64 +207,15 @@ class ComfyDeployClient:
             )
             logging.info(f"RUNNING WORKFLOW: {workflow_id}")
 
-            mask_prompt_1 = retexture_settings.mask1.mask_prompt
-            mask_prompt_2 = retexture_settings.mask2.mask_prompt
-            mask_prompt_3 = retexture_settings.mask3.mask_prompt
-            mask_prompt_4 = retexture_settings.mask4.mask_prompt
-            mask_prompt_5 = retexture_settings.mask5.mask_prompt
-            mask_prompt_6 = retexture_settings.mask6.mask_prompt
-            mask_prompt_7 = retexture_settings.mask7.mask_prompt
-
             match workflow_dict[global_settings.workflow]:
                 # Generative Retexture
                 case 0:
                     render_input = {
                         "is_blender_plugin": 1,
                         "workflow_id": workflow_id,
-                        "width": get_scale_resolution_width(
-                            model_render_stats[global_settings.base_model]["Height"]
-                        ),
-                        "height": model_render_stats[global_settings.base_model][
-                            "Height"
-                        ],
                         "scene_prompt": retexture_settings.prompt,
                         "structure_strength_depth": clamped_retexture_depth,
                         "structure_strength_outline": clamped_retexture_outline,
-                        "mask_prompt_1": (
-                            mask_prompt_1
-                            if mask_prompt_1 != prompt_placeholders["Mask"]
-                            else ""
-                        ),
-                        "mask_prompt_2": (
-                            mask_prompt_2
-                            if mask_prompt_2 != prompt_placeholders["Mask"]
-                            else ""
-                        ),
-                        "mask_prompt_3": (
-                            mask_prompt_3
-                            if mask_prompt_3 != prompt_placeholders["Mask"]
-                            else ""
-                        ),
-                        "mask_prompt_4": (
-                            mask_prompt_4
-                            if mask_prompt_4 != prompt_placeholders["Mask"]
-                            else ""
-                        ),
-                        "mask_prompt_5": (
-                            mask_prompt_5
-                            if mask_prompt_5 != prompt_placeholders["Mask"]
-                            else ""
-                        ),
-                        "mask_prompt_6": (
-                            mask_prompt_6
-                            if mask_prompt_6 != prompt_placeholders["Mask"]
-                            else ""
-                        ),
-                        "mask_prompt_7": (
-                            mask_prompt_7
-                            if mask_prompt_7 != prompt_placeholders["Mask"]
-                            else ""
-                        ),
                         "preserves_textures_mask": retexture_settings.preserve_texture_mask,
                     }
                     files = {
@@ -307,12 +233,6 @@ class ComfyDeployClient:
                     render_input = {
                         "is_blender_plugin": 1,
                         "workflow_id": workflow_id,
-                        "width": get_scale_resolution_width(
-                            model_render_stats[global_settings.base_model]["Height"]
-                        ),
-                        "height": model_render_stats[global_settings.base_model][
-                            "Height"
-                        ],
                         "style_transfer_strength": clamped_style_transfer_strength,
                         "structure_strength_depth": clamped_style_transfer_depth,
                         "structure_strength_outline": clamped_style_transfer_outline,
@@ -439,7 +359,6 @@ class ComfyDeployClient:
 
             if status.content.decode("utf-8") == "success":
                 user_info = get_user_info(get_api_key())
-                set_user_credits(user_info["credits"])
                 RenderStatus.set_render_status("Ready")
 
                 return None

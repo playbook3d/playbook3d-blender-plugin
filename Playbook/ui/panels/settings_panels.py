@@ -202,14 +202,12 @@ def draw_mask_layout(scene, box):
         prompt_row = box.row()
         prompt_row.scale_y = 1.25
         prompt_row.separator(factor=BOX_PADDING)
-        prompt_row.prop(property, "mask_prompt")
-        prompt_row.separator(factor=BOX_PADDING)
 
     create_label_row(box, "Preserve Texture Mask")
     preserve_row = box.row()
     preserve_row.scale_y = 1.25
     preserve_row.separator(factor=BOX_PADDING)
-    preserve_row.prop(scene.retexture_properties, "preserve_texture_mask_dropdown")
+    # preserve_row.prop(scene.retexture_properties, "preserve_texture_mask_dropdown")
     preserve_row.separator(factor=BOX_PADDING)
 
     box.separator(factor=BOX_PADDING)

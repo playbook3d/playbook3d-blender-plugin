@@ -92,13 +92,7 @@ def get_retexture_settings() -> RetextureRenderSettings:
 
     retexture_props = scene.retexture_properties
 
-    mask_props = [
-        MaskData(
-            getattr(scene, f"mask_properties{index + 1}").mask_prompt,
-            mask_hex_colors[f"MASK{index + 1}"],
-        )
-        for index in range(7)
-    ]
+    mask_props = [MaskData(mask_hex_colors[f"MASK{index + 1}"]) for index in range(7)]
 
     return RetextureRenderSettings(
         retexture_props.retexture_prompt,

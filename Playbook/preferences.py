@@ -2,7 +2,6 @@ import webbrowser
 from bpy.types import Operator
 from bpy.props import StringProperty
 from bpy.utils import register_class, unregister_class
-from .properties.workflow_properties import prompt_placeholders
 from .version_control import PlaybookVersionControl
 
 
@@ -36,19 +35,6 @@ class ResetAddonOperator(Operator):
 
     def execute(self, context):
         scene = context.scene
-
-        # Global Properties
-        scene.global_properties.global_workflow = "RETEXTURE"
-        scene.global_properties.global_model = "STABLE"
-        scene.global_properties.global_style = "PHOTOREAL"
-
-        # Retexture Properties
-        scene.retexture_properties.retexture_prompt = prompt_placeholders["Retexture"]
-        scene.retexture_properties.retexture_structure_strength = 50
-
-        # Style Transfer Properties
-        scene.style_properties.style_image = ""
-        scene.style_properties.style_strength = 50
 
         # Mask Properties
         scene.mask_list.clear()

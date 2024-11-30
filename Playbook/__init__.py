@@ -32,6 +32,7 @@ from . import render_image
 from .version_control import PlaybookVersionControl
 from .utilities.secret_manager import BlenderSecretsManager
 from .utilities.network_utilities import get_user_info
+from .properties.user_properties import update_user_properties
 
 
 class Preferences(AddonPreferences):
@@ -47,8 +48,7 @@ class Preferences(AddonPreferences):
         user_info = get_user_info(self.api_key)
 
         if user_info is not None:
-            context.scene.user_properties.user_email = user_info["email"]
-            context.scene.user_properties.user_credits = user_info["credits"]
+            update_user_properties(user_info["email"], user_info["teams"])
 
     api_key: StringProperty(
         name="API Key",
@@ -70,7 +70,7 @@ class Preferences(AddonPreferences):
             layout.label(text=PlaybookVersionControl.version_control_label)
 
         layout.operator("op.documentation")
-        layout.operator("op.reset_addon_settings")
+        # layout.operator("op.reset_addon_settings")
         layout.prop(self, "api_key")
 
 
@@ -88,13 +88,12 @@ def read_preferences_on_load(dummy):
     user_info = get_user_info(addon_prefs.api_key)
 
     if user_info is not None:
-        context.scene.user_properties.user_email = user_info["email"]
-        context.scene.user_properties.user_credits = user_info["credits"]
+        update_user_properties(user_info["email"], user_info["teams"])
 
 
 def register():
-    ui.register()
     properties.register()
+    ui.register()
     operators.register()
     preferences.register()
     render_image.register()
@@ -119,8 +118,8 @@ def unregister():
         bpy.app.handlers.load_post.remove(read_preferences_on_load)
 
     try:
-        ui.unregister()
         properties.unregister()
+        ui.unregister()
         operators.unregister()
         preferences.unregister()
         render_image.unregister()

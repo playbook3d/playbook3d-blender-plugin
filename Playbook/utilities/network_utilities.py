@@ -14,11 +14,11 @@ def get_user_info(api_key: str):
 
     try:
         alias_url = os.getenv("ALIAS_URL")
+        teams_url = "https://dev-accounts.playbook3d.com/teams/"
         jwt_request = requests.get(alias_url + api_key)
 
         access_token = jwt_request.json()["access_token"]
         decoded_jwt = decode_jwt(access_token)
-
         decoded_json = json.loads(decoded_jwt)
         username = decoded_json["username"]
 
@@ -27,9 +27,13 @@ def get_user_info(api_key: str):
         jwt_request = requests.get(url=url, headers=headers)
         request_data = jwt_request.json()
 
+        headers = {"Authorization": f"Bearer {access_token}", "X-API-KEY": x_api_key}
+        teams_response = requests.get(url=teams_url, headers=headers)
+        teams_response = json.loads(teams_response.text)
+
         return {
             "email": request_data["email"],
-            "credits": request_data["users_tier"]["credits"],
+            "teams": [team["name"] for team in teams_response],
         }
     except Exception as e:
         print(f"An error occurred: {e}")

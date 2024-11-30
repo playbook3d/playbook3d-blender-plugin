@@ -14,13 +14,13 @@ def draw_teams_panel(context, layout):
     box.separator(factor=BOX_PADDING)
 
     scene = context.scene
-    teams_properties = scene.teams_properties
+    user_properties = scene.user_properties
 
     create_label_row(box, "Team")
     teams_row = box.row()
     teams_row.scale_y = 1.25
     teams_row.separator(factor=BOX_PADDING)
-    teams_row.prop(teams_properties, "teams_dropdown")
+    teams_row.prop(user_properties, "user_teams_dropdown")
     teams_row.separator(factor=BOX_PADDING)
 
     box.separator(factor=BOX_PADDING)
@@ -29,7 +29,7 @@ def draw_teams_panel(context, layout):
     projects_row = box.row()
     projects_row.scale_y = 1.25
     projects_row.separator(factor=BOX_PADDING)
-    projects_row.prop(teams_properties, "projects_dropdown")
+    projects_row.prop(user_properties, "projects_dropdown")
     projects_row.separator(factor=BOX_PADDING)
 
     box.separator(factor=BOX_PADDING)
