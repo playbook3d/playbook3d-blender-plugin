@@ -33,6 +33,7 @@ from .version_control import PlaybookVersionControl
 from .utilities.secret_manager import BlenderSecretsManager
 from .utilities.network_utilities import get_user_info
 from .properties.user_properties import update_user_properties
+from . import task_queue
 
 
 class Preferences(AddonPreferences):
@@ -45,10 +46,12 @@ class Preferences(AddonPreferences):
         if len(self.api_key) != 36:
             return
 
-        user_info = get_user_info(self.api_key)
+        user_info = get_user_info()
 
         if user_info is not None:
-            update_user_properties(user_info["email"], user_info["teams"])
+            update_user_properties(
+                user_info["email"], user_info["teams"], user_info["workflows"]
+            )
 
     api_key: StringProperty(
         name="API Key",
@@ -76,7 +79,6 @@ class Preferences(AddonPreferences):
 
 @persistent
 def read_preferences_on_load(dummy):
-    context = bpy.context
     addon_prefs = bpy.context.preferences.addons[__package__].preferences
 
     if not addon_prefs.api_key:
@@ -85,10 +87,12 @@ def read_preferences_on_load(dummy):
     if len(addon_prefs.api_key) != 36:
         return
 
-    user_info = get_user_info(addon_prefs.api_key)
+    user_info = get_user_info()
 
     if user_info is not None:
-        update_user_properties(user_info["email"], user_info["teams"])
+        update_user_properties(
+            user_info["email"], user_info["teams"], user_info["workflows"]
+        )
 
 
 def register():
@@ -97,6 +101,7 @@ def register():
     operators.register()
     preferences.register()
     render_image.register()
+    task_queue.register()
 
     bpy.utils.register_class(Preferences)
 
@@ -123,6 +128,7 @@ def unregister():
         operators.unregister()
         preferences.unregister()
         render_image.unregister()
+        task_queue.unregister()
 
         bpy.utils.unregister_class(Preferences)
 

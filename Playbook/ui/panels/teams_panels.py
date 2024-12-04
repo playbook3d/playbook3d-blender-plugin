@@ -25,12 +25,12 @@ def draw_teams_panel(context, layout):
 
     box.separator(factor=BOX_PADDING)
 
-    create_label_row(box, "Project")
-    projects_row = box.row()
-    projects_row.scale_y = 1.25
-    projects_row.separator(factor=BOX_PADDING)
-    projects_row.prop(user_properties, "projects_dropdown")
-    projects_row.separator(factor=BOX_PADDING)
+    create_label_row(box, "Workflow")
+    workflows_row = box.row()
+    workflows_row.scale_y = 1.25
+    workflows_row.separator(factor=BOX_PADDING)
+    workflows_row.prop(user_properties, "user_workflows_dropdown")
+    workflows_row.separator(factor=BOX_PADDING)
 
     box.separator(factor=BOX_PADDING)
 

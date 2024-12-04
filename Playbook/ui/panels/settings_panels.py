@@ -9,105 +9,6 @@ from .panel_utils import (
 )
 
 
-########## RENDER SETTTINGS PANEL ##########
-def draw_render_settings_panel(context, layout):
-    scene = context.scene
-
-    box = layout.box()
-    box.separator(factor=BOX_PADDING)
-
-    # Global layout
-    draw_global_layout(scene, box)
-
-    box.separator(factor=BOX_PADDING)
-
-    # Retexture workflow
-    if scene.show_retexture_panel:
-        # Prompt
-        create_label_row(box, "Scene Prompt")
-        prompt_row = box.row()
-        prompt_row.scale_y = 1.25
-        prompt_row.separator(factor=BOX_PADDING)
-        prompt_row.prop(scene.retexture_properties, "retexture_prompt")
-        prompt_row.separator(factor=BOX_PADDING)
-
-    # Style transfer workflow
-    else:
-        style_props = scene.style_properties
-
-        # Style transfer image
-        create_label_row(box, "Style Transfer Image")
-        image_row = box.row()
-        image_row.separator(factor=BOX_PADDING)
-        row = image_row.split(factor=0.9)
-        row.prop(style_props, "style_image")
-        row.operator("op.clear_style_transfer_image", icon="PANEL_CLOSE")
-
-        # Invalid file type
-        if style_props.style_image and not is_valid_image_file(style_props.style_image):
-            label_row = box.row()
-            label_row.alert = True
-            label_row.separator(factor=BOX_PADDING)
-            label_row.label(text="Invalid file type. Please select an image.")
-            label_row.separator(factor=BOX_PADDING)
-
-        image_row.separator(factor=BOX_PADDING)
-
-    box.separator(factor=BOX_PADDING)
-
-
-def draw_global_layout(scene, box):
-    # Workflow
-    create_label_row(box, "Workflow")
-    workflow_row = box.row()
-    workflow_row.scale_y = 1.25
-    workflow_row.separator(factor=BOX_PADDING)
-    workflow_row.prop(scene.global_properties, "global_workflow")
-    workflow_row.separator(factor=BOX_PADDING)
-
-    box.separator(factor=BOX_PADDING)
-
-    # Base Model
-    create_label_row(box, "Base Model")
-    model_row = box.row()
-    model_row.scale_y = 1.25
-    model_row.separator(factor=BOX_PADDING)
-    model_row.prop(scene.global_properties, "global_model")
-    model_row.separator(factor=BOX_PADDING)
-
-    box.separator(factor=BOX_PADDING)
-
-    # Style
-    create_label_row(box, "Style")
-    style_row = box.row()
-    style_row.scale_y = 1.25
-    style_row.separator(factor=BOX_PADDING)
-    style_row.prop(scene.global_properties, "global_style")
-    style_row.separator(factor=BOX_PADDING)
-
-
-#
-class RenderSettingsPanel3D(PlaybookPanel3D, bpy.types.Panel):
-    bl_idname = "VIEW_3D_PT_render_settings"
-    bl_label = ""
-    bl_parent_id = MainPanel3D.bl_idname
-    bl_options = {"HIDE_HEADER"}
-
-    def draw(self, context):
-        draw_render_settings_panel(context, self.layout)
-
-
-#
-class RenderSettingsPanelRender(PlaybookPanelRender, bpy.types.Panel):
-    bl_idname = "IMAGE_RENDER_PT_render_settings"
-    bl_label = ""
-    bl_parent_id = MainPanelRender.bl_idname
-    bl_options = {"HIDE_HEADER"}
-
-    def draw(self, context):
-        draw_render_settings_panel(context, self.layout)
-
-
 ########## ADVANCED SETTINGS PANEL ##########
 def draw_advanced_settings_panel(context, layout):
     scene = context.scene
@@ -197,17 +98,11 @@ def draw_mask_layout(scene, box):
 
         box.separator()
 
-        # Prompt
-        create_label_row(box, "Mask Prompt")
-        prompt_row = box.row()
-        prompt_row.scale_y = 1.25
-        prompt_row.separator(factor=BOX_PADDING)
-
     create_label_row(box, "Preserve Texture Mask")
     preserve_row = box.row()
     preserve_row.scale_y = 1.25
     preserve_row.separator(factor=BOX_PADDING)
-    # preserve_row.prop(scene.retexture_properties, "preserve_texture_mask_dropdown")
+    preserve_row.prop(scene.render_properties, "preserve_mask_dropdown")
     preserve_row.separator(factor=BOX_PADDING)
 
     box.separator(factor=BOX_PADDING)

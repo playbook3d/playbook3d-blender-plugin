@@ -78,8 +78,7 @@ classes = [
 
 
 def register():
-    for cls in classes:
-        register_class(cls)
+    register_class(MaskProperties)
 
     for i in range(NUM_MASKS_ALLOWED):
         setattr(
@@ -92,8 +91,7 @@ def register():
 def unregister():
     reset_properties()
 
-    for cls in classes:
-        unregister_class(cls)
+    unregister_class(MaskProperties)
 
     for i in range(NUM_MASKS_ALLOWED):
         delattr(Scene, f"mask_properties{i + 1}")

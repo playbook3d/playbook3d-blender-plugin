@@ -1,7 +1,10 @@
 import bpy
 import webbrowser
+import functools
 from .objects.objects import mask_objects
 from .capture_passes import capture_passes
+from .run_workflow import run_workflow
+from .task_queue import add
 from bpy.props import StringProperty
 from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
@@ -37,23 +40,24 @@ class DashboardOperator(Operator):
 
 
 #
-class QueueOperator(Operator):
-    bl_idname = "op.queue"
-    bl_label = "Open Queue"
-    bl_description = "Open queue"
-
-    def execute(self, context):
-        return {"FINISHED"}
-
-
-#
 class CapturePassesOperator(Operator):
     bl_idname = "op.capture_passes"
     bl_label = "Capture Passes"
     bl_description = "Capture passes"
 
     def execute(self, context):
-        capture_passes()
+        add(functools.partial(capture_passes))
+        return {"FINISHED"}
+
+
+#
+class RunWorkflowOperator(Operator):
+    bl_idname = "op.run_workflow"
+    bl_label = "Run Workflow"
+    bl_description = "Run workflow"
+
+    def execute(self, context):
+        add(functools.partial(run_workflow))
         return {"FINISHED"}
 
 
@@ -96,42 +100,14 @@ class PlaybookTwitterOperator(Operator):
         return {"FINISHED"}
 
 
-#
-class ClearStyleTransferImageOperator(Operator):
-    bl_idname = "op.clear_style_transfer_image"
-    bl_label = ""
-    bl_description = "Clear the file"
-
-    @classmethod
-    def poll(cls, context):
-        return context.scene.style_properties.style_image
-
-    def execute(self, context):
-        context.scene.style_properties.style_image = ""
-        return {"FINISHED"}
-
-
-#
-class ClearRelightImageOperator(Operator):
-    bl_idname = "op.clear_relight_image"
-    bl_label = ""
-    bl_description = "Choose an image from local files"
-
-    def execute(self, context):
-        context.scene.relight_properties.relight_image = ""
-        return {"FINISHED"}
-
-
 classes = [
     LoginOperator,
     DashboardOperator,
-    QueueOperator,
     CapturePassesOperator,
+    RunWorkflowOperator,
     PlaybookWebsiteOperator,
     PlaybookDiscordOperator,
     PlaybookTwitterOperator,
-    ClearStyleTransferImageOperator,
-    ClearRelightImageOperator,
 ]
 
 

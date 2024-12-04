@@ -75,41 +75,6 @@ class RenderImageOperator(Operator):
 
 
 #
-def get_global_settings() -> GlobalRenderSettings:
-    global_props = bpy.context.scene.global_properties
-
-    return GlobalRenderSettings(
-        global_props.global_workflow,
-        global_props.global_model,
-        global_props.global_style,
-        0,
-    )
-
-
-#
-def get_retexture_settings() -> RetextureRenderSettings:
-    scene = bpy.context.scene
-
-    retexture_props = scene.retexture_properties
-
-    mask_props = [MaskData(mask_hex_colors[f"MASK{index + 1}"]) for index in range(7)]
-
-    return RetextureRenderSettings(
-        retexture_props.retexture_prompt,
-        retexture_props.retexture_structure_strength,
-        retexture_props.preserve_texture_mask_index,
-        *mask_props,
-    )
-
-
-#
-def get_style_transfer_settings() -> StyleTransferRenderSettings:
-    style_props = bpy.context.scene.style_properties
-
-    return StyleTransferRenderSettings("", style_props.style_strength)
-
-
-#
 def set_comfy_images(comfy_deploy: ComfyDeployClient):
     dir = os.path.dirname(__file__)
 
@@ -137,32 +102,6 @@ def set_comfy_images(comfy_deploy: ComfyDeployClient):
     comfy_deploy.save_image(depth_blob, "depth")
     comfy_deploy.save_image(outline_blob, "outline")
 
-    style_path = bpy.context.scene.style_properties.style_image
-    # Ensure the image is saved in a file or it's packed into the blend file
-    if style_path:
-        with open(style_path, "rb") as style_file:
-            style_blob = base64.b64encode(style_file.read())
-
-        comfy_deploy.save_image(style_blob, "style_transfer")
-
-
-#
-async def run_comfy_workflow(comfy_deploy: ComfyDeployClient):
-    global_settings = get_global_settings()
-    retexture_settings = get_retexture_settings()
-    style_settings = get_style_transfer_settings()
-
-    response = await comfy_deploy.run_workflow(
-        global_settings, retexture_settings, style_settings
-    )
-
-    if response == "CREDITS":
-        return "You don't have enough credits."
-    elif response == "RENDER":
-        return "Something went wrong."
-
-    print(f"Response: {response}")
-
 
 # Returns True if an error occurs while attempting to render the image.
 def error_exists_in_render_image(scene) -> bool:
@@ -174,16 +113,7 @@ def error_exists_in_render_image(scene) -> bool:
     # [workflow, error message]
     messages = {
         "APIKEY": "Copy your API key from the Playbook web editor.",
-        "RETEXTURE": "Scene prompt is missing.",
-        "STYLETRANSFER": "Style transfer image is missing.",
     }
-
-    if scene.global_properties.global_workflow == "RETEXTURE":
-        workflow_checks["RETEXTURE"] = (
-            scene.retexture_properties.retexture_prompt == "Describe the scene..."
-        )
-    elif scene.global_properties.global_workflow == "STYLETRANSFER":
-        workflow_checks["STYLETRANSFER"] = not scene.style_properties.style_image
 
     for key, val in workflow_checks.items():
         if val:

@@ -21,7 +21,7 @@ def draw_render_panel(context, layout):
     row1.scale_y = 1.75
     row1.active_default = True
     row1.separator(factor=BOX_PADDING)
-    row1.operator("op.render_image")
+    row1.operator("op.run_workflow")
     row1.separator(factor=BOX_PADDING)
 
     if RenderStatus.render_status:

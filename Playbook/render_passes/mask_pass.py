@@ -98,7 +98,7 @@ def create_mask_compositing():
 
     nodes.clear()
 
-    preserve_mask = scene.retexture_properties.preserve_texture_mask_index
+    preserve_mask = scene.render_properties.preserve_mask_index
 
     # Create nodes
     render_layers_node = nodes.new(type="CompositorNodeRLayers")

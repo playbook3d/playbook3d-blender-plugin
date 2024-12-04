@@ -4,6 +4,7 @@ import requests
 from dotenv import load_dotenv
 from .render_passes.render_passes import render_passes
 from .utilities.utilities import get_api_key
+from .utilities.network_utilities import get_user_access_token
 
 
 def capture_passes():
@@ -45,15 +46,11 @@ def capture_passes():
 
 #
 def get_upload_urls(url):
-    alias_url = os.getenv("ALIAS_URL")
-    user_alias = get_api_key()
-    jwt_request = requests.get(alias_url + user_alias)
-    if jwt_request is not None:
-        user_token = jwt_request.json()["access_token"]
+    access_token = get_user_access_token()
 
     response = requests.get(
         url=f"{url}/upload-assets/get-upload-urls",
-        headers={"Authorization": f"Bearer {user_token}"},
+        headers={"Authorization": f"Bearer {access_token}"},
     )
     return response.json() if response.status_code == 200 else None
 

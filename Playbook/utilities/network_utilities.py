@@ -3,21 +3,20 @@ import json
 import base64
 import requests
 from dotenv import load_dotenv
+from ..properties.team_properties import TeamProperties
+from ..properties.workflow_properties import WorkflowProperties
+from .utilities import get_api_key
 
 
-def get_user_info(api_key: str):
-    # Determine the path to the .env file
+def get_user_info():
     env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
-
-    # Load the .env file
     load_dotenv(dotenv_path=env_path)
 
     try:
-        alias_url = os.getenv("ALIAS_URL")
         teams_url = "https://dev-accounts.playbook3d.com/teams/"
-        jwt_request = requests.get(alias_url + api_key)
+        workflows_url = "https://dev-accounts.playbook3d.com/workflows"
 
-        access_token = jwt_request.json()["access_token"]
+        access_token = get_user_access_token()
         decoded_jwt = decode_jwt(access_token)
         decoded_json = json.loads(decoded_jwt)
         username = decoded_json["username"]
@@ -27,14 +26,46 @@ def get_user_info(api_key: str):
         jwt_request = requests.get(url=url, headers=headers)
         request_data = jwt_request.json()
 
-        headers = {"Authorization": f"Bearer {access_token}", "X-API-KEY": x_api_key}
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "X-API-KEY": os.getenv("BLENDER_X_API_KEY"),
+        }
         teams_response = requests.get(url=teams_url, headers=headers)
         teams_response = json.loads(teams_response.text)
+        workflows_response = requests.get(url=workflows_url, headers=headers)
+        print(workflows_response.text)
+        workflows_response = json.loads(workflows_response.text)
 
         return {
             "email": request_data["email"],
-            "teams": [team["name"] for team in teams_response],
+            "teams": [
+                TeamProperties(team["id"], team["name"]) for team in teams_response
+            ],
+            "workflows": [
+                WorkflowProperties(
+                    workflow["id"], workflow["team_id"], workflow["name"]
+                )
+                for workflow in workflows_response
+            ],
         }
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+
+def get_user_access_token():
+    # Determine the path to the .env file
+    env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+
+    # Load the .env file
+    load_dotenv(dotenv_path=env_path)
+
+    try:
+        alias_url = os.getenv("ALIAS_URL")
+        api_key = get_api_key()
+        jwt_request = requests.get(alias_url + api_key)
+
+        return jwt_request.json()["access_token"]
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
