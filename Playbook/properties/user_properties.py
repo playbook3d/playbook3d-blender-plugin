@@ -73,3 +73,8 @@ def update_user_properties(
 
     if user_workflows:
         workflows = user_workflows
+
+
+def get_team_id_of_workflow(workflow_id: str) -> str:
+    workflow = next(workflow for workflow in workflows if workflow.id == workflow_id)
+    return workflow.team_id

@@ -6,12 +6,12 @@ from .render_passes.render_passes import render_passes
 from .utilities.utilities import get_api_key
 from .utilities.network_utilities import get_user_access_token
 
+upload_enpoint = "/upload-assets/get-upload-urls"
+
 
 def capture_passes():
 
-    # Render passes failed
-    if not render_passes():
-        return
+    render_passes()
 
     env_path = os.path.join(os.path.dirname(__file__), ".env")
     load_dotenv(dotenv_path=env_path)
@@ -21,25 +21,31 @@ def capture_passes():
 
     if upload_urls:
         dir = os.path.dirname(__file__)
-        beauty_path = os.path.join(dir, "renders", "beauty.png")
-        beauty_url = upload_urls["beauty"]
-        upload_file(beauty_url, beauty_path)
+        render_properties = bpy.context.scene.render_properties
 
-        normal_path = os.path.join(dir, "renders", "normal.png")
-        normal_url = upload_urls["normal"]
-        upload_file(normal_url, normal_path)
+        if render_properties.beauty_pass_checkbox:
+            beauty_path = os.path.join(dir, "renders", "beauty.png")
+            beauty_url = upload_urls["beauty"]
+            upload_file(beauty_url, beauty_path)
 
-        mask_path = os.path.join(dir, "renders", "mask.png")
-        mask_url = upload_urls["mask"]
-        upload_file(mask_url, mask_path)
+        if render_properties.normal_pass_checkbox:
+            normal_path = os.path.join(dir, "renders", "normal.png")
+            normal_url = upload_urls["normal"]
+            upload_file(normal_url, normal_path)
 
-        depth_path = os.path.join(dir, "renders", "depth.png")
-        depth_url = upload_urls["depth"]
-        upload_file(depth_url, depth_path)
+        if render_properties.mask_pass_checkbox:
+            mask_path = os.path.join(dir, "renders", "mask.png")
+            mask_url = upload_urls["mask"]
+            upload_file(mask_url, mask_path)
 
-        outline_path = os.path.join(dir, "renders", "outline.png")
-        outline_url = upload_urls["outline"]
-        upload_file(outline_url, outline_path)
+        # depth_path = os.path.join(dir, "renders", "depth.png")
+        # depth_url = upload_urls["depth"]
+        # upload_file(depth_url, depth_path)
+
+        if render_properties.outline_pass_checkbox:
+            outline_path = os.path.join(dir, "renders", "outline.png")
+            outline_url = upload_urls["outline"]
+            upload_file(outline_url, outline_path)
 
     return
 
@@ -49,7 +55,7 @@ def get_upload_urls(url):
     access_token = get_user_access_token()
 
     response = requests.get(
-        url=f"{url}/upload-assets/get-upload-urls",
+        url=f"{url}{upload_enpoint}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     return response.json() if response.status_code == 200 else None

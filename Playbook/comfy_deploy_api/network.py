@@ -51,7 +51,6 @@ class RetextureRenderSettings:
         self,
         prompt: str,
         structure_strength: int,
-        preserve_texture_mask: int,
         mask1: MaskData,
         mask2: MaskData,
         mask3: MaskData,
@@ -62,7 +61,6 @@ class RetextureRenderSettings:
     ):
         self.prompt = prompt
         self.structure_strength = structure_strength
-        self.preserve_texture_mask = preserve_texture_mask
         self.mask1 = mask1
         self.mask2 = mask2
         self.mask3 = mask3
@@ -130,9 +128,7 @@ class ComfyDeployClient:
         except json.decoder.JSONDecodeError as e:
             logging.error(f"Invalid JSON response {e}")
 
-    def get_workflow_id(
-        self, workflow: int, base_model: int, style: int, preserve_texture_mask: int
-    ) -> int:
+    def get_workflow_id(self, workflow: int, base_model: int, style: int) -> int:
         # Format is '{workflow}_{base_model}_{style}'
         ids = {
             # Generative Retexture
@@ -150,11 +146,6 @@ class ComfyDeployClient:
             "1_1_1": 10,
             "1_1_2": 11,
         }
-
-        # There exists a mask to be preserved
-        if preserve_texture_mask > 0:
-            print(f"Preserving texture mask {preserve_texture_mask}")
-            return 13
 
         key = f"{workflow}_{base_model}_{style}"
         if ids.get(key) is not None:
@@ -203,7 +194,6 @@ class ComfyDeployClient:
                 workflow_dict[global_settings.workflow],
                 base_model_dict[global_settings.base_model],
                 style_dict[global_settings.style],
-                retexture_settings.preserve_texture_mask,
             )
             logging.info(f"RUNNING WORKFLOW: {workflow_id}")
 
@@ -216,7 +206,6 @@ class ComfyDeployClient:
                         "scene_prompt": retexture_settings.prompt,
                         "structure_strength_depth": clamped_retexture_depth,
                         "structure_strength_outline": clamped_retexture_outline,
-                        "preserves_textures_mask": retexture_settings.preserve_texture_mask,
                     }
                     files = {
                         "beauty": self.beauty.decode("utf-8"),

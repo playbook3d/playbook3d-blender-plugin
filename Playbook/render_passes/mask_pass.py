@@ -98,17 +98,8 @@ def create_mask_compositing():
 
     nodes.clear()
 
-    preserve_mask = scene.render_properties.preserve_mask_index
-
     # Create nodes
     render_layers_node = nodes.new(type="CompositorNodeRLayers")
-
-    # Preserve mask nodes
-    preserve_node = (
-        create_preserve_mask_nodes(nodes, links, render_layers_node, int(preserve_mask))
-        if preserve_mask > 0
-        else None
-    )
 
     mask_nodes = create_idmask_nodes(nodes, links, render_layers_node)
 
@@ -142,15 +133,7 @@ def create_mask_compositing():
 
     # Background links
     links.new(mix_node.outputs["Image"], background_node.inputs[2])
-
-    # Preserve mask links
-    if preserve_node is not None:
-        links.new(background_node.outputs["Image"], preserve_node.inputs[1])
-        links.new(render_layers_node.outputs["Image"], preserve_node.inputs[2])
-        links.new(preserve_node.outputs["Image"], output_node.inputs["Image"])
-
-    else:
-        links.new(background_node.outputs["Image"], output_node.inputs["Image"])
+    links.new(background_node.outputs["Image"], output_node.inputs["Image"])
 
 
 #
@@ -191,21 +174,6 @@ def create_idmask_nodes(nodes, links, render_layers_node):
         mask_nodes.append(mask_node)
 
     return mask_nodes
-
-
-#
-def create_preserve_mask_nodes(nodes, links, render_layers_node, mask_index: int):
-    preserve_idmask_node = nodes.new(type="CompositorNodeIDMask")
-    preserve_idmask_node.index = mask_index
-
-    alpha_over_node = nodes.new(type="CompositorNodeAlphaOver")
-
-    links.new(
-        render_layers_node.outputs["IndexOB"], preserve_idmask_node.inputs["ID value"]
-    )
-    links.new(preserve_idmask_node.outputs["Alpha"], alpha_over_node.inputs["Fac"])
-
-    return alpha_over_node
 
 
 #

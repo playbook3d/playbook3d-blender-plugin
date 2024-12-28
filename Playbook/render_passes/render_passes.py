@@ -50,17 +50,17 @@ def render_passes():
     clear_render_folder()
 
     # Render all required passes
-    render_all_passes()
+    render_selected_passes()
 
     # Clean up renders
     bpy.data.images.remove(bpy.data.images["Render Result"])
     bpy.context.scene.node_tree.nodes.clear()
 
-    return None
 
-
-def render_all_passes():
+def render_selected_passes():
     bpy.context.scene.use_nodes = True
+
+    render_properties = bpy.context.scene.render_properties
 
     # Get the compositor node tree
     node_tree = bpy.context.scene.node_tree
@@ -79,17 +79,21 @@ def render_all_passes():
     # Set the scene for the Render Layers node to the current scene
     render_layer_node.scene = bpy.context.scene
 
-    # Render unmodified image
-    render_beauty_pass()
-    # Render normal image
-    normal_pass = NormalPass()
-    normal_pass.render_normal_pass()
-    # Render mask image
-    render_mask_pass()
+    if render_properties.beauty_pass_checkbox:
+        # Render unmodified image
+        render_beauty_pass()
+    if render_properties.normal_pass_checkbox:
+        # Render normal image
+        normal_pass = NormalPass()
+        normal_pass.render_normal_pass()
+    if render_properties.mask_pass_checkbox:
+        # Render mask image
+        render_mask_pass()
     # Render depth image
-    render_depth_pass()
-    # Render outline image
-    render_outline_pass()
+    # render_depth_pass()
+    if render_properties.outline_pass_checkbox:
+        # Render outline image
+        render_outline_pass()
 
 
 #

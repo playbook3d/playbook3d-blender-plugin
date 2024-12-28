@@ -16,7 +16,30 @@ def draw_advanced_settings_panel(context, layout):
     box = layout.box()
     box.separator(factor=BOX_PADDING)
 
+    draw_checkbox_layout(scene, box)
     draw_mask_layout(scene, box)
+
+
+#
+def draw_checkbox_layout(scene, box):
+    render_properties = scene.render_properties
+
+    create_label_row(box, "Render Passes", 0.75)
+
+    checkbox_row = box.row()
+    checkbox_row.separator(factor=BOX_PADDING)
+
+    checkbox_col = checkbox_row.column()
+    checkbox_col.separator(factor=BOX_PADDING)
+    checkbox_col.prop(render_properties, "beauty_pass_checkbox")
+    checkbox_col.prop(render_properties, "mask_pass_checkbox")
+    checkbox_col.prop(render_properties, "outline_pass_checkbox")
+    checkbox_col.prop(render_properties, "normal_pass_checkbox")
+    checkbox_col.separator(factor=BOX_PADDING)
+
+    checkbox_row.separator(factor=BOX_PADDING)
+
+    box.separator(factor=BOX_PADDING)
 
 
 #
@@ -24,7 +47,7 @@ def draw_mask_layout(scene, box):
     property = getattr(scene, f"mask_properties{scene.mask_list_index + 1}")
 
     # Masks list
-    create_label_row(box, "Masks")
+    create_label_row(box, "Masks", 0.75)
 
     list_row = box.row()
     list_row.separator(factor=BOX_PADDING)
@@ -56,7 +79,7 @@ def draw_mask_layout(scene, box):
     if scene.mask_list_index != -1:
         box.separator()
 
-        create_label_row(box, "Objects in Mask")
+        create_label_row(box, "Objects in Mask", 0.75)
 
         list_row = box.row()
         list_row.separator(factor=BOX_PADDING)
@@ -98,20 +121,13 @@ def draw_mask_layout(scene, box):
 
         box.separator()
 
-    create_label_row(box, "Preserve Texture Mask")
-    preserve_row = box.row()
-    preserve_row.scale_y = 1.25
-    preserve_row.separator(factor=BOX_PADDING)
-    preserve_row.prop(scene.render_properties, "preserve_mask_dropdown")
-    preserve_row.separator(factor=BOX_PADDING)
-
     box.separator(factor=BOX_PADDING)
 
 
 #
 class AdvancedSettingsPanel3D(PlaybookPanel3D, bpy.types.Panel):
     bl_idname = "VIEW_3D_PT_advanced_settings"
-    bl_label = "Advanced"
+    bl_label = "Adjust Render Passes"
     bl_parent_id = MainPanel3D.bl_idname
     bl_options = {"HEADER_LAYOUT_EXPAND"}
 
@@ -122,7 +138,7 @@ class AdvancedSettingsPanel3D(PlaybookPanel3D, bpy.types.Panel):
 #
 class AdvancedSettingsPanelRender(PlaybookPanelRender, bpy.types.Panel):
     bl_idname = "IMAGE_RENDER_PT_advanced_settings"
-    bl_label = "Advanced"
+    bl_label = "Adjust Render Passes"
     bl_parent_id = MainPanelRender.bl_idname
     bl_options = {"HEADER_LAYOUT_EXPAND"}
 

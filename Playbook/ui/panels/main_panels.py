@@ -43,10 +43,10 @@ def draw_credentials_panel(context, layout):
 
     row3 = box.row()
     row3.scale_y = 1.8
-    row3.active_default = True
+    row3.active_default = False if user_props.user_email else True
     row3.separator(factor=BOX_PADDING)
     login_text = (
-        f"Logged in as {user_props.user_email}"
+        f"{user_props.user_email}"
         if user_props.user_email
         else "Enter API key in Preferences"
     )
@@ -58,9 +58,11 @@ def draw_credentials_panel(context, layout):
 
     row4 = box.row()
     row4.scale_y = 1.8
+    row4.active_default = True if user_props.user_email else False
     row4.separator(factor=BOX_PADDING)
     row4.operator("op.dashboard")
     row4.separator(factor=BOX_PADDING)
+
     box.separator(factor=BOX_PADDING)
 
 

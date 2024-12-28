@@ -53,7 +53,7 @@ class CapturePassesOperator(Operator):
 #
 class RunWorkflowOperator(Operator):
     bl_idname = "op.run_workflow"
-    bl_label = "Run Workflow"
+    bl_label = "Run"
     bl_description = "Run workflow"
 
     def execute(self, context):
