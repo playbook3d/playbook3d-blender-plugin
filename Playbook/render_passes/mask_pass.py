@@ -70,12 +70,24 @@ def reset_mask_settings():
 
 
 #
-def render_mask_to_file():
+def render_mask_as_image():
+    filepath = get_parent_filepath("mask.png", "renders")
+    render_to_path(filepath)
+
+
+#
+def render_mask_as_sequence():
+    capture_count = bpy.context.scene.render_properties.capture_count
+    filepath = get_parent_filepath(f"mask_{capture_count:03}.png", "renders/mask_zip")
+    render_to_path(filepath)
+
+
+#
+def render_to_path(filepath: str):
     scene = bpy.context.scene
     render = scene.render
 
-    output_path = get_parent_filepath("mask.png", "renders")
-    render.filepath = output_path
+    render.filepath = filepath
 
     create_mask_compositing()
 
@@ -229,14 +241,17 @@ def reset_object_properties():
 
 
 #
-def render_mask_pass():
+def render_mask_pass(is_image: bool):
     save_mask_settings()
     save_object_properties()
 
     set_mask_settings()
     set_object_indeces()
 
-    render_mask_to_file()
+    if is_image:
+        render_mask_as_image()
+    else:
+        render_mask_as_sequence()
 
     reset_mask_settings()
     reset_object_properties()

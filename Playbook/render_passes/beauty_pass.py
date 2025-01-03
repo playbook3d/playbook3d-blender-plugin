@@ -25,12 +25,29 @@ def reset_beauty_settings():
 
 
 #
-def render_beauty_to_file():
+def render_beauty_as_image():
+    filepath = get_parent_filepath("beauty.png", "renders")
+
+    render_to_path(filepath)
+
+
+#
+def render_beauty_as_sequence():
+    capture_count = bpy.context.scene.render_properties.capture_count
+
+    filepath = get_parent_filepath(
+        f"beauty_{capture_count:03}.png", "renders/beauty_zip"
+    )
+
+    render_to_path(filepath)
+
+
+#
+def render_to_path(filepath: str):
     scene = bpy.context.scene
     render = scene.render
 
-    output_path = get_parent_filepath("beauty.png", "renders")
-    render.filepath = output_path
+    render.filepath = filepath
 
     if scene.camera:
         bpy.ops.render.render(write_still=True)
@@ -40,8 +57,13 @@ def render_beauty_to_file():
 
 
 #
-def render_beauty_pass():
+def render_beauty_pass(is_image: bool):
     save_beauty_settings()
     set_beauty_settings()
-    render_beauty_to_file()
+
+    if is_image:
+        render_beauty_as_image()
+    else:
+        render_beauty_as_sequence()
+
     reset_beauty_settings()

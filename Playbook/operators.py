@@ -5,6 +5,7 @@ from .objects.objects import mask_objects
 from .capture_passes import capture_passes
 from .run_workflow import run_workflow
 from .task_queue import add
+from .sequence_capture import start_sequence_capture, end_sequence_capture
 from bpy.props import StringProperty
 from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
@@ -67,7 +68,12 @@ class StartSequenceCaptureOperator(Operator):
     bl_label = "Start Sequence Capture"
     bl_description = "Start sequence capture"
 
+    @classmethod
+    def poll(cls, context):
+        return not context.scene.render_properties.is_capturing_sequence
+
     def execute(self, context):
+        start_sequence_capture()
         return {"FINISHED"}
 
 
@@ -77,7 +83,12 @@ class EndSequenceCaptureOperator(Operator):
     bl_label = "End Sequence Capture"
     bl_description = "End sequence capture"
 
+    @classmethod
+    def poll(cls, context):
+        return context.scene.render_properties.is_capturing_sequence
+
     def execute(self, context):
+        end_sequence_capture()
         return {"FINISHED"}
 
 
@@ -125,6 +136,8 @@ classes = [
     DashboardOperator,
     CapturePassesOperator,
     RunWorkflowOperator,
+    StartSequenceCaptureOperator,
+    EndSequenceCaptureOperator,
     PlaybookWebsiteOperator,
     PlaybookDiscordOperator,
     PlaybookTwitterOperator,

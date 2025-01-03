@@ -1,6 +1,4 @@
 import bpy
-import os
-import shutil
 from .beauty_pass import render_beauty_pass
 from .mask_pass import render_mask_pass
 from .depth_pass import render_depth_pass
@@ -45,19 +43,20 @@ def error_exists_in_render_passes():
 
 
 #
-def render_passes():
+def render_passes(is_image: bool):
+    set_render_layers()
+
     # Render all required passes
-    render_selected_passes()
+    render_selected_passes(is_image)
 
     # Clean up renders
     bpy.data.images.remove(bpy.data.images["Render Result"])
     bpy.context.scene.node_tree.nodes.clear()
 
 
-def render_selected_passes():
+#
+def set_render_layers():
     bpy.context.scene.use_nodes = True
-
-    render_properties = bpy.context.scene.render_properties
 
     # Get the compositor node tree
     node_tree = bpy.context.scene.node_tree
@@ -76,15 +75,19 @@ def render_selected_passes():
     # Set the scene for the Render Layers node to the current scene
     render_layer_node.scene = bpy.context.scene
 
+
+def render_selected_passes(is_image: bool):
+    render_properties = bpy.context.scene.render_properties
+
     if render_properties.beauty_pass_checkbox:
         # Render unmodified image
-        render_beauty_pass()
+        render_beauty_pass(is_image)
     if render_properties.normal_pass_checkbox:
         # Render normal image
         render_normal_pass()
     if render_properties.mask_pass_checkbox:
         # Render mask image
-        render_mask_pass()
+        render_mask_pass(is_image)
     # Render depth image
     # render_depth_pass()
     if render_properties.outline_pass_checkbox:

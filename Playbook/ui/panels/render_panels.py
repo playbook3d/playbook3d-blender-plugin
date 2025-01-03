@@ -9,6 +9,7 @@ def draw_render_panel(context, layout):
     box = layout.box()
     box.separator(factor=BOX_PADDING)
 
+    render_properties = context.scene.render_properties
     scene = context.scene
 
     row0 = box.row()
@@ -23,6 +24,23 @@ def draw_render_panel(context, layout):
     row1.separator(factor=BOX_PADDING)
     row1.operator("op.run_workflow")
     row1.separator(factor=BOX_PADDING)
+
+    box.separator(factor=BOX_PADDING)
+    box.separator(factor=BOX_PADDING)
+
+    row2 = box.row()
+    row2.scale_y = 1.75
+    row2.active_default = False if render_properties.is_capturing_sequence else True
+    row2.separator(factor=BOX_PADDING)
+    row2.operator("op.start_sequence_capture")
+    row2.separator(factor=BOX_PADDING)
+
+    row3 = box.row()
+    row3.scale_y = 1.75
+    row3.active_default = True if render_properties.is_capturing_sequence else False
+    row3.separator(factor=BOX_PADDING)
+    row3.operator("op.end_sequence_capture")
+    row3.separator(factor=BOX_PADDING)
 
     if RenderStatus.render_status:
         row_label = box.row()

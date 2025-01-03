@@ -42,3 +42,12 @@ def clear_render_folder():
             print(f"Failed to delete {folder_path}: {e}")
     else:
         print(f"File {folder_path} does not exist")
+
+
+#
+def create_zip_destination_folder(parent_dir, folder_name):
+    dir = os.path.dirname(os.path.dirname(__file__))
+    parent_path = os.path.join(dir, parent_dir)
+    destination_path = os.path.join(parent_path, folder_name)
+
+    os.makedirs(destination_path, exist_ok=True)

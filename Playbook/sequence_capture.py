@@ -1,57 +1,72 @@
 import bpy
-from .utilities.file_utilities import clear_render_folder
+from .render_passes.render_passes import render_passes
+from .utilities.file_utilities import clear_render_folder, create_zip_destination_folder
 
 
-class SequenceCapture:
-    is_capturing = False
-    frames_per_second = 24
-    max_frames = 120
-    time_interval = 0
-    capture_count = 0
+frames_per_second = 24
+max_frames = 120
+time_interval = 0
 
-    def start_sequence_capture(self):
-        """
-        Reset the relevant properties and begin capturing sequences
-        based off the given frames per second
-        """
 
-        self.is_capturing = True
-        self.time_interval = 1 / self.frames_per_second
-        self.capture_count = 0
+def start_sequence_capture():
+    """
+    Reset the relevant properties and begin capturing sequences
+    based off the given frames per second
+    """
 
-        bpy.app.timers.register(self.render_passes, first_interval=self.time_interval)
+    print("Starting sequence capture")
 
-    #
-    def end_sequence_capture(self):
-        """
-        End capturing sequences and begin the run workflow process
-        """
+    bpy.context.scene.render_properties.is_capturing_sequence = True
+    bpy.context.scene.render_properties.capture_count = 0
+    time_interval = 1 / frames_per_second
 
-        self.is_capturing = False
+    clear_render_folder()
 
-        # TODO: Add logic to zip captures
+    create_zip_destination_folder("renders", "beauty_zip")
+    create_zip_destination_folder("renders", "mask_zip")
 
-    #
-    def render_passes(self):
-        # End sequence capture
-        if not self.is_capturing:
-            return None
+    bpy.app.timers.register(render_sequence_pass, first_interval=time_interval)
 
-        self.capture_count += 1
 
-        # TODO: Render passes to file
+#
+def end_sequence_capture():
+    """
+    End capturing sequences and begin the run workflow process
+    """
 
-        # At maximum capture count
-        if self.capture_count >= self.max_frames:
-            return None
+    print("Ending sequence capture")
 
-        # Continue capturing
-        return self.time_interval
+    bpy.context.scene.render_properties.is_capturing_sequence = False
 
-    #
-    def zip_renders(self):
-        return
+    # TODO: Add logic to zip captures
 
-    #
-    def send_zips_to_urls(self):
-        return
+
+#
+def render_sequence_pass():
+    properties = bpy.context.scene.render_properties
+
+    # End sequence capture
+    if not properties.is_capturing_sequence:
+        return None
+
+    properties.capture_count += 1
+
+    # TODO: Render passes to file
+    render_passes(False)
+
+    # At maximum capture count
+    if properties.capture_count >= max_frames:
+        return None
+
+    # Continue capturing
+    return time_interval
+
+
+#
+def zip_renders():
+    return
+
+
+#
+def send_zips_to_urls():
+    return
