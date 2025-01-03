@@ -61,6 +61,26 @@ class RunWorkflowOperator(Operator):
         return {"FINISHED"}
 
 
+#
+class StartSequenceCaptureOperator(Operator):
+    bl_idname = "op.start_sequence_capture"
+    bl_label = "Start Sequence Capture"
+    bl_description = "Start sequence capture"
+
+    def execute(self, context):
+        return {"FINISHED"}
+
+
+#
+class EndSequenceCaptureOperator(Operator):
+    bl_idname = "op.end_sequence_capture"
+    bl_label = "End Sequence Capture"
+    bl_description = "End sequence capture"
+
+    def execute(self, context):
+        return {"FINISHED"}
+
+
 # Direct the user to the Playbook website
 class PlaybookWebsiteOperator(Operator):
     bl_idname = "op.send_to_playbook"

@@ -28,7 +28,6 @@ from . import ui
 from . import properties
 from . import operators
 from . import preferences
-from . import render_image
 from .version_control import PlaybookVersionControl
 from .utilities.secret_manager import BlenderSecretsManager
 from .utilities.network_utilities import get_user_info
@@ -100,7 +99,6 @@ def register():
     ui.register()
     operators.register()
     preferences.register()
-    render_image.register()
     task_queue.register()
 
     bpy.utils.register_class(Preferences)
@@ -127,7 +125,6 @@ def unregister():
         ui.unregister()
         operators.unregister()
         preferences.unregister()
-        render_image.unregister()
         task_queue.unregister()
 
         bpy.utils.unregister_class(Preferences)

@@ -2,7 +2,7 @@ import bpy
 from ..objects.objects import visible_objects, mask_objects
 from ..objects.object_properties import ObjectProperties
 from ..objects.object_utilities import mask_rgb_colors
-from ..utilities.utilities import get_parent_filepath
+from ..utilities.file_utilities import get_parent_filepath
 
 original_settings = {}
 

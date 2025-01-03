@@ -5,7 +5,7 @@ from .beauty_pass import render_beauty_pass
 from .mask_pass import render_mask_pass
 from .depth_pass import render_depth_pass
 from .outline_pass import render_outline_pass
-from .normal_pass import NormalPass
+from .normal_pass import render_normal_pass
 from ..objects.visible_objects import set_visible_objects
 from ..objects.objects import visible_objects
 
@@ -46,9 +46,6 @@ def error_exists_in_render_passes():
 
 #
 def render_passes():
-    # Prepare for renders
-    clear_render_folder()
-
     # Render all required passes
     render_selected_passes()
 
@@ -84,8 +81,7 @@ def render_selected_passes():
         render_beauty_pass()
     if render_properties.normal_pass_checkbox:
         # Render normal image
-        normal_pass = NormalPass()
-        normal_pass.render_normal_pass()
+        render_normal_pass()
     if render_properties.mask_pass_checkbox:
         # Render mask image
         render_mask_pass()
@@ -94,17 +90,3 @@ def render_selected_passes():
     if render_properties.outline_pass_checkbox:
         # Render outline image
         render_outline_pass()
-
-
-#
-def clear_render_folder():
-    dir = os.path.dirname(os.path.dirname(__file__))
-    folder_path = os.path.join(dir, "renders")
-
-    if os.path.exists(folder_path):
-        try:
-            shutil.rmtree(folder_path)
-        except Exception as e:
-            print(f"Failed to delete {folder_path}: {e}")
-    else:
-        print(f"File {folder_path} does not exist")

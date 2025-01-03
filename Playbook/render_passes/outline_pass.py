@@ -1,6 +1,6 @@
 import bpy
 import os
-from ..utilities.utilities import get_parent_filepath
+from ..utilities.file_utilities import get_parent_filepath
 
 original_settings = {}
 

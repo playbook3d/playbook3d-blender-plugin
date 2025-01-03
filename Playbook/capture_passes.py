@@ -3,19 +3,20 @@ import bpy
 import requests
 from dotenv import load_dotenv
 from .render_passes.render_passes import render_passes
-from .utilities.utilities import get_api_key
 from .utilities.network_utilities import get_user_access_token
+from .utilities.file_utilities import clear_render_folder
 
 upload_enpoint = "/upload-assets/get-upload-urls"
 
 
 def capture_passes():
+    clear_render_folder()
 
     render_passes()
 
     env_path = os.path.join(os.path.dirname(__file__), ".env")
     load_dotenv(dotenv_path=env_path)
-    url = os.getenv("BASE_ACCOUNTS_URL")
+    url = "https://dev-accounts.playbook3d.com"  # os.getenv("BASE_ACCOUNTS_URL")
 
     upload_urls = get_upload_urls(url)
 

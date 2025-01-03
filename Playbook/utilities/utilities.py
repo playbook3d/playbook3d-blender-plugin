@@ -41,34 +41,6 @@ def force_ui_redraw():
 
 
 #
-def is_valid_image_file(filepath: str) -> bool:
-    valid_extensions = {".png", ".jpg", ".jpeg"}
-
-    ext = filepath.lower().rsplit(".", 1)[-1]
-    return f".{ext}" in valid_extensions
-
-
-#
-def get_parent_filepath(filename, folder=""):
-    dir = os.path.dirname(os.path.dirname(__file__))
-
-    if not folder:
-        return os.path.join(dir, filename)
-
-    return os.path.join(dir, folder, filename)
-
-
-#
-def get_filepath(filename, folder=""):
-    dir = os.path.dirname(__file__)
-
-    if not folder:
-        return os.path.join(dir, filename)
-
-    return os.path.join(dir, folder, filename)
-
-
-#
 def get_scaled_resolution_height(width: int):
     final_resolutions = get_final_resolutions()
 
