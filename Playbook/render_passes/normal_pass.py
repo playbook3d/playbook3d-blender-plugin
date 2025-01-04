@@ -1,5 +1,5 @@
 import bpy
-from ..utilities.file_utilities import get_parent_filepath
+from ..utilities.file_utilities import get_filepath
 
 
 original_render_engine = ""
@@ -95,7 +95,7 @@ def create_normal_compositing():
 def render_normal_to_file():
     render = bpy.context.scene.render
 
-    output_path = get_parent_filepath("normal.png", "renders")
+    output_path = get_filepath("renders/normal.png")
     render.filepath = output_path
 
     create_normal_compositing()

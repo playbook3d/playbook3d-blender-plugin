@@ -3,7 +3,7 @@ import webbrowser
 import functools
 from .objects.objects import mask_objects
 from .capture_passes import capture_passes
-from .run_workflow import run_workflow
+from .run_workflow import run_single_image_capture
 from .task_queue import add
 from .sequence_capture import start_sequence_capture, end_sequence_capture
 from bpy.props import StringProperty
@@ -52,13 +52,13 @@ class CapturePassesOperator(Operator):
 
 
 #
-class RunWorkflowOperator(Operator):
-    bl_idname = "op.run_workflow"
-    bl_label = "Run"
-    bl_description = "Run workflow"
+class SingleImageCaptureOperator(Operator):
+    bl_idname = "op.single_image_capture"
+    bl_label = "Single Image Capture"
+    bl_description = "Single image capture"
 
     def execute(self, context):
-        add(functools.partial(run_workflow))
+        add(functools.partial(run_single_image_capture))
         return {"FINISHED"}
 
 
@@ -135,7 +135,7 @@ classes = [
     LoginOperator,
     DashboardOperator,
     CapturePassesOperator,
-    RunWorkflowOperator,
+    SingleImageCaptureOperator,
     StartSequenceCaptureOperator,
     EndSequenceCaptureOperator,
     PlaybookWebsiteOperator,

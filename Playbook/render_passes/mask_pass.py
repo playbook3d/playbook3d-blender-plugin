@@ -2,7 +2,7 @@ import bpy
 from ..objects.objects import visible_objects, mask_objects
 from ..objects.object_properties import ObjectProperties
 from ..objects.object_utilities import mask_rgb_colors
-from ..utilities.file_utilities import get_parent_filepath
+from ..utilities.file_utilities import get_filepath
 
 original_settings = {}
 
@@ -71,14 +71,14 @@ def reset_mask_settings():
 
 #
 def render_mask_as_image():
-    filepath = get_parent_filepath("mask.png", "renders")
+    filepath = get_filepath("renders/mask.png")
     render_to_path(filepath)
 
 
 #
 def render_mask_as_sequence():
     capture_count = bpy.context.scene.render_properties.capture_count
-    filepath = get_parent_filepath(f"mask_{capture_count:03}.png", "renders/mask_zip")
+    filepath = get_filepath(f"renders/mask_zip/mask_{capture_count:03}.png")
     render_to_path(filepath)
 
 
@@ -112,6 +112,8 @@ def create_mask_compositing():
 
     # Create nodes
     render_layers_node = nodes.new(type="CompositorNodeRLayers")
+
+    create_id_mask_nodes(nodes, links, render_layers_node)
 
     mask_nodes = create_idmask_nodes(nodes, links, render_layers_node)
 
@@ -186,6 +188,19 @@ def create_idmask_nodes(nodes, links, render_layers_node):
         mask_nodes.append(mask_node)
 
     return mask_nodes
+
+
+#
+def create_id_mask_nodes(nodes, links, render_layers_node):
+    idmask_node = nodes.new(type="CompositorNodeIDMask")
+    idmask_node.index = 0
+
+    alpha_over_node = nodes.new(type="CompositorNodeAlphaOver")
+
+    links.new(render_layers_node.outputs["IndexOB"], idmask_node.inputs["ID value"])
+    links.new(idmask_node.outputs["Alpha"], alpha_over_node.inputs["Fac"])
+
+    return alpha_over_node
 
 
 #

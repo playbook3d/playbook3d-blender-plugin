@@ -13,6 +13,7 @@ def register():
     render_properties.register()
 
     Scene.error_message = StringProperty(default="")
+    Scene.status_message = StringProperty(default="")
     Scene.show_object_dropdown = BoolProperty(default=False)
 
 
@@ -23,4 +24,5 @@ def unregister():
     render_properties.unregister()
 
     del Scene.error_message
+    del Scene.status_message
     del Scene.show_object_dropdown

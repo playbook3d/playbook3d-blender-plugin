@@ -1,34 +1,64 @@
-import os
 import bpy
 import json
 import requests
-from dotenv import load_dotenv
 from .capture_passes import capture_passes
 from .properties.user_properties import get_team_id_of_workflow
 from .utilities.network_utilities import get_user_access_token
+from .utilities.file_utilities import get_env_value
+from .utilities.utilities import does_plugin_error_exists
+
+
+def run_single_image_capture():
+    """
+    Run the given workflow after capturing single images of the
+    selected passes
+    """
+
+    if does_plugin_error_exists():
+        return
+
+    capture_passes()
+
+    run_workflow()
 
 
 def run_workflow():
-    capture_passes()
-
-    env_path = os.path.join(os.path.dirname(__file__), ".env")
-    load_dotenv(dotenv_path=env_path)
+    """
+    Requests the server to start running the selected workflow.
+    """
 
     try:
-        url = os.getenv("WORKFLOW_URL")
+        url = get_env_value("WORKFLOW_URL")
         access_token = get_user_access_token()
         workflow_id = bpy.context.scene.user_properties.user_workflows_dropdown
+        url = url + f"/{get_team_id_of_workflow(workflow_id)}"
 
         body = json.dumps({"id": workflow_id, "origin": 1, "inputs": {}})
 
         headers = {
             "Authorization": f"Bearer {access_token}",
-            "X-API-KEY": os.getenv("BLENDER_X_API_KEY"),
+            "X-API-KEY": get_env_value("BLENDER_X_API_KEY"),
         }
 
         response = requests.post(url=url, headers=headers, data=body)
 
-        print(response.text)
+        print(f"Run Workflow Response: {response.text}")
+
+        display_submission_message()
+
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred while attempting to run the workflow: {e}")
         return None
+
+
+def display_submission_message():
+    bpy.context.scene.status_message = "Workflow run submitted."
+
+    # Remove submission message after 10 seconds
+    bpy.app.timers.register(remove_submission_message, first_interval=10)
+
+
+def remove_submission_message():
+    bpy.context.scene.status_message = ""
+
+    return None

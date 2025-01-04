@@ -1,6 +1,14 @@
 import bpy
 from .render_passes.render_passes import render_passes
-from .utilities.file_utilities import clear_render_folder, create_zip_destination_folder
+from .run_workflow import run_workflow
+from .upload_files import upload_sequence_capture_files
+from .utilities.utilities import does_plugin_error_exists
+from .utilities.file_utilities import (
+    clear_folder_contents,
+    create_folder,
+    zip_folder,
+    get_filepath,
+)
 
 
 frames_per_second = 24
@@ -14,16 +22,19 @@ def start_sequence_capture():
     based off the given frames per second
     """
 
+    if does_plugin_error_exists():
+        return
+
     print("Starting sequence capture")
 
     bpy.context.scene.render_properties.is_capturing_sequence = True
     bpy.context.scene.render_properties.capture_count = 0
     time_interval = 1 / frames_per_second
 
-    clear_render_folder()
+    clear_folder_contents("renders")
 
-    create_zip_destination_folder("renders", "beauty_zip")
-    create_zip_destination_folder("renders", "mask_zip")
+    create_folder("renders", "beauty_zip")
+    create_folder("renders", "mask_zip")
 
     bpy.app.timers.register(render_sequence_pass, first_interval=time_interval)
 
@@ -38,7 +49,16 @@ def end_sequence_capture():
 
     bpy.context.scene.render_properties.is_capturing_sequence = False
 
-    # TODO: Add logic to zip captures
+    # Zip sequence capture folders
+    beauty_folder = get_filepath("renders/beauty_zip")
+    mask_folder = get_filepath("renders/mask_zip")
+    zip_folder(beauty_folder)
+    zip_folder(mask_folder)
+
+    # Send zips to server
+    upload_sequence_capture_files
+
+    run_workflow()
 
 
 #
@@ -51,7 +71,7 @@ def render_sequence_pass():
 
     properties.capture_count += 1
 
-    # TODO: Render passes to file
+    # Render passes to file
     render_passes(False)
 
     # At maximum capture count
@@ -60,13 +80,3 @@ def render_sequence_pass():
 
     # Continue capturing
     return time_interval
-
-
-#
-def zip_renders():
-    return
-
-
-#
-def send_zips_to_urls():
-    return

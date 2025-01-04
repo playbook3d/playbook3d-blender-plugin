@@ -22,7 +22,7 @@ def draw_render_panel(context, layout):
     row1.scale_y = 1.75
     row1.active_default = True
     row1.separator(factor=BOX_PADDING)
-    row1.operator("op.run_workflow")
+    row1.operator("op.single_image_capture")
     row1.separator(factor=BOX_PADDING)
 
     box.separator(factor=BOX_PADDING)
@@ -42,10 +42,10 @@ def draw_render_panel(context, layout):
     row3.operator("op.end_sequence_capture")
     row3.separator(factor=BOX_PADDING)
 
-    if RenderStatus.render_status:
+    if scene.status_message:
         row_label = box.row()
         row_label.alignment = "CENTER"
-        row_label.label(text=f"Status: {RenderStatus.render_status}")
+        row_label.label(text=scene.status_message)
 
     if scene.error_message:
         error_row = box.row()

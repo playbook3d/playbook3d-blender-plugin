@@ -4,7 +4,6 @@ from bpy.types import Scene, PropertyGroup
 from bpy.utils import register_class, unregister_class
 from .team_properties import TeamProperties
 from .workflow_properties import WorkflowProperties
-from ..utilities.utilities import force_ui_redraw
 
 
 teams = [TeamProperties("0", "None")]
@@ -63,6 +62,7 @@ def unregister():
     del Scene.user_properties
 
 
+#
 def update_user_properties(
     email: str,
     user_teams: list[TeamProperties],
@@ -76,9 +76,8 @@ def update_user_properties(
     if user_workflows:
         workflows = user_workflows
 
-    force_ui_redraw()
 
-
+#
 def get_team_id_of_workflow(workflow_id: str) -> str:
     workflow = next(workflow for workflow in workflows if workflow.id == workflow_id)
     return workflow.team_id

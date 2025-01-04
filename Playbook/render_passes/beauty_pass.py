@@ -1,5 +1,5 @@
 import bpy
-from ..utilities.file_utilities import get_parent_filepath
+from ..utilities.file_utilities import get_filepath
 
 original_settings = {}
 
@@ -26,7 +26,7 @@ def reset_beauty_settings():
 
 #
 def render_beauty_as_image():
-    filepath = get_parent_filepath("beauty.png", "renders")
+    filepath = get_filepath("renders/beauty.png")
 
     render_to_path(filepath)
 
@@ -35,9 +35,7 @@ def render_beauty_as_image():
 def render_beauty_as_sequence():
     capture_count = bpy.context.scene.render_properties.capture_count
 
-    filepath = get_parent_filepath(
-        f"beauty_{capture_count:03}.png", "renders/beauty_zip"
-    )
+    filepath = get_filepath(f"renders/beauty_zip/beauty_{capture_count:03}.png")
 
     render_to_path(filepath)
 

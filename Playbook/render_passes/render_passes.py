@@ -82,7 +82,7 @@ def render_selected_passes(is_image: bool):
     if render_properties.beauty_pass_checkbox:
         # Render unmodified image
         render_beauty_pass(is_image)
-    if render_properties.normal_pass_checkbox:
+    if render_properties.normal_pass_checkbox and is_image:
         # Render normal image
         render_normal_pass()
     if render_properties.mask_pass_checkbox:
@@ -90,6 +90,6 @@ def render_selected_passes(is_image: bool):
         render_mask_pass(is_image)
     # Render depth image
     # render_depth_pass()
-    if render_properties.outline_pass_checkbox:
+    if render_properties.outline_pass_checkbox and is_image:
         # Render outline image
         render_outline_pass()

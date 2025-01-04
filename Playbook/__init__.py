@@ -1,10 +1,10 @@
 bl_info = {
     "name": "Playbook",
-    "description": "Playbook is a diffusion based renderer for 3D scenes. Press 'N' to bring up the plugin window.",
-    "author": "Playbook 3D",
+    "description": "Playbook is a generative media platform for teams & studios.",
+    "author": "Playbook",
     "location": "Properties > Render > Playbook",
-    "version": (1, 0, 3),
-    "blender": (4, 0, 0),
+    "version": (1, 1, 0),
+    "blender": (4, 2, 0),
     "category": "Render",
 }
 
