@@ -48,7 +48,7 @@ def draw_credentials_panel(context, layout):
     login_text = (
         f"{user_props.user_email}"
         if user_props.user_email
-        else "Enter API key in Preferences"
+        else "Enter API Key In Preferences"
     )
     row3.operator(
         "op.login",

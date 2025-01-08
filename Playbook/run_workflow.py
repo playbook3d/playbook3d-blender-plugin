@@ -52,7 +52,7 @@ def run_workflow():
 
 
 def display_submission_message():
-    bpy.context.scene.status_message = "Workflow run submitted."
+    bpy.context.scene.status_message = "Workflow Run Submitted."
 
     # Remove submission message after 10 seconds
     bpy.app.timers.register(remove_submission_message, first_interval=10)

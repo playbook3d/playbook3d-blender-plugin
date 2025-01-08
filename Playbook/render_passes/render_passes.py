@@ -7,6 +7,9 @@ from .normal_pass import render_normal_pass
 from ..objects.visible_objects import set_visible_objects
 from ..objects.objects import visible_objects
 
+original_render_engine = ""
+original_settings = {}
+
 
 # Returns a message if an error occurs while attempting to render the image.
 def check_for_errors() -> bool:
@@ -46,12 +49,17 @@ def error_exists_in_render_passes():
 def render_passes(is_image: bool):
     set_render_layers()
 
+    save_render_settings()
+    set_render_settings()
+
     # Render all required passes
     render_selected_passes(is_image)
 
     # Clean up renders
     bpy.data.images.remove(bpy.data.images["Render Result"])
     bpy.context.scene.node_tree.nodes.clear()
+
+    reset_render_settings()
 
 
 #
@@ -74,6 +82,45 @@ def set_render_layers():
 
     # Set the scene for the Render Layers node to the current scene
     render_layer_node.scene = bpy.context.scene
+
+
+#
+def save_render_settings():
+    global original_render_engine
+
+    scene = bpy.context.scene
+
+    original_render_engine = ""
+    original_settings.clear()
+
+    if scene.render.engine != "EEVEE":
+        original_render_engine = scene.render.engine
+    else:
+        original_settings.update(
+            {
+                "resolution": scene.render.resolution_percentage,
+                "render_samples": scene.eevee.taa_render_samples,
+            }
+        )
+
+
+#
+def set_render_settings():
+    scene = bpy.context.scene
+
+    scene.render.resolution_percentage = 50
+    scene.eevee.taa_render_samples = 16
+
+
+#
+def reset_render_settings():
+    scene = bpy.context.scene
+
+    if original_render_engine:
+        scene.render.engine = original_render_engine
+    elif original_settings:
+        scene.render.resolution_percentage = original_settings["resolution"]
+        scene.eevee.taa_render_samples = original_render_engine["render_samples"]
 
 
 def render_selected_passes(is_image: bool):
