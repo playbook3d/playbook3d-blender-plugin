@@ -2,6 +2,7 @@ import bpy
 import json
 import requests
 from .capture_passes import capture_passes
+from .upload_files import upload_single_capture_files, upload_sequence_capture_files
 from .properties.user_properties import get_team_id_of_workflow
 from .utilities.network_utilities import get_user_access_token
 from .utilities.file_utilities import get_env_value
@@ -17,9 +18,11 @@ def run_single_image_capture():
     if does_plugin_error_exists():
         return
 
-    capture_passes()
+    capture_passes(False)
 
-    run_workflow()
+    run_id = run_workflow()
+
+    upload_single_capture_files(run_id)
 
 
 def run_workflow():
@@ -32,6 +35,9 @@ def run_workflow():
         access_token = get_user_access_token()
         workflow_id = bpy.context.scene.user_properties.user_workflows_dropdown
         url = url + f"/{get_team_id_of_workflow(workflow_id)}"
+
+        print(f"Workflow URL: {url}")
+        print(f"Workflow ID: {workflow_id}")
 
         body = json.dumps({"id": workflow_id, "origin": 1, "inputs": {}})
 
@@ -46,7 +52,10 @@ def run_workflow():
 
         display_submission_message()
 
+        return response.json()["run_id"]
+
     except Exception as e:
+        print(f"Status code: {response.status_code}")
         print(f"An error occurred while attempting to run the workflow: {e}")
         return None
 
