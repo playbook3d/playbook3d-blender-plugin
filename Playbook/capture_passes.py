@@ -4,7 +4,7 @@ from .utilities.file_utilities import clear_folder_contents
 from .utilities.utilities import does_plugin_error_exists
 
 
-def capture_passes():
+def capture_passes(upload_files: bool):
     """
     Render and upload the selected single image capture passes.
     """
@@ -16,4 +16,5 @@ def capture_passes():
 
     render_passes(is_image=True)
 
-    upload_single_capture_files()
+    if upload_files:
+        upload_single_capture_files()

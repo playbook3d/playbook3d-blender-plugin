@@ -15,7 +15,7 @@ from bpy.app.handlers import persistent
 #
 class LoginOperator(Operator):
     bl_idname = "op.login"
-    bl_label = "Enter API key in Preferences"
+    bl_label = "Enter API Key In Preferences"
     bl_description = "Open up the preferences panel to Playbook."
 
     def execute(self, context):
@@ -47,7 +47,7 @@ class CapturePassesOperator(Operator):
     bl_description = "Capture passes"
 
     def execute(self, context):
-        add(functools.partial(capture_passes))
+        capture_passes(True)
         return {"FINISHED"}
 
 
@@ -58,7 +58,7 @@ class SingleImageCaptureOperator(Operator):
     bl_description = "Single image capture"
 
     def execute(self, context):
-        add(functools.partial(run_single_image_capture))
+        run_single_image_capture()
         return {"FINISHED"}
 
 

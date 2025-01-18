@@ -7,12 +7,12 @@ from .utilities.file_utilities import get_filepath, get_env_value
 upload_endpoint = "/upload-assets/get-upload-urls"
 
 
-def upload_single_capture_files():
+def upload_single_capture_files(run_id: str):
     """
     Upload the selected render pass images to the server.
     """
 
-    upload_urls = get_upload_urls()
+    upload_urls = get_upload_urls(run_id)
 
     if upload_urls:
         render_properties = bpy.context.scene.render_properties
@@ -38,12 +38,12 @@ def upload_single_capture_files():
             upload_file(outline_url, outline_path, True)
 
 
-def upload_sequence_capture_files():
+def upload_sequence_capture_files(run_id: str):
     """
     Upload the selected sequence capture render pass zip folders to the server.
     """
 
-    upload_urls = get_upload_urls()
+    upload_urls = get_upload_urls(run_id)
 
     if upload_urls:
         render_properties = bpy.context.scene.render_properties
@@ -60,13 +60,13 @@ def upload_sequence_capture_files():
 
 
 #
-def get_upload_urls():
+def get_upload_urls(run_id: str):
     url = get_env_value("BASE_ACCOUNTS_URL")
 
     access_token = get_user_access_token()
 
     response = requests.get(
-        url=f"{url}{upload_endpoint}",
+        url=f"{url}{upload_endpoint}/{run_id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     return response.json() if response.status_code == 200 else None

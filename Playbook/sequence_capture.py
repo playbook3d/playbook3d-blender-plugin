@@ -55,10 +55,10 @@ def end_sequence_capture():
     zip_folder(beauty_folder)
     zip_folder(mask_folder)
 
-    # Send zips to server
-    upload_sequence_capture_files
+    run_id = run_workflow()
 
-    run_workflow()
+    # Send zips to server
+    upload_sequence_capture_files(run_id)
 
 
 #

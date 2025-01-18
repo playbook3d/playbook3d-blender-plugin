@@ -37,10 +37,8 @@ def get_user_info():
             "X-API-KEY": get_env_value("BLENDER_X_API_KEY"),
         }
         teams_response = requests.get(url=teams_url, headers=headers)
-        # print(f"TEAMS: {teams_response.text}\n")
         teams_response = json.loads(teams_response.text)
         workflows_response = requests.get(url=workflows_url, headers=headers)
-        # print(f"WORKFLOWS: {workflows_response.text}")
         workflows_response = json.loads(workflows_response.text)
 
         return {
