@@ -16,8 +16,8 @@ def get_user_info():
     """
 
     try:
-        teams_url = "https://dev-accounts.playbook3d.com/teams/"
-        workflows_url = "https://dev-accounts.playbook3d.com/workflows"
+        teams_url = "https://accounts.playbook3d.com/teams/"
+        workflows_url = "https://accounts.playbook3d.com/workflows"
 
         access_token = get_user_access_token()
         decoded_jwt = decode_jwt(access_token)
