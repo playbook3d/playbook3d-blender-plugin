@@ -14,7 +14,7 @@ def save_depth_settings():
     original_settings.clear()
     original_settings.update(
         {
-            "z_pass": scene.view_layers["ViewLayer"].use_pass_z,
+            "z_pass": bpy.context.view_layer.use_pass_z,
             "exposure": scene.view_settings.exposure,
             "gamma": scene.view_settings.gamma,
         }
@@ -25,7 +25,7 @@ def save_depth_settings():
 def set_depth_settings():
     scene = bpy.context.scene
 
-    scene.view_layers["ViewLayer"].use_pass_z = True
+    bpy.context.view_layer.use_pass_z = True
     scene.view_settings.exposure = 1
     scene.view_settings.gamma = 1
 
@@ -34,7 +34,7 @@ def set_depth_settings():
 def reset_depth_settings():
     scene = bpy.context.scene
 
-    scene.view_layers["ViewLayer"].use_pass_z = original_settings["z_pass"]
+    bpy.context.view_layer.use_pass_z = original_settings["z_pass"]
     scene.view_settings.exposure = original_settings["exposure"]
     scene.view_settings.gamma = original_settings["gamma"]
 
