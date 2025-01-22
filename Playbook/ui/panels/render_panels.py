@@ -1,8 +1,6 @@
 import bpy
 from .main_panels import MainPanel3D, MainPanelRender
 from ...render_status import RenderStatus
-from ...properties import model_render_stats
-from ...utilities.utilities import get_scale_resolution_width
 from .panel_utils import PlaybookPanel3D, BOX_PADDING, PlaybookPanelRender
 
 
@@ -11,27 +9,8 @@ def draw_render_panel(context, layout):
     box = layout.box()
     box.separator(factor=BOX_PADDING)
 
+    render_properties = context.scene.render_properties
     scene = context.scene
-    model = context.scene.global_properties.global_model
-
-    row = box.row()
-    row.separator(factor=BOX_PADDING)
-    split = row.split()
-    column1 = split.column(align=True)
-    column1.alignment = "LEFT"
-    # column1.label(text="Final resolution:")
-    # column1.label(text="Estimated time:")
-    # column1.label(text="Credit cost:")
-    row.separator(factor=BOX_PADDING)
-
-    column2 = split.column(align=True)
-    column2.alignment = "RIGHT"
-    height = model_render_stats[model]["Height"]
-    width = get_scale_resolution_width(height)
-    cost = model_render_stats[model]["Cost"]
-    # column2.label(text=f"{width} x {height}")
-    # column2.label(text=model_render_stats[model]["Time"])
-    # column2.label(text=f"{cost}")
 
     row0 = box.row()
     row0.scale_y = 1.75
@@ -43,13 +22,30 @@ def draw_render_panel(context, layout):
     row1.scale_y = 1.75
     row1.active_default = True
     row1.separator(factor=BOX_PADDING)
-    row1.operator("op.render_image")
+    row1.operator("op.single_image_capture")
     row1.separator(factor=BOX_PADDING)
 
-    if RenderStatus.render_status:
+    box.separator(factor=BOX_PADDING)
+    box.separator(factor=BOX_PADDING)
+
+    row2 = box.row()
+    row2.scale_y = 1.75
+    row2.active_default = False if render_properties.is_capturing_sequence else True
+    row2.separator(factor=BOX_PADDING)
+    row2.operator("op.start_sequence_capture")
+    row2.separator(factor=BOX_PADDING)
+
+    row3 = box.row()
+    row3.scale_y = 1.75
+    row3.active_default = True if render_properties.is_capturing_sequence else False
+    row3.separator(factor=BOX_PADDING)
+    row3.operator("op.end_sequence_capture")
+    row3.separator(factor=BOX_PADDING)
+
+    if scene.status_message:
         row_label = box.row()
         row_label.alignment = "CENTER"
-        row_label.label(text=f"Status: {RenderStatus.render_status}")
+        row_label.label(text=scene.status_message)
 
     if scene.error_message:
         error_row = box.row()

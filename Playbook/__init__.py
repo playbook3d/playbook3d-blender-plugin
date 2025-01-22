@@ -1,51 +1,14 @@
 bl_info = {
     "name": "Playbook",
-    "description": "Playbook is a diffusion based renderer for 3D scenes. Press 'N' to bring up the plugin window.",
-    "author": "Playbook 3D",
+    "description": "Playbook is a generative media platform for teams & studios.",
+    "author": "Playbook",
     "location": "Properties > Render > Playbook",
-    "version": (1, 0, 3),
-    "blender": (4, 0, 0),
+    "version": (1, 1, 0),
+    "blender": (4, 2, 0),
     "category": "Render",
 }
 
 import bpy
-
-
-def ensure_packages():
-    if bpy.app.version < (4, 2, 0):
-        import site
-        import sys
-        import os
-        import subprocess
-        import importlib
-        import importlib.util
-
-        requirements_path = os.path.join(os.path.dirname(__file__), "requirements.txt")
-
-        user_sites = site.getusersitepackages()
-        os.makedirs(user_sites, exist_ok=True)
-        sys.path.append(user_sites)
-
-        python_executable = sys.executable
-        try:
-            with open(requirements_path, "r") as f:
-                packages = [
-                    package
-                    for package in f.read().splitlines()
-                    if not importlib.util.find_spec(package)
-                ]
-                subprocess.run([python_executable, "-m", "ensurepip", "--upgrade"])
-                subprocess.run(
-                    [python_executable, "-m", "pip", "install", *packages, "--user"],
-                    check=True,
-                )
-
-        except Exception as e:
-            print(f"Error reading requirements.txt: {e}")
-
-    import dotenv
-
-    print(dotenv.__file__)
 
 
 def reset_addon_values():
@@ -54,7 +17,6 @@ def reset_addon_values():
     RenderStatus.is_rendering = False
 
 
-ensure_packages()
 reset_addon_values()
 
 import os
@@ -66,10 +28,11 @@ from . import ui
 from . import properties
 from . import operators
 from . import preferences
-from . import render_image
 from .version_control import PlaybookVersionControl
 from .utilities.secret_manager import BlenderSecretsManager
 from .utilities.network_utilities import get_user_info
+from .properties.user_properties import update_user_properties
+from . import task_queue
 
 
 class Preferences(AddonPreferences):
@@ -82,11 +45,12 @@ class Preferences(AddonPreferences):
         if len(self.api_key) != 36:
             return
 
-        user_info = get_user_info(self.api_key)
+        user_info = get_user_info()
 
         if user_info is not None:
-            context.scene.user_properties.user_email = user_info["email"]
-            context.scene.user_properties.user_credits = user_info["credits"]
+            update_user_properties(
+                user_info["email"], user_info["teams"], user_info["workflows"]
+            )
 
     api_key: StringProperty(
         name="API Key",
@@ -108,13 +72,12 @@ class Preferences(AddonPreferences):
             layout.label(text=PlaybookVersionControl.version_control_label)
 
         layout.operator("op.documentation")
-        layout.operator("op.reset_addon_settings")
+        # layout.operator("op.reset_addon_settings")
         layout.prop(self, "api_key")
 
 
 @persistent
 def read_preferences_on_load(dummy):
-    context = bpy.context
     addon_prefs = bpy.context.preferences.addons[__package__].preferences
 
     if not addon_prefs.api_key:
@@ -123,19 +86,20 @@ def read_preferences_on_load(dummy):
     if len(addon_prefs.api_key) != 36:
         return
 
-    user_info = get_user_info(addon_prefs.api_key)
+    user_info = get_user_info()
 
     if user_info is not None:
-        context.scene.user_properties.user_email = user_info["email"]
-        context.scene.user_properties.user_credits = user_info["credits"]
+        update_user_properties(
+            user_info["email"], user_info["teams"], user_info["workflows"]
+        )
 
 
 def register():
-    ui.register()
     properties.register()
+    ui.register()
     operators.register()
     preferences.register()
-    render_image.register()
+    task_queue.register()
 
     bpy.utils.register_class(Preferences)
 
@@ -157,11 +121,11 @@ def unregister():
         bpy.app.handlers.load_post.remove(read_preferences_on_load)
 
     try:
-        ui.unregister()
         properties.unregister()
+        ui.unregister()
         operators.unregister()
         preferences.unregister()
-        render_image.unregister()
+        task_queue.unregister()
 
         bpy.utils.unregister_class(Preferences)
 

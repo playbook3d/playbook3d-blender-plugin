@@ -1,7 +1,11 @@
 import bpy
 import webbrowser
+import functools
 from .objects.objects import mask_objects
 from .capture_passes import capture_passes
+from .run_workflow import run_single_image_capture
+from .task_queue import add
+from .sequence_capture import start_sequence_capture, end_sequence_capture
 from bpy.props import StringProperty
 from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
@@ -11,7 +15,7 @@ from bpy.app.handlers import persistent
 #
 class LoginOperator(Operator):
     bl_idname = "op.login"
-    bl_label = "Enter API key in Preferences"
+    bl_label = "Enter API Key In Preferences"
     bl_description = "Open up the preferences panel to Playbook."
 
     def execute(self, context):
@@ -24,45 +28,15 @@ class LoginOperator(Operator):
 
 
 #
-class UpgradeOperator(Operator):
-    bl_idname = "op.upgrade"
-    bl_label = "Get Credits"
-    bl_description = "Upgrade"
+class DashboardOperator(Operator):
+    bl_idname = "op.dashboard"
+    bl_label = "Open Dashboard"
+    bl_description = "Open the Playbook dashboard"
 
     url: StringProperty(name="", default="https://www.beta.playbook3d.com/")
 
     def execute(self, context):
         webbrowser.open(self.url)
-        return {"FINISHED"}
-
-
-#
-class RandomizePromptOperator(Operator):
-    bl_idname = "op.randomize_prompt"
-    bl_label = "Randomize"
-    bl_description = "Randomize"
-
-    def execute(self, context):
-        return {"FINISHED"}
-
-
-#
-class RandomizeMaskPromptOperator(Operator):
-    bl_idname = "op.randomize_mask_prompt"
-    bl_label = "Randomize"
-    bl_description = "Randomize"
-
-    def execute(self, context):
-        return {"FINISHED"}
-
-
-#
-class QueueOperator(Operator):
-    bl_idname = "op.queue"
-    bl_label = "Open Queue"
-    bl_description = "Open queue"
-
-    def execute(self, context):
         return {"FINISHED"}
 
 
@@ -73,7 +47,48 @@ class CapturePassesOperator(Operator):
     bl_description = "Capture passes"
 
     def execute(self, context):
-        capture_passes()
+        capture_passes(True)
+        return {"FINISHED"}
+
+
+#
+class SingleImageCaptureOperator(Operator):
+    bl_idname = "op.single_image_capture"
+    bl_label = "Single Image Capture"
+    bl_description = "Single image capture"
+
+    def execute(self, context):
+        run_single_image_capture()
+        return {"FINISHED"}
+
+
+#
+class StartSequenceCaptureOperator(Operator):
+    bl_idname = "op.start_sequence_capture"
+    bl_label = "Start Sequence Capture"
+    bl_description = "Start sequence capture"
+
+    @classmethod
+    def poll(cls, context):
+        return not context.scene.render_properties.is_capturing_sequence
+
+    def execute(self, context):
+        start_sequence_capture()
+        return {"FINISHED"}
+
+
+#
+class EndSequenceCaptureOperator(Operator):
+    bl_idname = "op.end_sequence_capture"
+    bl_label = "End Sequence Capture"
+    bl_description = "End sequence capture"
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.render_properties.is_capturing_sequence
+
+    def execute(self, context):
+        end_sequence_capture()
         return {"FINISHED"}
 
 
@@ -116,44 +131,16 @@ class PlaybookTwitterOperator(Operator):
         return {"FINISHED"}
 
 
-#
-class ClearStyleTransferImageOperator(Operator):
-    bl_idname = "op.clear_style_transfer_image"
-    bl_label = ""
-    bl_description = "Clear the file"
-
-    @classmethod
-    def poll(cls, context):
-        return context.scene.style_properties.style_image
-
-    def execute(self, context):
-        context.scene.style_properties.style_image = ""
-        return {"FINISHED"}
-
-
-#
-class ClearRelightImageOperator(Operator):
-    bl_idname = "op.clear_relight_image"
-    bl_label = ""
-    bl_description = "Choose an image from local files"
-
-    def execute(self, context):
-        context.scene.relight_properties.relight_image = ""
-        return {"FINISHED"}
-
-
 classes = [
     LoginOperator,
-    UpgradeOperator,
-    RandomizePromptOperator,
-    RandomizeMaskPromptOperator,
-    QueueOperator,
+    DashboardOperator,
     CapturePassesOperator,
+    SingleImageCaptureOperator,
+    StartSequenceCaptureOperator,
+    EndSequenceCaptureOperator,
     PlaybookWebsiteOperator,
     PlaybookDiscordOperator,
     PlaybookTwitterOperator,
-    ClearStyleTransferImageOperator,
-    ClearRelightImageOperator,
 ]
 
 

@@ -3,72 +3,48 @@ import os
 import math
 import requests
 import uuid
-from dotenv import load_dotenv
-from .. import __package__ as base_package
 
 
-preferences = None
+def does_plugin_error_exists() -> bool:
+    """
+    Checks if there are any errors before attempting to render passes.
+    Returns true if any errors are present.
+    """
+
+    # [error type, condition for error message]
+    workflow_checks = {
+        "APIKEY": bpy.context.preferences.addons.get(
+            "bl_ext.user_default.Playbook"
+        ).preferences.api_key
+        == "",
+    }
+
+    # [error type, error message]
+    error_messages = {
+        "APIKEY": "Missing API key.",
+    }
+
+    for error_key, condition in workflow_checks.items():
+        if condition:
+            bpy.context.scene.error_message = error_messages[error_key]
+            force_ui_redraw()
+            return True
+
+    bpy.context.scene.error_message = ""
+    force_ui_redraw()
+    return False
 
 
-def get_env(key):
-    # Determine the path to the .env file
-    env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
-
-    # Load the .env file
-    load_dotenv(dotenv_path=env_path)
-
-    return os.getenv(key)
-
-
-def get_api_key() -> str:
-    global preferences
-
-    if not preferences:
-        addon = bpy.context.preferences.addons.get(base_package)
-        if addon:
-            preferences = addon.preferences
-        else:
-            print(f"Could not get user preferences!")
-
-    return preferences.api_key
-
-
-#
 def force_ui_redraw():
+    """
+    Forces a manual redraw of Blender's UI.
+    """
+
     for window in bpy.context.window_manager.windows:
         for area in window.screen.areas:
             area.tag_redraw()
 
 
-#
-def is_valid_image_file(filepath: str) -> bool:
-    valid_extensions = {".png", ".jpg", ".jpeg"}
-
-    ext = filepath.lower().rsplit(".", 1)[-1]
-    return f".{ext}" in valid_extensions
-
-
-#
-def get_parent_filepath(filename, folder=""):
-    dir = os.path.dirname(os.path.dirname(__file__))
-
-    if not folder:
-        return os.path.join(dir, filename)
-
-    return os.path.join(dir, folder, filename)
-
-
-#
-def get_filepath(filename, folder=""):
-    dir = os.path.dirname(__file__)
-
-    if not folder:
-        return os.path.join(dir, filename)
-
-    return os.path.join(dir, folder, filename)
-
-
-#
 def get_scaled_resolution_height(width: int):
     final_resolutions = get_final_resolutions()
 
@@ -76,7 +52,6 @@ def get_scaled_resolution_height(width: int):
     return math.ceil(final_resolutions["y"] * resolution_scale)
 
 
-#
 def get_scale_resolution_width(height: int):
     final_resolutions = get_final_resolutions()
 
@@ -84,8 +59,12 @@ def get_scale_resolution_width(height: int):
     return math.ceil(final_resolutions["x"] * resolution_scale)
 
 
-#
 def get_final_resolutions():
+    """
+    Returns the current final resolution of the render camera in
+    Blender.
+    """
+
     render = bpy.context.scene.render
     resolution_x = render.resolution_x
     resolution_y = render.resolution_y
@@ -97,42 +76,11 @@ def get_final_resolutions():
     return {"x": final_resolution_x, "y": final_resolution_y}
 
 
-# Create a new simple RGB material
-def create_rgb_material(name: str, color: tuple) -> bpy.types.Material:
-    mat = bpy.data.materials.new(name=name)
-
-    mat.use_nodes = True
-    nodes = mat.node_tree.nodes
-
-    # Clear the material's nodes
-    for node in nodes:
-        nodes.remove(node)
-
-    rgb_node = nodes.new(type="ShaderNodeRGB")
-    rgb_node.outputs["Color"].default_value = color
-
-    material_output = nodes.new(type="ShaderNodeOutputMaterial")
-
-    # Link the created nodes
-    mat.node_tree.links.new(
-        rgb_node.outputs["Color"], material_output.inputs["Surface"]
-    )
-
-    return mat
-
-
-# Convert a Blender FloatVectorProperty color to a hexadecimal color string
-def color_to_hex(color) -> str:
-    r, g, b, a = [int(c * 255) for c in color]
-
-    # Format the RGBA components into a hex string
-    hex_color = "#{:02X}{:02X}{:02X}{:02X}".format(r, g, b, a)
-
-    return hex_color
-
-
-# Function to download the image from a URL and save it locally
 def download_image(url, save_path):
+    """
+    Download an image from the given URL and save it locally.
+    """
+
     try:
         print(f"URL: {url}")
         response = requests.get(url)
@@ -144,8 +92,11 @@ def download_image(url, save_path):
         print(f"Failed to download the image: {e}")
 
 
-# Function to load the image into Blender
 def load_image_into_blender(file_path):
+    """
+    Load the image from the given file path and load it into Blender.
+    """
+
     if os.path.exists(file_path):
         image = bpy.data.images.load(filepath=file_path)
         print(f"Image loaded into Blender: {image.name}")
@@ -155,15 +106,16 @@ def load_image_into_blender(file_path):
         return None
 
 
-#
 def create_render_filename() -> str:
     uuid_str = str(uuid.uuid4())
 
     return f"Playbook_{uuid_str}.png"
 
 
-#
 def show_message_box(messages, title, icon="INFO"):
+    """
+    Display a message box with the given message and title.
+    """
 
     def draw(self, context):
         for message in messages:

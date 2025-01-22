@@ -1,5 +1,5 @@
 import bpy
-from ..utilities.utilities import get_parent_filepath
+from ..utilities.file_utilities import get_filepath
 
 original_settings = {}
 
@@ -44,7 +44,7 @@ def render_depth_to_file():
     scene = bpy.context.scene
     render = scene.render
 
-    output_path = get_parent_filepath("depth.png", "renders")
+    output_path = get_filepath("renders/depth.png")
     render.filepath = output_path
 
     create_depth_compositing()

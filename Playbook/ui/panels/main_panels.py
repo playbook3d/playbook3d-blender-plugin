@@ -7,21 +7,12 @@ from ..icons import icons
 def draw_main_panel(layout):
     row0 = layout.row()
     row1 = layout.row()
-    row2 = layout.row()
-    row3 = layout.row()
 
     row0.alignment = "CENTER"
     row1.alignment = "CENTER"
-    row2.alignment = "CENTER"
-    row3.alignment = "CENTER"
-
-    row2.scale_y = 0.5
-    row3.scale_y = 0.5
 
     row0.label(text="", icon_value=icons["main"]["playbook_logo_main"].icon_id)
     row1.label(text="Playbook")
-    row2.label(text="Playbook is the best way for 3D artists")
-    row3.label(text="to leverage ComfyUI.")
 
 
 #
@@ -52,12 +43,12 @@ def draw_credentials_panel(context, layout):
 
     row3 = box.row()
     row3.scale_y = 1.8
-    row3.active_default = True
+    row3.active_default = False if user_props.user_email else True
     row3.separator(factor=BOX_PADDING)
     login_text = (
-        f"Logged in as {user_props.user_email}"
+        f"{user_props.user_email}"
         if user_props.user_email
-        else "Enter API key in Preferences"
+        else "Enter API Key In Preferences"
     )
     row3.operator(
         "op.login",
@@ -67,16 +58,10 @@ def draw_credentials_panel(context, layout):
 
     row4 = box.row()
     row4.scale_y = 1.8
+    row4.active_default = True if user_props.user_email else False
     row4.separator(factor=BOX_PADDING)
-    row4.operator("op.upgrade")
+    row4.operator("op.dashboard")
     row4.separator(factor=BOX_PADDING)
-
-    row5 = box.row()
-    row5.alignment = "CENTER"
-    credits_text = (
-        "Unlimited" if user_props.user_credits <= -1 else user_props.user_credits
-    )
-    row5.label(text=f"Credits remaining: {credits_text}")
 
     box.separator(factor=BOX_PADDING)
 

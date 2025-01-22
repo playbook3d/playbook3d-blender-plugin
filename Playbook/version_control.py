@@ -3,7 +3,8 @@ import requests
 import shutil
 import zipfile
 from packaging import version
-from .utilities.utilities import get_env, show_message_box
+from .utilities.utilities import show_message_box
+from .utilities.file_utilities import get_env_value
 
 
 class PlaybookVersionControl:
@@ -13,7 +14,7 @@ class PlaybookVersionControl:
 
     @classmethod
     def check_if_version_up_to_date(cls, current_version):
-        url = get_env("LATEST_VERSION_URL")
+        url = get_env_value("LATEST_VERSION_URL")
         response = requests.get(url)
 
         if response.status_code == 200:
@@ -43,7 +44,7 @@ class PlaybookVersionControl:
 
 
 def download_latest_zip():
-    url = get_env("LATEST_VERSION_ZIP_URL")
+    url = get_env_value("LATEST_VERSION_ZIP_URL")
     download_response = requests.get(url)
 
     if download_response.status_code != 200:

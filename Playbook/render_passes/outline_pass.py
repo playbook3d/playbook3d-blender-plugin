@@ -1,6 +1,6 @@
 import bpy
 import os
-from ..utilities.utilities import get_parent_filepath
+from ..utilities.file_utilities import get_filepath
 
 original_settings = {}
 
@@ -49,7 +49,7 @@ def render_outline_to_file():
     scene = bpy.context.scene
     render = scene.render
 
-    output_path = get_parent_filepath("outline.png", "renders")
+    output_path = get_filepath("renders/outline.png")
     render.filepath = output_path
 
     create_outline_compositing()

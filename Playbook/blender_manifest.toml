@@ -1,9 +1,9 @@
 schema_version = "1.0.0"
 
 id = "Playbook"
-version = "1.0.6"
-name = "Playbook Diffusion Based Renderer"
-tagline = "Playbook is a diffusion based engine for 3D scenes"
+version = "1.1.0"
+name = "Playbook"
+tagline = "Playbook is a generative media platform for teams & studios"
 maintainer = "<support@playbook3d.com>"
 type = "add-on"
 

@@ -2,7 +2,7 @@ import bpy
 from ..objects.objects import visible_objects, mask_objects
 from ..objects.object_properties import ObjectProperties
 from ..objects.object_utilities import mask_rgb_colors
-from ..utilities.utilities import get_parent_filepath
+from ..utilities.file_utilities import get_filepath
 
 original_settings = {}
 
@@ -70,12 +70,24 @@ def reset_mask_settings():
 
 
 #
-def render_mask_to_file():
+def render_mask_as_image():
+    filepath = get_filepath("renders/mask.png")
+    render_to_path(filepath)
+
+
+#
+def render_mask_as_sequence():
+    capture_count = bpy.context.scene.render_properties.capture_count
+    filepath = get_filepath(f"renders/mask_zip/mask_{capture_count:03}.png")
+    render_to_path(filepath)
+
+
+#
+def render_to_path(filepath: str):
     scene = bpy.context.scene
     render = scene.render
 
-    output_path = get_parent_filepath("mask.png", "renders")
-    render.filepath = output_path
+    render.filepath = filepath
 
     create_mask_compositing()
 
@@ -98,17 +110,10 @@ def create_mask_compositing():
 
     nodes.clear()
 
-    preserve_mask = scene.retexture_properties.preserve_texture_mask_index
-
     # Create nodes
     render_layers_node = nodes.new(type="CompositorNodeRLayers")
 
-    # Preserve mask nodes
-    preserve_node = (
-        create_preserve_mask_nodes(nodes, links, render_layers_node, int(preserve_mask))
-        if preserve_mask > 0
-        else None
-    )
+    create_id_mask_nodes(nodes, links, render_layers_node)
 
     mask_nodes = create_idmask_nodes(nodes, links, render_layers_node)
 
@@ -142,15 +147,7 @@ def create_mask_compositing():
 
     # Background links
     links.new(mix_node.outputs["Image"], background_node.inputs[2])
-
-    # Preserve mask links
-    if preserve_node is not None:
-        links.new(background_node.outputs["Image"], preserve_node.inputs[1])
-        links.new(render_layers_node.outputs["Image"], preserve_node.inputs[2])
-        links.new(preserve_node.outputs["Image"], output_node.inputs["Image"])
-
-    else:
-        links.new(background_node.outputs["Image"], output_node.inputs["Image"])
+    links.new(background_node.outputs["Image"], output_node.inputs["Image"])
 
 
 #
@@ -194,16 +191,14 @@ def create_idmask_nodes(nodes, links, render_layers_node):
 
 
 #
-def create_preserve_mask_nodes(nodes, links, render_layers_node, mask_index: int):
-    preserve_idmask_node = nodes.new(type="CompositorNodeIDMask")
-    preserve_idmask_node.index = mask_index
+def create_id_mask_nodes(nodes, links, render_layers_node):
+    idmask_node = nodes.new(type="CompositorNodeIDMask")
+    idmask_node.index = 0
 
     alpha_over_node = nodes.new(type="CompositorNodeAlphaOver")
 
-    links.new(
-        render_layers_node.outputs["IndexOB"], preserve_idmask_node.inputs["ID value"]
-    )
-    links.new(preserve_idmask_node.outputs["Alpha"], alpha_over_node.inputs["Fac"])
+    links.new(render_layers_node.outputs["IndexOB"], idmask_node.inputs["ID value"])
+    links.new(idmask_node.outputs["Alpha"], alpha_over_node.inputs["Fac"])
 
     return alpha_over_node
 
@@ -261,14 +256,17 @@ def reset_object_properties():
 
 
 #
-def render_mask_pass():
+def render_mask_pass(is_image: bool):
     save_mask_settings()
     save_object_properties()
 
     set_mask_settings()
     set_object_indeces()
 
-    render_mask_to_file()
+    if is_image:
+        render_mask_as_image()
+    else:
+        render_mask_as_sequence()
 
     reset_mask_settings()
     reset_object_properties()
