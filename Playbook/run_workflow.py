@@ -36,14 +36,11 @@ def run_workflow():
         workflow_id = bpy.context.scene.user_properties.user_workflows_dropdown
         url = url + f"/{get_team_id_of_workflow(workflow_id)}"
 
-        print(f"Workflow URL: {url}")
-        print(f"Workflow ID: {workflow_id}")
-
         body = json.dumps({"id": workflow_id, "origin": 1, "inputs": {}})
 
         headers = {
             "Authorization": f"Bearer {access_token}",
-            "X-API-KEY": get_env_value("BLENDER_X_API_KEY"),
+            "X-API-KEY": get_env_value("X_API_KEY"),
         }
 
         response = requests.post(url=url, headers=headers, data=body)

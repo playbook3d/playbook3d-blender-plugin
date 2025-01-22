@@ -34,7 +34,7 @@ def get_user_info():
 
         headers = {
             "Authorization": f"Bearer {access_token}",
-            "X-API-KEY": get_env_value("BLENDER_X_API_KEY"),
+            "X-API-KEY": get_env_value("X_API_KEY"),
         }
         teams_response = requests.get(url=teams_url, headers=headers)
         teams_response = json.loads(teams_response.text)
