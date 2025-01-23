@@ -12,7 +12,7 @@ class DocumentationOperator(Operator):
 
     url: StringProperty(
         name="",
-        default="https://playbook3d.notion.site/Blender-Plugin-coming-soon-115471267f0d8068b0fecdbebdbd0ad5",
+        default="https://docs.playbook3d.com/platform/integrations/blender",
     )
 
     def execute(self, context):

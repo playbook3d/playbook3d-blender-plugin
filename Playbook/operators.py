@@ -1,11 +1,11 @@
 import bpy
 import webbrowser
-import functools
 from .objects.objects import mask_objects
 from .capture_passes import capture_passes
+from .properties.user_properties import update_user_properties
 from .run_workflow import run_single_image_capture
-from .task_queue import add
 from .sequence_capture import start_sequence_capture, end_sequence_capture
+from .utilities.network_utilities import get_user_info
 from bpy.props import StringProperty
 from bpy.types import Operator
 from bpy.utils import register_class, unregister_class
@@ -25,6 +25,24 @@ class LoginOperator(Operator):
         bpy.ops.preferences.addon_show(module=__package__)
 
         return {"FINISHED"}
+
+
+#
+class RefreshUserOperator(Operator):
+    bl_idname = "op.refresh"
+    bl_label = "Refresh"
+    bl_description = "Refresh your teams and workflows."
+
+    def execute(self, context):
+        user_info = get_user_info()
+
+        if user_info is not None:
+            update_user_properties(
+                user_info["email"], user_info["teams"], user_info["workflows"]
+            )
+            return {"FINISHED"}
+
+        return {"CANCELLED"}
 
 
 #
@@ -133,6 +151,7 @@ class PlaybookTwitterOperator(Operator):
 
 classes = [
     LoginOperator,
+    RefreshUserOperator,
     DashboardOperator,
     CapturePassesOperator,
     SingleImageCaptureOperator,
