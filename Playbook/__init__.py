@@ -3,7 +3,7 @@ bl_info = {
     "description": "Playbook is a generative media platform for teams & studios.",
     "author": "Playbook",
     "location": "Properties > Render > Playbook",
-    "version": (1, 1, 0),
+    "version": (1, 1, 1),
     "blender": (4, 2, 0),
     "category": "Render",
 }
