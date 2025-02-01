@@ -37,6 +37,12 @@ def start_sequence_capture():
     create_folder("renders", "beauty_zip")
     create_folder("renders", "mask_zip")
 
+    bpy.context.scene.frame_start = 1
+    bpy.context.scene.frame_end = max_frames
+    bpy.context.scene.frame_current = 1
+
+    bpy.ops.screen.animation_play()
+
     bpy.app.timers.register(render_sequence_pass, first_interval=time_interval)
 
 
@@ -47,6 +53,8 @@ def end_sequence_capture():
     """
 
     print("Ending sequence capture")
+
+    bpy.ops.screen.animation_cancel(restore_frame=True)
 
     bpy.context.scene.render_properties.is_capturing_sequence = False
 
@@ -79,6 +87,7 @@ def render_sequence_pass():
 
     # At maximum capture count
     if properties.capture_count >= max_frames:
+        end_sequence_capture()
         return None
 
     # Continue capturing
