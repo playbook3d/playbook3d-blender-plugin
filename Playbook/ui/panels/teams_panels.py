@@ -32,6 +32,12 @@ def draw_teams_panel(context, layout):
     workflows_row.prop(user_properties, "user_workflows_dropdown")
     workflows_row.separator(factor=BOX_PADDING)
 
+    refresh_row = box.row()
+    refresh_row.scale_y = 1.25
+    refresh_row.separator(factor=BOX_PADDING)
+    refresh_row.operator("op.refresh")
+    refresh_row.separator(factor=BOX_PADDING)
+
     box.separator(factor=BOX_PADDING)
 
 

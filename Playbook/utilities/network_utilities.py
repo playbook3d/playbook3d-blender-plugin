@@ -91,6 +91,15 @@ def get_api_key() -> str:
     return preferences.api_key
 
 
+def get_run_id() -> str:
+    """ """
+
+    run_id_url = "https://api.playbook3d.com/get_run_id"
+    request = requests.get(run_id_url)
+
+    return request.json()["run_id"]
+
+
 def decode_jwt(token: str):
     base64_url = token.split(".")[1]
     base64_str = base64_url.replace("-", "+").replace("_", "/")
