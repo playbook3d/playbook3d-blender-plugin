@@ -2,6 +2,7 @@ import bpy
 from .render_passes.render_passes import render_passes
 from .run_workflow import run_workflow
 from .upload_files import upload_sequence_capture_files
+from .utilities.network_utilities import get_run_id
 from .utilities.utilities import does_plugin_error_exists
 from .utilities.file_utilities import (
     clear_folder_contents,
@@ -55,10 +56,12 @@ def end_sequence_capture():
     zip_folder(beauty_folder)
     zip_folder(mask_folder)
 
-    run_id = run_workflow()
+    run_id = get_run_id()
 
     # Send zips to server
     upload_sequence_capture_files(run_id)
+
+    run_workflow(run_id)
 
 
 #
