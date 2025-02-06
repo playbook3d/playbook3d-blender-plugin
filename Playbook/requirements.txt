@@ -1,4 +1,3 @@
-comfydeploy
 python-dotenv
 python-socketio
 packaging
