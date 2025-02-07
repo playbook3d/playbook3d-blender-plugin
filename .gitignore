@@ -1,3 +1,4 @@
 .idea/
 .DS_Store
 Playbook/.env
+*__pycache__
