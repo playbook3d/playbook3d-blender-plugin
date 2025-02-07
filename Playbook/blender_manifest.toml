@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "Playbook"
-version = "1.1.1"
+version = "1.1.2"
 name = "Playbook"
 tagline = "Playbook is a generative media platform for teams & studios"
 maintainer = "<support@playbook3d.com>"
