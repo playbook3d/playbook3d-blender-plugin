@@ -12,7 +12,7 @@ from ..objects.visible_objects import set_visible_objects
 from ..objects.objects import visible_objects, mask_objects
 from .lists.lists import MaskObjectListItem
 
-NUM_MASKS_ALLOWED = 7
+NUM_MASKS_ALLOWED = 3
 
 
 #

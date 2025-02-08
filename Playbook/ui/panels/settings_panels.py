@@ -32,8 +32,8 @@ def draw_checkbox_layout(scene, box):
     checkbox_col.separator(factor=BOX_PADDING)
     checkbox_col.prop(render_properties, "beauty_pass_checkbox")
     checkbox_col.prop(render_properties, "mask_pass_checkbox")
-    checkbox_col.prop(render_properties, "outline_pass_checkbox")
-    checkbox_col.prop(render_properties, "normal_pass_checkbox")
+    # checkbox_col.prop(render_properties, "outline_pass_checkbox")
+    # checkbox_col.prop(render_properties, "normal_pass_checkbox")
     checkbox_col.separator(factor=BOX_PADDING)
 
     checkbox_row.separator(factor=BOX_PADDING)

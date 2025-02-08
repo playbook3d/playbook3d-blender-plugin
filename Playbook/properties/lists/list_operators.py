@@ -4,7 +4,7 @@ from bpy.types import Operator
 from ...objects.visible_objects import visible_objects, allowed_obj_types
 from ...objects.objects import mask_objects
 
-MAX_MASKS = 7
+MAX_MASKS = 3
 
 
 #
