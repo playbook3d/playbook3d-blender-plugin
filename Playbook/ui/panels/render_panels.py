@@ -12,11 +12,11 @@ def draw_render_panel(context, layout):
     render_properties = context.scene.render_properties
     scene = context.scene
 
-    row0 = box.row()
-    row0.scale_y = 1.75
-    row0.separator(factor=BOX_PADDING)
-    row0.operator("op.capture_passes")
-    row0.separator(factor=BOX_PADDING)
+    # row0 = box.row()
+    # row0.scale_y = 1.75
+    # row0.separator(factor=BOX_PADDING)
+    # row0.operator("op.capture_passes")
+    # row0.separator(factor=BOX_PADDING)
 
     row1 = box.row()
     row1.scale_y = 1.75

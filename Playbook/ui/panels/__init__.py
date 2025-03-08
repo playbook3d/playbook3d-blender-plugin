@@ -3,7 +3,7 @@ from bpy.props import BoolProperty
 from bpy.types import Scene
 from .main_panels import *
 from .teams_panels import *
-from .settings_panels import *
+# from .settings_panels import *
 from .render_panels import *
 from .misc_panels import *
 from . import panel_operators
@@ -15,14 +15,14 @@ classes = [
     CredentialsPanelRender,
     TeamsPanel3D,
     TeamsPanelRender,
-    AdvancedSettingsPanel3D,
-    AdvancedSettingsPanelRender,
     RenderPanel3D,
     RenderPanelRender,
     LinksPanel3D,
     LinksPanelRender,
 ]
 
+# AdvancedSettingsPanel3D,
+#     AdvancedSettingsPanelRender,
 
 def register():
     global classes

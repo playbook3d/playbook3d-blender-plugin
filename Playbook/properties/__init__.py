@@ -7,9 +7,9 @@ from . import lists
 
 
 def register():
-    lists.register()
+    # lists.register()
     user_properties.register()
-    mask_properties.register()
+    # mask_properties.register()
     render_properties.register()
 
     Scene.error_message = StringProperty(default="")
@@ -18,9 +18,9 @@ def register():
 
 
 def unregister():
-    lists.unregister()
+    # lists.unregister()
     user_properties.unregister()
-    mask_properties.unregister()
+    # mask_properties.unregister()
     render_properties.unregister()
 
     del Scene.error_message

@@ -20,7 +20,7 @@ class MaskListAddItem(Operator):
 
     @classmethod
     def poll(cls, context):
-        return len(context.scene.mask_list) < 7
+        return len(context.scene.mask_list) < MAX_MASKS
 
     def execute(self, context):
         mask_len = len(context.scene.mask_list)

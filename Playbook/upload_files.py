@@ -17,25 +17,26 @@ def upload_single_capture_files(run_id: str):
     if upload_urls:
         render_properties = bpy.context.scene.render_properties
 
-        if render_properties.beauty_pass_checkbox:
-            beauty_path = get_filepath("renders/beauty.png")
-            beauty_url = upload_urls["beauty"]
-            upload_file(beauty_url, beauty_path, True)
+        # if render_properties.beauty_pass_checkbox:
+        # Always render beauty pass
+        beauty_path = get_filepath("renders/beauty.png")
+        beauty_url = upload_urls["beauty"]
+        upload_file(beauty_url, beauty_path, True)
 
-        if render_properties.normal_pass_checkbox:
-            normal_path = get_filepath("renders/normal.png")
-            normal_url = upload_urls["normal"]
-            upload_file(normal_url, normal_path, True)
+        # if render_properties.normal_pass_checkbox:
+        #     normal_path = get_filepath("renders/normal.png")
+        #     normal_url = upload_urls["normal"]
+        #     upload_file(normal_url, normal_path, True)
 
-        if render_properties.mask_pass_checkbox:
-            mask_path = get_filepath("renders/mask.png")
-            mask_url = upload_urls["mask"]
-            upload_file(mask_url, mask_path, True)
+        # if render_properties.mask_pass_checkbox:
+        #     mask_path = get_filepath("renders/mask.png")
+        #     mask_url = upload_urls["mask"]
+        #     upload_file(mask_url, mask_path, True)
 
-        if render_properties.outline_pass_checkbox:
-            outline_path = get_filepath("renders/outline.png")
-            outline_url = upload_urls["outline"]
-            upload_file(outline_url, outline_path, True)
+        # if render_properties.outline_pass_checkbox:
+        #     outline_path = get_filepath("renders/outline.png")
+        #     outline_url = upload_urls["outline"]
+        #     upload_file(outline_url, outline_path, True)
 
 
 def upload_sequence_capture_files(run_id: str):
@@ -48,15 +49,16 @@ def upload_sequence_capture_files(run_id: str):
     if upload_urls:
         render_properties = bpy.context.scene.render_properties
 
-        if render_properties.beauty_pass_checkbox:
-            beauty_path = get_filepath("renders/beauty_zip.zip")
-            beauty_url = upload_urls["beauty_zip"]
-            upload_file(beauty_url, beauty_path, False)
+        # if render_properties.beauty_pass_checkbox:
+        # Always render beauty pass
+        beauty_path = get_filepath("renders/beauty_zip.zip")
+        beauty_url = upload_urls["beauty_zip"]
+        upload_file(beauty_url, beauty_path, False)
 
-        if render_properties.mask_pass_checkbox:
-            mask_path = get_filepath("renders/mask_zip.zip")
-            mask_url = upload_urls["mask_zip"]
-            upload_file(mask_url, mask_path, False)
+        # if render_properties.mask_pass_checkbox:
+        #     mask_path = get_filepath("renders/mask_zip.zip")
+        #     mask_url = upload_urls["mask_zip"]
+        #     upload_file(mask_url, mask_path, False)
 
 
 #
