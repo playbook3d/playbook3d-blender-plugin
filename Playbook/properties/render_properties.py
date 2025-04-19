@@ -6,10 +6,11 @@ from bpy.utils import register_class, unregister_class
 
 #
 class RenderProperties(PropertyGroup):
-    # beauty_pass_checkbox: BoolProperty(name="Beauty Pass", default=True)
-    # mask_pass_checkbox: BoolProperty(name="Mask Pass", default=True)
-    # outline_pass_checkbox: BoolProperty(name="Outline Pass", default=False)
-    # normal_pass_checkbox: BoolProperty(name="Normal Pass", default=False)
+    beauty_pass_checkbox: BoolProperty(name="Beauty Pass", default=True)
+    mask_pass_checkbox: BoolProperty(name="Mask Pass", default=True)
+    depth_pass_checkbox: BoolProperty(name="Depth Pass (Experimental)", default=False)
+    outline_pass_checkbox: BoolProperty(name="Outline Pass (Experimental)", default=False)
+    # normal_pass_checkbox: BoolProperty(name="Normal Pass", default=True)
 
     # Sequence Capture
     is_capturing_sequence: BoolProperty(name="", default=False)

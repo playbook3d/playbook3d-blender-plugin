@@ -36,6 +36,7 @@ def start_sequence_capture():
 
     create_folder("renders", "beauty_zip")
     create_folder("renders", "mask_zip")
+    create_folder("renders", "depth_zip")
 
     bpy.context.scene.frame_start = 1
     bpy.context.scene.frame_end = max_frames
@@ -60,13 +61,16 @@ def end_sequence_capture():
 
     # Zip sequence capture folders
     beauty_folder = get_filepath("renders/beauty_zip")
+    depth_folder = get_filepath("renders/depth_zip")
     mask_folder = get_filepath("renders/mask_zip")
     zip_folder(beauty_folder)
+    zip_folder(depth_folder)
     zip_folder(mask_folder)
+
+    # Run Playbook workflow
 
     run_id = get_run_id()
 
-    # Send zips to server
     upload_sequence_capture_files(run_id)
 
     run_workflow(run_id)

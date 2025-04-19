@@ -4,15 +4,13 @@ from bpy.types import Operator
 from ...objects.visible_objects import visible_objects, allowed_obj_types
 from ...objects.objects import mask_objects
 
-MAX_MASKS = 7
+MAX_MASKS = 3
 
 
-#
 def is_object_part_of_a_mask(obj_name: str):
     return any(obj_name in obj_list for obj_list in mask_objects.values())
 
 
-# Add a mask to the mask list
 class MaskListAddItem(Operator):
     bl_idname = "list.add_mask_item"
     bl_label = ""
@@ -20,24 +18,19 @@ class MaskListAddItem(Operator):
 
     @classmethod
     def poll(cls, context):
-        return len(context.scene.mask_list) < MAX_MASKS
+        return len(context.scene.mask_list) < 7
 
     def execute(self, context):
         mask_len = len(context.scene.mask_list)
-
-        # Reached max number of masks
         if mask_len == MAX_MASKS:
             return {"CANCELLED"}
 
         item = context.scene.mask_list.add()
         item.name = f"Mask {mask_len + 1}"
-
         context.scene.mask_list_index = len(context.scene.mask_list) - 1
-
         return {"FINISHED"}
 
 
-# Remove the last mask from the mask list
 class MaskListRemoveItem(Operator):
     bl_idname = "list.remove_mask_item"
     bl_label = ""
@@ -45,24 +38,54 @@ class MaskListRemoveItem(Operator):
 
     @classmethod
     def poll(cls, context):
-        # At least one mask has to be present
         return len(context.scene.mask_list) > 1
 
     def execute(self, context):
-        mask_list = context.scene.mask_list
+        scene = context.scene
+        mask_list = scene.mask_list
+        index = scene.mask_list_index
 
-        mask_list.remove(context.scene.mask_list_index)
+        if index >= len(mask_list):
+            return {"CANCELLED"}
 
-        if len(mask_list) > 0:
-            context.scene.mask_list_index = 0
-        else:
-            context.scene.mask_list_index = -1
+        mask_key = f"MASK{index + 1}"
+        fallback_key = "MASK1"
+        fallback_index = 0  # MASK8 is the 8th slot
+        fallback_props = getattr(scene, f"mask_properties{fallback_index + 1}")
+
+        if fallback_key not in mask_objects:
+            mask_objects[fallback_key] = []
+
+        # Move all objects from the deleted mask into MASK8
+        for obj_name in mask_objects.get(mask_key, []):
+            # Remove from all masks just in case of bad state
+            for key, obj_list in mask_objects.items():
+                if obj_name in obj_list:
+                    obj_list.remove(obj_name)
+
+                    # Also remove from UI collection
+                    props = getattr(scene, f"mask_properties{int(key[-1])}")  # parse MASK#
+                    for i, item in enumerate(props.mask_objects):
+                        if item.name == obj_name:
+                            props.mask_objects.remove(i)
+                            break
+
+            # Add to fallback if not already there
+            if obj_name not in mask_objects[fallback_key]:
+                item = fallback_props.mask_objects.add()
+                item.name = obj_name
+                mask_objects[fallback_key].append(obj_name)
+
+        # Clear the deleted mask data
+        mask_objects[mask_key].clear()
+
+        # Remove from UI list
+        mask_list.remove(index)
+        scene.mask_list_index = 0 if len(mask_list) > 0 else -1
 
         return {"FINISHED"}
 
 
-# Add the currently selected object (in the viewport) to the
-# currently selected mask
 class MaskObjectListAddItem(Operator):
     bl_idname = "list.add_mask_object_item"
     bl_label = ""
@@ -71,27 +94,17 @@ class MaskObjectListAddItem(Operator):
     @classmethod
     def poll(cls, context):
         selected_objects = [obj for obj in context.selected_objects]
-
         if selected_objects:
             for obj in selected_objects:
-
                 if obj.type not in allowed_obj_types:
                     continue
-
-                # Object is already part of a mask
                 if is_object_part_of_a_mask(obj.name):
                     continue
-
-                # At least one object can be added
                 return True
-
-            # No object can be added
             return False
 
         mask_index = context.scene.mask_list_index
         mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
-
-        # No object selected in the object dropdown
         return mask.object_dropdown != "NONE"
 
     def execute(self, context):
@@ -99,45 +112,32 @@ class MaskObjectListAddItem(Operator):
         mask = getattr(context.scene, f"mask_properties{mask_index + 1}")
 
         selected_objects = [obj for obj in context.selected_objects]
-        # There exists at least one selected object
         if selected_objects:
-            # At least one selected object was added to the mask
             if self.add_selected_objects(mask, mask_index, selected_objects):
                 return {"FINISHED"}
 
-        # No object selected in the object dropdown
         if mask.object_dropdown == "NONE":
             return {"CANCELLED"}
-
         elif mask.object_dropdown == "ADDALL":
             self.add_all_objects(mask, mask_index)
             mask.object_dropdown = "NONE"
             return {"FINISHED"}
-
         elif mask.object_dropdown == "BACKGROUND":
             obj_name = "Background"
-
         else:
             obj_name = mask.object_dropdown
 
-        # Add object from dropdown
         item = mask.mask_objects.add()
         item.name = obj_name
         mask_objects[f"MASK{mask_index + 1}"].append(item.name)
-
         mask.object_dropdown = "NONE"
-
         return {"FINISHED"}
 
-    # Add all addable selected objects in the scene
-    def add_selected_objects(self, mask, mask_index, selected_objects) -> False:
+    def add_selected_objects(self, mask, mask_index, selected_objects) -> bool:
         addable_object = []
-
         for obj in selected_objects:
-            if obj.type in allowed_obj_types:
-                # The currently selected item is not part of any list
-                if not is_object_part_of_a_mask(obj.name):
-                    addable_object.append(obj.name)
+            if obj.type in allowed_obj_types and not is_object_part_of_a_mask(obj.name):
+                addable_object.append(obj.name)
 
         if not addable_object:
             return False
@@ -146,10 +146,8 @@ class MaskObjectListAddItem(Operator):
             added = mask.mask_objects.add()
             added.name = addable
             mask_objects[f"MASK{mask_index + 1}"].append(addable)
-
         return True
 
-    # Add all available objects in the scene
     def add_all_objects(self, mask, mask_index):
         for obj in visible_objects:
             if not is_object_part_of_a_mask(obj.name):
@@ -158,8 +156,6 @@ class MaskObjectListAddItem(Operator):
                 mask_objects[f"MASK{mask_index + 1}"].append(added.name)
 
 
-# Remove the currently selected index in the list from the
-# currently selected mask
 class MaskObjectListRemoveItem(Operator):
     bl_idname = "list.remove_mask_object_item"
     bl_label = ""
@@ -181,20 +177,15 @@ class MaskObjectListRemoveItem(Operator):
         index = (
             mask.object_list_index
             if mask.object_list_index != -1
-            # If no object list index is selected but items exists in the list
-            # delete the last object
             else len(mask.mask_objects) - 1
         )
 
         mask.mask_objects.remove(index)
         mask_objects[f"MASK{mask_index + 1}"].pop(index)
-
         mask.object_list_index = 0 if mask.mask_objects else -1
-
         return {"FINISHED"}
 
 
-# Clear all the objects from the currently selected mask
 class MaskObjectListClearItems(Operator):
     bl_idname = "list.clear_mask_object_list"
     bl_label = ""
@@ -212,9 +203,7 @@ class MaskObjectListClearItems(Operator):
 
         mask.mask_objects.clear()
         mask_objects[f"MASK{mask_index + 1}"].clear()
-
         mask.object_list_index = -1
-
         return {"FINISHED"}
 
 

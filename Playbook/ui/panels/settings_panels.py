@@ -33,7 +33,8 @@ def draw_checkbox_layout(scene, box):
     checkbox_col.prop(render_properties, "beauty_pass_checkbox")
     checkbox_col.prop(render_properties, "mask_pass_checkbox")
     checkbox_col.prop(render_properties, "outline_pass_checkbox")
-    checkbox_col.prop(render_properties, "normal_pass_checkbox")
+    # checkbox_col.prop(render_properties, "normal_pass_checkbox")
+    checkbox_col.prop(render_properties, "depth_pass_checkbox")
     checkbox_col.separator(factor=BOX_PADDING)
 
     checkbox_row.separator(factor=BOX_PADDING)
@@ -60,12 +61,6 @@ def draw_mask_layout(scene, box):
         sort_lock=True,
     )
     list_row.separator(factor=BOX_PADDING)
-
-    rename_row = box.row()
-    rename_row.separator(factor=BOX_PADDING)
-    rename_row.label(text="Rename Mask")
-    rename_row.prop(property, "mask_name")
-    rename_row.separator(factor=BOX_PADDING)
 
     list_row = box.row()
     list_row.scale_y = 1.25

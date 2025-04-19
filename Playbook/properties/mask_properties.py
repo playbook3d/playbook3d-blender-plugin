@@ -12,7 +12,7 @@ from ..objects.visible_objects import set_visible_objects
 from ..objects.objects import visible_objects, mask_objects
 from .lists.lists import MaskObjectListItem
 
-NUM_MASKS_ALLOWED = 7
+NUM_MASKS_ALLOWED = 3
 
 
 #
@@ -95,3 +95,10 @@ def unregister():
 
     for i in range(NUM_MASKS_ALLOWED):
         delattr(Scene, f"mask_properties{i + 1}")
+
+
+def get_slot_for_object(obj):
+    slot = obj.get('mask_slot')
+    if not slot:
+        obj['mask_slot'] = 'SLOT_1'  # fallback to default slot
+    return obj['mask_slot']

@@ -48,17 +48,23 @@ def error_exists_in_render_passes():
 #
 def render_passes(is_image: bool):
     set_render_layers()
-
     save_render_settings()
     set_render_settings()
 
     # Render all required passes
     render_selected_passes(is_image)
 
-    # Clean up renders
-    bpy.data.images.remove(bpy.data.images["Render Result"])
-    bpy.context.scene.node_tree.nodes.clear()
+    # Safe cleanup of Render Result
+    img = bpy.data.images.get("Render Result")
+    if img and img.users == 0:
+        bpy.data.images.remove(img)
+        print("🧹 Cleaned up 'Render Result'")
+    elif img:
+        print(f"ℹ️ 'Render Result' in use, users={img.users}")
+    else:
+        print("ℹ️ No 'Render Result' image to remove")
 
+    bpy.context.scene.node_tree.nodes.clear()
     reset_render_settings()
 
 
@@ -126,17 +132,22 @@ def reset_render_settings():
 def render_selected_passes(is_image: bool):
     render_properties = bpy.context.scene.render_properties
 
-    #if render_properties.beauty_pass_checkbox:
-        # Render unmodified image
-    render_beauty_pass(is_image)
+    # Beauty pass
+    if render_properties.beauty_pass_checkbox:
+        render_beauty_pass(is_image)
+
+    # Depth pass
+    if render_properties.depth_pass_checkbox and is_image:
+        render_depth_pass()
+
+    # Mask image
+    if render_properties.mask_pass_checkbox:
+        render_mask_pass(is_image)
+
+    # Normal pass
     # if render_properties.normal_pass_checkbox and is_image:
-    #     # Render normal image
     #     render_normal_pass()
-    # if render_properties.mask_pass_checkbox:
-    #     # Render mask image
-    #     render_mask_pass(is_image)
-    # Render depth image
-    # render_depth_pass()
-    # if render_properties.outline_pass_checkbox and is_image:
-    #     # Render outline image
-    #     render_outline_pass()
+
+    # Outline pass
+    if render_properties.outline_pass_checkbox and is_image:
+        render_outline_pass()

@@ -20,6 +20,8 @@ def run_single_image_capture():
 
     capture_passes(False)
 
+    # Run Playbook workflow
+
     run_id = get_run_id()
 
     upload_single_capture_files(run_id)
