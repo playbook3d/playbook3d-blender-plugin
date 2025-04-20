@@ -58,7 +58,7 @@ def set_mask_settings():
     scene.view_settings.use_curve_mapping = False
     scene.render.film_transparent = True
     scene.render.image_settings.color_mode = "RGBA"
-    scene.render.image_settings.color_depth = "8"
+    scene.render.image_settings.color_depth = "16"
 
 def reset_mask_settings():
     scene = bpy.context.scene
