@@ -72,8 +72,8 @@ class CapturePassesOperator(Operator):
 #
 class SingleImageCaptureOperator(Operator):
     bl_idname = "op.single_image_capture"
-    bl_label = "Single Image Capture"
-    bl_description = "Single image capture"
+    bl_label = "Capture"
+    bl_description = "Frame capture"
 
     def execute(self, context):
         run_single_image_capture()

@@ -1,4 +1,3 @@
-
 import bpy
 from ..objects.objects import visible_objects, mask_objects
 from ..objects.object_properties import ObjectProperties
@@ -8,6 +7,16 @@ from ..properties.mask_properties import get_slot_for_object
 
 original_settings = {}
 original_object_properties = {}
+
+def safe_visible_objects():
+    results = []
+    for obj in visible_objects:
+        try:
+            if obj and obj.name in bpy.data.objects:
+                results.append(obj)
+        except ReferenceError:
+            continue
+    return results
 
 def get_mask_materials():
     materials = {}
@@ -29,7 +38,7 @@ def save_mask_settings():
     original_settings.clear()
     original_settings.update({
         "render_engine": scene.render.engine,
-        "object_index": bpy.context.window.view_layer.use_pass_object_index,
+        "object_index": bpy.context.view_layer.use_pass_object_index,
         "display_device": scene.display_settings.display_device,
         "view_transform": scene.view_settings.view_transform,
         "look": scene.view_settings.look,
@@ -48,7 +57,7 @@ def set_mask_settings():
     scene.render.engine = "CYCLES"
     scene.cycles.samples = 1
     scene.render.image_settings.file_format = 'PNG'
-    bpy.context.window.view_layer.use_pass_object_index = True
+    bpy.context.view_layer.use_pass_object_index = True
     scene.display_settings.display_device = "sRGB"
     scene.view_settings.view_transform = "Standard"
     scene.view_settings.look = "None"
@@ -64,7 +73,7 @@ def reset_mask_settings():
     scene = bpy.context.scene
     for k, v in original_settings.items():
         if k == "object_index":
-            bpy.context.window.view_layer.use_pass_object_index = v
+            bpy.context.view_layer.use_pass_object_index = v
         elif hasattr(scene.render, k):
             setattr(scene.render, k, v)
         elif hasattr(scene.view_settings, k):
@@ -73,7 +82,6 @@ def reset_mask_settings():
             setattr(scene.display_settings, k, v)
         elif k == "sequencer":
             scene.sequencer_colorspace_settings.name = v
-    scene = bpy.context.scene
     scene.render.engine = original_settings["render_engine"]
     scene.render.image_settings.color_mode = original_settings["color_mode"]
     scene.render.image_settings.file_format = original_settings["file_format"]
@@ -145,10 +153,7 @@ def save_object_properties():
     original_object_properties.clear()
     mats = get_mask_materials()
 
-    for obj in visible_objects:
-        # ✅ Safety check: make sure the object still exists and is valid
-        if not obj or obj.name not in bpy.data.objects:
-            continue
+    for obj in safe_visible_objects():
         try:
             original_object_properties[obj.name] = ObjectProperties(obj.visible_shadow, obj.pass_index)
             obj.visible_shadow = False
@@ -184,7 +189,7 @@ def set_object_indeces():
 
 def reset_object_properties():
     mats = get_mask_materials()
-    for obj in visible_objects:
+    for obj in safe_visible_objects():
         props = original_object_properties.get(obj.name)
         if props:
             obj.visible_shadow = props.visible_shadow

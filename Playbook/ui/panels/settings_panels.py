@@ -66,7 +66,7 @@ def draw_mask_layout(scene, box):
     list_row.scale_y = 1.25
     list_row.separator(factor=BOX_PADDING)
     list_row.operator("list.add_mask_item", text="Add")
-    list_row.operator("list.remove_mask_item", text="Remove")
+    # list_row.operator("list.remove_mask_item", text="Remove")
     list_row.separator(factor=BOX_PADDING)
 
     # Objects in mask list

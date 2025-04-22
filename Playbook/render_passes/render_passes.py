@@ -6,6 +6,8 @@ from .outline_pass import render_outline_pass
 from .normal_pass import render_normal_pass
 from ..objects.visible_objects import set_visible_objects
 from ..objects.objects import visible_objects
+from ..utilities.file_utilities import get_filepath
+import os
 
 original_render_engine = ""
 original_settings = {}
@@ -128,26 +130,35 @@ def reset_render_settings():
         scene.render.resolution_percentage = original_settings["resolution"]
         scene.eevee.taa_render_samples = original_render_engine["render_samples"]
 
-
 def render_selected_passes(is_image: bool):
-    render_properties = bpy.context.scene.render_properties
+    scene = bpy.context.scene
+    render_props = scene.render_properties
 
-    # Beauty pass
-    if render_properties.beauty_pass_checkbox:
-        render_beauty_pass(is_image)
+    print("🖼️ Running selected passes...")
 
-    # Depth pass
-    if render_properties.depth_pass_checkbox and is_image:
+    # Always render beauty
+    print("🎨 Rendering beauty pass...")
+    render_beauty_pass(is_image)
+
+    # Optional mask pass
+    if render_props.mask_pass_checkbox:
+        print("🎭 Rendering mask pass...")
+        render_mask_pass(is_image)
+    else:
+        # ✅ If mask not selected, ensure mask.png is deleted
+        mask_path = get_filepath("renders/mask.png")
+        if os.path.exists(mask_path):
+            os.remove(mask_path)
+            print("🗑️ Removed unused mask pass output.")
+
+    # Optional depth
+    if render_props.depth_pass_checkbox and is_image:
+        print("🌊 Rendering depth pass...")
         render_depth_pass()
 
-    # Mask image
-    if render_properties.mask_pass_checkbox:
-        render_mask_pass(is_image)
-
-    # Normal pass
-    # if render_properties.normal_pass_checkbox and is_image:
-    #     render_normal_pass()
-
-    # Outline pass
-    if render_properties.outline_pass_checkbox and is_image:
+    # Optional outline
+    if render_props.outline_pass_checkbox and is_image:
+        print("🖊️ Rendering outline pass...")
         render_outline_pass()
+
+    print("✅ All selected passes rendered.")
