@@ -10,7 +10,7 @@ bl_info = {
 
 import bpy
 import os
-import toml
+from .toml_compat import toml
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty
 from bpy.app.handlers import persistent
@@ -135,7 +135,7 @@ def register():
 
     # Version check
     toml_path = os.path.join(os.path.dirname(__file__), "blender_manifest.toml")
-    with open(toml_path, "r") as blender_info:
+    with open(toml_path, "rb") as blender_info:
         version = toml.load(blender_info)["version"]
         PlaybookVersionControl.check_if_version_up_to_date(
             tuple(map(int, version.split(".")))
